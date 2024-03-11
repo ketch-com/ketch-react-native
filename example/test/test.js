@@ -18,6 +18,30 @@ const wdOpts = {
   capabilities,
 };
 
+async function runTest() {
+  const driver = await remote(wdOpts);
+  try {
+    console.log(await driver.getPageSource());
+    console.log(
+      await driver
+        .$(
+          '//android.widget.TextView[@text="Edit App.tsx! to change this screen and then come back to see your edits."]',
+        )
+        .isDisplayed(),
+    );
+    console.log(
+      await driver
+        .$('//android.view.ViewGroup[@resource-id="appium-test"]')
+        .isDisplayed(),
+    );
+  } finally {
+    await driver.pause(1000);
+    await driver.deleteSession();
+  }
+}
+
+runTest().catch(console.error);
+
 // describe('Android tests', () => {
 //   let driver;
 
@@ -45,21 +69,6 @@ const wdOpts = {
 //     expect('abc').toBe('abc');
 //   });
 // });
-
-async function runTest() {
-  const driver = await remote(wdOpts);
-  try {
-    console.log(await driver.getPageSource());
-    console.log(await driver.$('id:appium-test'));
-    // const batteryItem = await driver.$('//*[@text="Battery"]');
-    // await batteryItem.click();
-  } finally {
-    await driver.pause(1000);
-    await driver.deleteSession();
-  }
-}
-
-runTest().catch(console.error);
 
 // async function runTest() {
 //   const driver = await remote(wdOpts);
