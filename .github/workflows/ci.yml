@@ -55,7 +55,3 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
-
-      - name: Build example for Web
-        run: |
-          npm run example expo export:web
