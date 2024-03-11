@@ -9,6 +9,19 @@ runs:
       with:
         node-version-file: .nvmrc
 
+    - name: Cache dependencies
+      id: npm-cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          **/node_modules
+          !**/node_modules/**/node_modules
+          package-lock.json
+        key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}-${{ hashFiles('**/package.json', '!**/node_modules/**') }}
+        restore-keys: |
+          ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          ${{ runner.os }}-npm-
+
     # - name: Cache dependencies
     #   id: yarn-cache
     #   uses: actions/cache@v3
