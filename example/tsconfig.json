@@ -1,6 +1,10 @@
 {
-  "extends": "../tsconfig",
+  "extends": "@react-native/typescript-config/tsconfig.json",
   "compilerOptions": {
-    // Avoid expo-cli auto-generating a tsconfig
+    "target": "ES2015",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "module": "NodeNext",
+    "types": ["node", "@wdio/globals/types"]
   }
 }
