@@ -34,6 +34,9 @@ async function runTest() {
         .$('//android.view.ViewGroup[@resource-id="appium-test"]')
         .isDisplayed(),
     );
+    console.log(
+      await driver.$('//*[@resource-id="appium-test"]').isDisplayed(),
+    );
   } finally {
     await driver.pause(1000);
     await driver.deleteSession();
