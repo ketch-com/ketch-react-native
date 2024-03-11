@@ -33,7 +33,7 @@ jobs:
   #       uses: ./.github/actions/setup
 
   #     - name: Run unit tests
-  #       run: npm run test --maxWorkers=2 --coverage
+  #       run: npm test --maxWorkers=2 --coverage
 
   build-library:
     runs-on: ubuntu-latest
@@ -47,7 +47,7 @@ jobs:
       - name: Build package
         run: npm run prepare
 
-  build-web:
+  build-example:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -55,3 +55,6 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
+
+      - name: Build APK
+        run: npm run example build:apk
