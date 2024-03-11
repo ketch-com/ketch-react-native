@@ -23,6 +23,7 @@ jobs:
       - name: Typecheck files
         run: npm run typecheck
 
+  # TODO:JB - Setup testing
   # test:
   #   runs-on: ubuntu-latest
   #   steps:
