@@ -9,6 +9,12 @@ runs:
       with:
         node-version-file: .nvmrc
 
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
     - name: Cache dependencies
       id: npm-cache
       uses: actions/cache@v3
@@ -21,23 +27,6 @@ runs:
         restore-keys: |
           ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
           ${{ runner.os }}-npm-
-
-    # - name: Cache dependencies
-    #   id: yarn-cache
-    #   uses: actions/cache@v3
-    #   with:
-    #     path: |
-    #       **/node_modules
-    #       .yarn/install-state.gz
-    #     key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}-${{ hashFiles('**/package.json', '!node_modules/**') }}
-    #     restore-keys: |
-    #       ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-    #       ${{ runner.os }}-yarn-
-
-    # - name: Install dependencies
-    #   if: steps.yarn-cache.outputs.cache-hit != 'true'
-    #   run: yarn install --immutable
-    #   shell: bash
 
     - name: Install dependencies
       run: npm install
