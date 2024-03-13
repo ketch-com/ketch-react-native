@@ -1,7 +1,7 @@
 export enum KetchApiRegion {
   uatUS = 'uatUS',
   prdUS = 'prdUS',
-  prdEU = 'prdEU'
+  prdEU = 'prdEU',
 }
 
 export enum LogLevel {
@@ -9,12 +9,12 @@ export enum LogLevel {
   DEBUG = 'debug',
   INFO = 'info',
   WARN = 'warn',
-  ERROR = 'error'
+  ERROR = 'error',
 }
 
 export enum PreferenceTab {
   OverviewTab = 'overviewTab',
   ConsentsTab = 'consentsTab',
   SubscriptionsTab = 'subscriptionsTab',
-  RightsTab = 'rightsTab'
+  RightsTab = 'rightsTab',
 }

@@ -10,6 +10,7 @@ import {
   Button,
   SafeAreaView,
   StatusBar,
+  StyleSheet,
   Text,
   useColorScheme,
   View,
@@ -57,17 +58,17 @@ function App(): React.JSX.Element {
       />
       <View
         testID="appium-test"
-        style={{
-          padding: 16,
-          backgroundColor: isDarkMode ? Colors.black : Colors.white,
-        }}>
-        <Text style={{fontSize: 24, marginBottom: 40, textAlign: 'center'}}>
-          Ketch Mobile React Native test App
-        </Text>
+        style={[
+          styles.container,
+          {
+            backgroundColor: isDarkMode ? Colors.black : Colors.white,
+          },
+        ]}>
+        <Text style={styles.title}>Ketch Mobile React Native test App</Text>
 
-        <Text style={{fontSize: 20, marginBottom: 8}}>Consent Options</Text>
+        <Text style={styles.sectionTitle}>Consent Options</Text>
 
-        <View style={{flexDirection: 'row', gap: 8, marginBottom: 20}}>
+        <View style={styles.sectionContainer}>
           <RadioList
             title="Language"
             data={LANGUAGES}
@@ -84,9 +85,9 @@ function App(): React.JSX.Element {
           />
         </View>
 
-        <Text style={{fontSize: 20, marginBottom: 8}}>Preferences</Text>
+        <Text style={styles.sectionTitle}>Preferences</Text>
 
-        <View style={{flexDirection: 'row', gap: 8, marginBottom: 20}}>
+        <View style={styles.sectionContainer}>
           <RadioList
             title="Tabs"
             data={TABS}
@@ -118,3 +119,15 @@ function App(): React.JSX.Element {
 }
 
 export default App;
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+  },
+
+  title: {fontSize: 24, marginBottom: 40, textAlign: 'center'},
+
+  sectionTitle: {fontSize: 20, marginBottom: 8},
+
+  sectionContainer: {flexDirection: 'row', gap: 8, marginBottom: 20},
+});
