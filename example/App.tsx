@@ -5,11 +5,10 @@
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useState} from 'react';
 import {
+  Button,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -17,46 +16,35 @@ import {
   View,
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {RadioList} from './UI';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+const LANGUAGES = [
+  {key: 'en', label: 'EN'},
+  {key: 'fr', label: 'FR'},
+  {key: 'it', label: 'IT'},
+];
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+const REGIONS = [
+  {key: 'uatUS', label: 'uatUS'},
+  {key: 'prdUS', label: 'prdUS'},
+  {key: 'prdEU', label: 'prdEU'},
+];
+
+const TABS = [
+  {key: 'overview', label: 'overview'},
+  {key: 'rights', label: 'rights'},
+  {key: 'consents', label: 'consents'},
+  {key: 'subscriptions', label: 'subscriptions'},
+];
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [selectedRegion, setSelectedRegion] = useState('uatUS');
+  const [selectedTabs, setSelectedTabs] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('consents');
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
@@ -68,55 +56,78 @@ function App(): React.JSX.Element {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          testID="appium-test"
-          style={{
+      <View
+        testID="appium-test"
+        style={[
+          styles.container,
+          {
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit{' '}
-            <Text style={styles.highlight} testID="appText">
-              App.tsx!
-            </Text>{' '}
-            to change this screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+          },
+        ]}>
+        <Text style={styles.title}>Ketch Mobile React Native test App</Text>
+
+        <Text style={styles.sectionTitle}>Consent Options</Text>
+
+        <View style={styles.sectionContainer}>
+          <RadioList
+            title="Language"
+            data={LANGUAGES}
+            isCheckbox={false}
+            onPressItem={key => setSelectedLanguage(key)}
+            getIsChecked={key => selectedLanguage === key}
+          />
+          <RadioList
+            title="Region"
+            data={REGIONS}
+            isCheckbox={false}
+            onPressItem={key => setSelectedRegion(key)}
+            getIsChecked={key => selectedRegion === key}
+          />
         </View>
-      </ScrollView>
+
+        <Text style={styles.sectionTitle}>Preferences</Text>
+
+        <View style={styles.sectionContainer}>
+          <RadioList
+            title="Tabs"
+            data={TABS}
+            isCheckbox={true}
+            onPressItem={(key: string) =>
+              setSelectedTabs(state => {
+                if (state.includes(key)) {
+                  return state.filter(item => item !== key);
+                }
+
+                return [...state, key];
+              })
+            }
+            getIsChecked={key => selectedTabs.includes(key)}
+          />
+          <RadioList
+            title="Active tab"
+            data={TABS}
+            isCheckbox={false}
+            onPressItem={key => setActiveTab(key)}
+            getIsChecked={key => activeTab === key}
+          />
+        </View>
+        <Button title="Show Consent" />
+        <Button title="Show Preferences" />
+      </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
 export default App;
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+  },
+
+  title: {fontSize: 24, marginBottom: 40, textAlign: 'center'},
+
+  sectionTitle: {fontSize: 20, marginBottom: 8},
+
+  sectionContainer: {flexDirection: 'row', gap: 8, marginBottom: 20},
+});
