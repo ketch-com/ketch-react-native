@@ -8,16 +8,23 @@
 import React, {useState} from 'react';
 import {
   Button,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
   useColorScheme,
   View,
+  Image,
 } from 'react-native';
+
+import {WebView} from 'react-native-webview';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {RadioList} from './UI';
+
+interface OnMessageEventData {
+  event: string;
+  data: any;
+}
 
 const LANGUAGES = [
   {key: 'en', label: 'EN'},
@@ -38,6 +45,13 @@ const TABS = [
   {key: 'subscriptions', label: 'subscriptions'},
 ];
 
+const KETCH_SHOW_CONSENT = 'cd';
+const KETCH_SHOW_PREFERENCE = 'preferences';
+
+const orgCode = 'experiencev2';
+const propertyName = 'react_native_sample_app';
+
+const indexData = Image.resolveAssetSource(require('./index.html'));
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -45,13 +59,18 @@ function App(): React.JSX.Element {
   const [selectedRegion, setSelectedRegion] = useState('uatUS');
   const [selectedTabs, setSelectedTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('consents');
+  const [showDialog, setShowDialog] = useState('');
+
+  const [isVisible, setIsVisible] = useState(false);
+
+  const indexHtmlWithArgs = `${indexData.uri}&orgCode=${orgCode}&propertyName=${propertyName}&ketch_show=${showDialog}`;
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
+    <>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
@@ -111,23 +130,65 @@ function App(): React.JSX.Element {
             getIsChecked={key => activeTab === key}
           />
         </View>
-        <Button title="Show Consent" />
-        <Button title="Show Preferences" />
+        <Button
+          title="Show Consent"
+          onPress={() => {
+            setIsVisible(!isVisible);
+            setShowDialog(KETCH_SHOW_CONSENT);
+          }}
+        />
+        <Button
+          title="Show Preferences"
+          onPress={() => {
+            setIsVisible(!isVisible);
+            setShowDialog(KETCH_SHOW_PREFERENCE);
+          }}
+        />
       </View>
-    </SafeAreaView>
+      <View style={{...styles.popup, display: isVisible ? 'flex' : 'none'}}>
+        {/* Wrapper View is needed for absolute positioning */}
+        <WebView
+          javaScriptEnabled
+          webviewDebuggingEnabled
+          enableFileAccess
+          domStorageEnabled
+          source={{uri: indexHtmlWithArgs}}
+          style={styles.popupWebview}
+          onMessage={event => {
+            const data = JSON.parse(
+              event.nativeEvent.data,
+            ) as OnMessageEventData;
+            console.log('onMessage', data);
+            switch (data.event) {
+              case 'tapOutside':
+                setIsVisible(false);
+                break;
+              default:
+                break;
+            }
+          }}
+        />
+      </View>
+    </>
   );
 }
 
 export default App;
 
 const styles = StyleSheet.create({
+  popup: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent',
+    zIndex: 99999,
+  },
+  popupWebview: {
+    backgroundColor: 'transparent',
+  },
   container: {
     padding: 16,
   },
 
   title: {fontSize: 24, marginBottom: 40, textAlign: 'center'},
-
   sectionTitle: {fontSize: 20, marginBottom: 8},
-
   sectionContainer: {flexDirection: 'row', gap: 8, marginBottom: 20},
 });
