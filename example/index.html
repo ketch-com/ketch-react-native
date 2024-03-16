@@ -43,7 +43,7 @@
         // This is required to detect the moment when Ketch Tag is loaded sucessfully and ready
         // TODO: Remove this once lanyard.js will emit "onConfigLoaded" event, to avoid redundant "config.json" requests to server
         ketch('getFullConfig', function(config) {
-            emitEvent("onConfigLoaded", [config])
+            // emitEvent("onConfigLoaded", [config])
         });
 
         // Simulating "error" event

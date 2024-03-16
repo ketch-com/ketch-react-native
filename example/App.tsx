@@ -45,11 +45,13 @@ const TABS = [
   {key: 'subscriptions', label: 'subscriptions'},
 ];
 
+const KETCH_URL = 'https://dev.ketchcdn.com/web/v3';
+
 // const KETCH_SHOW_CONSENT = 'cd';
 // const KETCH_SHOW_PREFERENCE = 'preferences';
 
 const orgCode = 'experiencev2';
-const propertyName = 'react_native_sample_app';
+const propertyName = 'test_experiencev2';
 
 const indexData = Image.resolveAssetSource(require('./index.html'));
 function App(): React.JSX.Element {
@@ -63,7 +65,7 @@ function App(): React.JSX.Element {
 
   const [isVisible, setIsVisible] = useState(false);
 
-  const indexHtmlWithArgs = `${indexData.uri}&ketch_log=trace&orgCode=${orgCode}&propertyName=${propertyName}&ketch_show=${showDialog}`;
+  const indexHtmlWithArgs = `${indexData.uri}&ketch_mobilesdk_url=${KETCH_URL}&ketch_log=trace&orgCode=${orgCode}&propertyName=${propertyName}&ketch_show=${showDialog}`;
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
@@ -138,7 +140,7 @@ function App(): React.JSX.Element {
               // webViewRef.current?.reload();
               // @ts-ignore TODO: fix type definition here
               webViewRef.current?.injectJavaScript("ketch('showConsent')");
-              setIsVisible(true);
+              // setIsVisible(true);
               // setShowDialog(KETCH_SHOW_CONSENT);
             }}
           />
@@ -150,7 +152,7 @@ function App(): React.JSX.Element {
             // webViewRef.current?.reload();
             // @ts-ignore TODO: fix type definition here
             webViewRef.current?.injectJavaScript("ketch('showPreferences')");
-            setIsVisible(true);
+            // setIsVisible(true);
             // setShowDialog(KETCH_SHOW_PREFERENCE);
           }}
         />
@@ -174,6 +176,7 @@ function App(): React.JSX.Element {
               case 'willShowExperience':
                 setIsVisible(true);
                 break;
+              case 'experienceClosed':
               case 'tapOutside':
                 setIsVisible(false);
                 break;
