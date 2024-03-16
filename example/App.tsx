@@ -46,18 +46,18 @@ const TABS = [
   {key: 'subscriptions', label: 'subscriptions'},
 ];
 
-const KETCH_URL = ''; // 'https://dev.ketchcdn.com/web/v3';
+const KETCH_URL = 'https://dev.ketchcdn.com/web/v3';
 
 // const KETCH_SHOW_CONSENT = 'cd';
 // const KETCH_SHOW_PREFERENCE = 'preferences';
 
 // test 1
-// const orgCode = 'experiencev2';
-// const propertyName = 'test_experiencev2';
+const orgCode = 'experiencev2';
+const propertyName = 'test_experiencev2';
 
 // test 2
-const orgCode = 'experiencev2';
-const propertyName = 'react_native_sample_app';
+// const orgCode = 'experiencev2';
+// const propertyName = 'react_native_sample_app';
 
 // test 3
 // const orgCode = 'ketch_samples';
@@ -153,7 +153,7 @@ function App(): React.JSX.Element {
                 // @ts-ignore TODO: fix type definition here
                 webViewRef.current?.injectJavaScript("ketch('showConsent')");
                 // TODO: remove "setIsVisible" call when "willShowExperience" event is implemented
-                setIsVisible(true);
+                // setIsVisible(true);
                 // TODO: figure out why "ketch_show" parameter is not working
                 // setShowDialog(KETCH_SHOW_CONSENT);
               }}
@@ -167,7 +167,7 @@ function App(): React.JSX.Element {
               // @ts-ignore TODO: fix type definition here
               webViewRef.current?.injectJavaScript("ketch('showPreferences')");
               // TODO: remove "setIsVisible" call when "willShowExperience" event is implemented
-              setIsVisible(true);
+              // setIsVisible(true);
               // TODO: figure out why "ketch_show" parameter is not working
               // setShowDialog(KETCH_SHOW_PREFERENCE);
             }}
@@ -193,6 +193,7 @@ function App(): React.JSX.Element {
               case 'willShowExperience':
                 setIsVisible(true);
                 break;
+              case 'hideExperience':
               case 'experienceClosed':
               case 'tapOutside':
                 setIsVisible(false);
