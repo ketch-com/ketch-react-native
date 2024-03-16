@@ -5,7 +5,7 @@
  * @format
  */
 
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {
   Button,
   StatusBar,
@@ -45,8 +45,8 @@ const TABS = [
   {key: 'subscriptions', label: 'subscriptions'},
 ];
 
-const KETCH_SHOW_CONSENT = 'cd';
-const KETCH_SHOW_PREFERENCE = 'preferences';
+// const KETCH_SHOW_CONSENT = 'cd';
+// const KETCH_SHOW_PREFERENCE = 'preferences';
 
 const orgCode = 'experiencev2';
 const propertyName = 'react_native_sample_app';
@@ -54,16 +54,16 @@ const propertyName = 'react_native_sample_app';
 const indexData = Image.resolveAssetSource(require('./index.html'));
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
-
+  const webViewRef = useRef();
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [selectedRegion, setSelectedRegion] = useState('uatUS');
   const [selectedTabs, setSelectedTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('consents');
-  const [showDialog, setShowDialog] = useState('');
+  const [showDialog, _] = useState('');
 
   const [isVisible, setIsVisible] = useState(false);
 
-  const indexHtmlWithArgs = `${indexData.uri}&orgCode=${orgCode}&propertyName=${propertyName}&ketch_show=${showDialog}`;
+  const indexHtmlWithArgs = `${indexData.uri}&ketch_log=trace&orgCode=${orgCode}&propertyName=${propertyName}&ketch_show=${showDialog}`;
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
@@ -130,24 +130,35 @@ function App(): React.JSX.Element {
             getIsChecked={key => activeTab === key}
           />
         </View>
-        <Button
-          title="Show Consent"
-          onPress={() => {
-            setIsVisible(!isVisible);
-            setShowDialog(KETCH_SHOW_CONSENT);
-          }}
-        />
+        <View style={styles.button}>
+          <Button
+            title="Show Consent"
+            onPress={() => {
+              // @ts-ignore TODO: fix type definition here
+              // webViewRef.current?.reload();
+              // @ts-ignore TODO: fix type definition here
+              webViewRef.current?.injectJavaScript("ketch('showConsent')");
+              setIsVisible(true);
+              // setShowDialog(KETCH_SHOW_CONSENT);
+            }}
+          />
+        </View>
         <Button
           title="Show Preferences"
           onPress={() => {
-            setIsVisible(!isVisible);
-            setShowDialog(KETCH_SHOW_PREFERENCE);
+            // @ts-ignore TODO: fix type definition here
+            // webViewRef.current?.reload();
+            // @ts-ignore TODO: fix type definition here
+            webViewRef.current?.injectJavaScript("ketch('showPreferences')");
+            setIsVisible(true);
+            // setShowDialog(KETCH_SHOW_PREFERENCE);
           }}
         />
       </View>
-      <View style={{...styles.popup, display: isVisible ? 'flex' : 'none'}}>
+      <View style={{...styles.popup, height: isVisible ? undefined : 1}}>
         {/* Wrapper View is needed for absolute positioning */}
         <WebView
+          ref={webViewRef}
           javaScriptEnabled
           webviewDebuggingEnabled
           enableFileAccess
@@ -160,6 +171,9 @@ function App(): React.JSX.Element {
             ) as OnMessageEventData;
             console.log('onMessage', data);
             switch (data.event) {
+              case 'willShowExperience':
+                setIsVisible(true);
+                break;
               case 'tapOutside':
                 setIsVisible(false);
                 break;
@@ -184,10 +198,13 @@ const styles = StyleSheet.create({
   popupWebview: {
     backgroundColor: 'transparent',
   },
+
+  button: {
+    marginBottom: 10,
+  },
   container: {
     padding: 16,
   },
-
   title: {fontSize: 24, marginBottom: 40, textAlign: 'center'},
   sectionTitle: {fontSize: 20, marginBottom: 8},
   sectionContainer: {flexDirection: 'row', gap: 8, marginBottom: 20},
