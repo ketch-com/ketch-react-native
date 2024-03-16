@@ -152,7 +152,9 @@ function App(): React.JSX.Element {
                 // webViewRef.current?.reload();
                 // @ts-ignore TODO: fix type definition here
                 webViewRef.current?.injectJavaScript("ketch('showConsent')");
+                // TODO: remove "setIsVisible" call when "willShowExperience" event is implemented
                 setIsVisible(true);
+                // TODO: figure out why "ketch_show" parameter is not working
                 // setShowDialog(KETCH_SHOW_CONSENT);
               }}
             />
@@ -164,7 +166,9 @@ function App(): React.JSX.Element {
               // webViewRef.current?.reload();
               // @ts-ignore TODO: fix type definition here
               webViewRef.current?.injectJavaScript("ketch('showPreferences')");
+              // TODO: remove "setIsVisible" call when "willShowExperience" event is implemented
               setIsVisible(true);
+              // TODO: figure out why "ketch_show" parameter is not working
               // setShowDialog(KETCH_SHOW_PREFERENCE);
             }}
           />
