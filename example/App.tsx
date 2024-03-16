@@ -14,6 +14,7 @@ import {
   useColorScheme,
   View,
   Image,
+  SafeAreaView,
 } from 'react-native';
 
 import {WebView} from 'react-native-webview';
@@ -45,13 +46,22 @@ const TABS = [
   {key: 'subscriptions', label: 'subscriptions'},
 ];
 
-const KETCH_URL = 'https://dev.ketchcdn.com/web/v3';
+const KETCH_URL = ''; // 'https://dev.ketchcdn.com/web/v3';
 
 // const KETCH_SHOW_CONSENT = 'cd';
 // const KETCH_SHOW_PREFERENCE = 'preferences';
 
+// test 1
+// const orgCode = 'experiencev2';
+// const propertyName = 'test_experiencev2';
+
+// test 2
 const orgCode = 'experiencev2';
-const propertyName = 'test_experiencev2';
+const propertyName = 'react_native_sample_app';
+
+// test 3
+// const orgCode = 'ketch_samples';
+// const propertyName = 'react_native_sample_app';
 
 const indexData = Image.resolveAssetSource(require('./index.html'));
 function App(): React.JSX.Element {
@@ -65,6 +75,7 @@ function App(): React.JSX.Element {
 
   const [isVisible, setIsVisible] = useState(false);
 
+  console.log('indexData', indexData);
   const indexHtmlWithArgs = `${indexData.uri}&ketch_mobilesdk_url=${KETCH_URL}&ketch_log=trace&orgCode=${orgCode}&propertyName=${propertyName}&ketch_show=${showDialog}`;
 
   const backgroundStyle = {
@@ -77,86 +88,88 @@ function App(): React.JSX.Element {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <View
-        testID="appium-test"
-        style={[
-          styles.container,
-          {
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          },
-        ]}>
-        <Text style={styles.title}>Ketch Mobile React Native test App</Text>
+      <SafeAreaView>
+        <View
+          testID="appium-test"
+          style={[
+            styles.container,
+            {
+              backgroundColor: isDarkMode ? Colors.black : Colors.white,
+            },
+          ]}>
+          <Text style={styles.title}>Ketch Mobile React Native test App</Text>
 
-        <Text style={styles.sectionTitle}>Consent Options</Text>
+          <Text style={styles.sectionTitle}>Consent Options</Text>
 
-        <View style={styles.sectionContainer}>
-          <RadioList
-            title="Language"
-            data={LANGUAGES}
-            isCheckbox={false}
-            onPressItem={key => setSelectedLanguage(key)}
-            getIsChecked={key => selectedLanguage === key}
-          />
-          <RadioList
-            title="Region"
-            data={REGIONS}
-            isCheckbox={false}
-            onPressItem={key => setSelectedRegion(key)}
-            getIsChecked={key => selectedRegion === key}
-          />
-        </View>
+          <View style={styles.sectionContainer}>
+            <RadioList
+              title="Language"
+              data={LANGUAGES}
+              isCheckbox={false}
+              onPressItem={key => setSelectedLanguage(key)}
+              getIsChecked={key => selectedLanguage === key}
+            />
+            <RadioList
+              title="Region"
+              data={REGIONS}
+              isCheckbox={false}
+              onPressItem={key => setSelectedRegion(key)}
+              getIsChecked={key => selectedRegion === key}
+            />
+          </View>
 
-        <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={styles.sectionTitle}>Preferences</Text>
 
-        <View style={styles.sectionContainer}>
-          <RadioList
-            title="Tabs"
-            data={TABS}
-            isCheckbox={true}
-            onPressItem={(key: string) =>
-              setSelectedTabs(state => {
-                if (state.includes(key)) {
-                  return state.filter(item => item !== key);
-                }
+          <View style={styles.sectionContainer}>
+            <RadioList
+              title="Tabs"
+              data={TABS}
+              isCheckbox={true}
+              onPressItem={(key: string) =>
+                setSelectedTabs(state => {
+                  if (state.includes(key)) {
+                    return state.filter(item => item !== key);
+                  }
 
-                return [...state, key];
-              })
-            }
-            getIsChecked={key => selectedTabs.includes(key)}
-          />
-          <RadioList
-            title="Active tab"
-            data={TABS}
-            isCheckbox={false}
-            onPressItem={key => setActiveTab(key)}
-            getIsChecked={key => activeTab === key}
-          />
-        </View>
-        <View style={styles.button}>
+                  return [...state, key];
+                })
+              }
+              getIsChecked={key => selectedTabs.includes(key)}
+            />
+            <RadioList
+              title="Active tab"
+              data={TABS}
+              isCheckbox={false}
+              onPressItem={key => setActiveTab(key)}
+              getIsChecked={key => activeTab === key}
+            />
+          </View>
+          <View style={styles.button}>
+            <Button
+              title="Show Consent"
+              onPress={() => {
+                // @ts-ignore TODO: fix type definition here
+                // webViewRef.current?.reload();
+                // @ts-ignore TODO: fix type definition here
+                webViewRef.current?.injectJavaScript("ketch('showConsent')");
+                setIsVisible(true);
+                // setShowDialog(KETCH_SHOW_CONSENT);
+              }}
+            />
+          </View>
           <Button
-            title="Show Consent"
+            title="Show Preferences"
             onPress={() => {
               // @ts-ignore TODO: fix type definition here
               // webViewRef.current?.reload();
               // @ts-ignore TODO: fix type definition here
-              webViewRef.current?.injectJavaScript("ketch('showConsent')");
-              // setIsVisible(true);
-              // setShowDialog(KETCH_SHOW_CONSENT);
+              webViewRef.current?.injectJavaScript("ketch('showPreferences')");
+              setIsVisible(true);
+              // setShowDialog(KETCH_SHOW_PREFERENCE);
             }}
           />
         </View>
-        <Button
-          title="Show Preferences"
-          onPress={() => {
-            // @ts-ignore TODO: fix type definition here
-            // webViewRef.current?.reload();
-            // @ts-ignore TODO: fix type definition here
-            webViewRef.current?.injectJavaScript("ketch('showPreferences')");
-            // setIsVisible(true);
-            // setShowDialog(KETCH_SHOW_PREFERENCE);
-          }}
-        />
-      </View>
+      </SafeAreaView>
       <View style={{...styles.popup, height: isVisible ? undefined : 1}}>
         {/* Wrapper View is needed for absolute positioning */}
         <WebView
