@@ -5,6 +5,6 @@
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
     "module": "NodeNext",
-    "types": ["node", "@wdio/globals/types"]
+    "types": ["node"]
   }
 }
