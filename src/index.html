@@ -87,10 +87,19 @@
         let url = params.get("ketch_mobilesdk_url") || 'https://global.ketchcdn.com/web/v3';
 
         // Get property name from query parameters
-        let propertyName = params.get("propertyName");
+        // let propertyName = params.get("propertyName");
+        let propertyName = null;
 
         // Get organization code from query parameters
-        let orgCode = params.get("orgCode");
+        // let orgCode = params.get("orgCode");
+        let orgCode = null;
+
+        if (window.ReactNativeWebView.injectedObjectJson()) {
+            const injectedData = JSON.parse(window.ReactNativeWebView.injectedObjectJson());
+
+            propertyName = injectedData.orgPropertyNameCode
+            orgCode = injectedData.orgCode
+        }
 
         var e = document.createElement("script");
         e.type = "text/javascript";
