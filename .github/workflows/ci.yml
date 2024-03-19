@@ -59,6 +59,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Generate next version
+        id: version
+        uses: conventional-actions/next-version@v1
+
       # - name: 'cat package.json'
       #   run: cat ./package.json
 
@@ -70,8 +74,8 @@ jobs:
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
-      - name: 'cat package.json'
-        run: cat ./package.json
+      # - name: 'cat package.json'
+      #   run: cat ./package.json
 
       # - name: 'Output Step'
       #   env:
@@ -79,21 +83,21 @@ jobs:
       #   run: echo "new tag $NEW_TAG"
 
       # Comment to test version bumping!
-      - name: Generate next version
-        id: version
-        uses: conventional-actions/next-version@v1
+      # - name: Generate next version
+      #   id: version
+      #   uses: conventional-actions/next-version@v1
 
-      - name: Update package version
-        uses: conventional-actions/write-version@v1
-        with:
-          output_path: package.json
-          version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
+      # - name: Update package version
+      #   uses: conventional-actions/write-version@v1
+      #   with:
+      #     output_path: package.json
+      #     version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
 
-      - name: Create Tag
-        run: git tag ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }} && git push origin ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
+      # - name: Create Tag
+      #   run: git tag ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }} && git push origin ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
 
-      - name: 'cat package.json'
-        run: cat ./package.json
+      # - name: 'cat package.json'
+      #   run: cat ./package.json
 
       # - name: Setup
       #   uses: ./.github/actions/setup
