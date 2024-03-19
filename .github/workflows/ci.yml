@@ -47,9 +47,27 @@ jobs:
 
   build-library:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      version-major: ${{ steps.version.outputs.version-major-only }}
+      version-minor: ${{ format('{0}.{1}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only) }}
+      version-patch: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Generate next version
+        id: version
+        uses: conventional-actions/next-version@v1
+
+      - name: Update package version
+        uses: conventional-actions/write-version@v1
+        with:
+          output_path: package.json
+          version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
 
       # - name: Generate next version
       #   id: version
@@ -73,13 +91,19 @@ jobs:
           scope: ketch-com
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Release
-        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        run: npm run release
+      # - name: Release
+      #   if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+      #   run: npm run release
 
       # - name: Publish
       #   if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
       #   run: npm publish --access public
+
+      # - name: Create Release
+      #   uses: conventional-actions/create-release@v1
+      #   with:
+      #     tag_name: ${{ needs.build.outputs.version }}
+      #     artifacts: '*'
 
   build-example:
     runs-on: ubuntu-latest
