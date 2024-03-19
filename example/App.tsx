@@ -19,6 +19,7 @@ import {
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {RadioList} from './UI';
 
+// TODO: This should be a text input not hardcoded
 const LANGUAGES = [
   {key: 'en', label: 'EN'},
   {key: 'fr', label: 'FR'},
