@@ -36,8 +36,8 @@ jobs:
       - name: Install appium
         run: npm install -g appium && appium -v
 
-      # - name: Run unit tests
-      #   run: npm test --maxWorkers=2 --coverage
+      - name: Run tests
+        run: npm run test
 
   build-library:
     runs-on: ubuntu-latest

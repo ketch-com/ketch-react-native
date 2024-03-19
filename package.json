@@ -30,7 +30,7 @@
   ],
   "scripts": {
     "example": "npm run --workspace=example",
-    "test": "npm run build:apk && node --experimental-vm-modules node_modules/.bin/jest",
+    "test": "npm run test --workspace=example",
     "typecheck": "tsc --noEmit --skipLibCheck",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli lib",
