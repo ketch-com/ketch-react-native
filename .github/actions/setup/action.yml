@@ -33,8 +33,6 @@ runs:
       shell: bash
 
     - name: Install example dependencies
-      defaults:
-        run:
-          working-directory: ./example
+      working-directory: ./example
       run: npm install --workspaces=false
       shell: bash
