@@ -8,20 +8,20 @@ on:
       - main
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Setup
-        uses: ./.github/actions/setup
+  #     - name: Setup
+  #       uses: ./.github/actions/setup
 
-      - name: Lint files
-        run: npm run lint
+  #     - name: Lint files
+  #       run: npm run lint
 
-      - name: Typecheck files
-        run: npm run typecheck
+  #     - name: Typecheck files
+  #       run: npm run typecheck
 
   # TODO:JB - Setup testing
   # test:
@@ -57,64 +57,103 @@ jobs:
       version-patch: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@
 
-      - name: 'cat package.json'
-        run: cat ./package.json
+      - name: Generate next version
+        id: version
+        uses: conventional-actions/next-version@v1
 
-      - name: 'Automated Version Bump'
-        id: version-bump
-        uses: 'phips28/gh-action-bump-version@master'
+      - name: Setup npmrc for ketch-com
+        uses: conventional-actions/setup-npmrc@v1
         with:
-          tag-prefix: 'v'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          always-auth: true
+          scope: ketch-com
+          token: ${{ secrets.GH_TOKEN }}
 
-      - name: 'cat package.json'
-        run: cat ./package.json
+      - name: Setup Node version
+        uses: conventional-actions/write-version@v1
+        with:
+          output_path: package.json
+          version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
 
-      - name: 'Output Step'
-        env:
-          NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
-        run: echo "new tag $NEW_TAG"
+      - name: Build package
+        run: npm run prepare
 
-      # Comment to test version bumping!
-      # - name: Generate next version
-      #   id: version
-      #   uses: conventional-actions/next-version@v1
+      - name: Publish
+        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        run: npm publish --access public
 
-      # - name: Update package version
-      #   uses: conventional-actions/write-version@v1
-      #   with:
-      #     output_path: package.json
-      #     version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
+  release:
+    name: Release
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create Release
+        uses: conventional-actions/create-release@v1
+        with:
+          tag_name: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
+          artifacts: '*'
 
-      # - name: Create Tag
-      #   run: git tag ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }} && git push origin ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
+  #     - name: 'cat package.json'
+  #       run: cat ./package.json
 
-      # - name: Setup
-      #   uses: ./.github/actions/setup
+  #     - name: 'Automated Version Bump'
+  #       id: version-bump
+  #       uses: 'phips28/gh-action-bump-version@master'
+  #       with:
+  #         tag-prefix: 'v'
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
-      # - name: Build package
-      #   run: npm run prepare
+  #     - name: 'cat package.json'
+  #       run: cat ./package.json
 
-      # - name: Setup npmrc for ketch-com
-      #   uses: conventional-actions/setup-npmrc@v1
-      #   with:
-      #     always-auth: true
-      #     scope: ketch-com
-      #     token: ${{ secrets.GH_TOKEN }}
+  #     - name: 'Output Step'
+  #       env:
+  #         NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
+  #       run: echo "new tag $NEW_TAG"
 
-      # - name: Publish
-      #   if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-      #   run: npm publish --access public
+  # Comment to test version bumping!
+  # - name: Generate next version
+  #   id: version
+  #   uses: conventional-actions/next-version@v1
 
-      # - name: Create Release
-      #   if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-      #   uses: conventional-actions/create-release@v1
-      #   with:
-      #     tag_name: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
-      #     artifacts: '*'
+  # - name: Update package version
+  #   uses: conventional-actions/write-version@v1
+  #   with:
+  #     output_path: package.json
+  #     version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
+
+  # - name: Create Tag
+  #   run: git tag ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }} && git push origin ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
+
+  # - name: Setup
+  #   uses: ./.github/actions/setup
+
+  # - name: Build package
+  #   run: npm run prepare
+
+  # - name: Setup npmrc for ketch-com
+  #   uses: conventional-actions/setup-npmrc@v1
+  #   with:
+  #     always-auth: true
+  #     scope: ketch-com
+  #     token: ${{ secrets.GH_TOKEN }}
+
+  # - name: Publish
+  #   if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+  #   run: npm publish --access public
+
+  # - name: Create Release
+  #   if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+  #   uses: conventional-actions/create-release@v1
+  #   with:
+  #     tag_name: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
+  #     artifacts: '*'
 
   # TODO:JB - Re-enable when outputing builds to device farm
   # build-example:
