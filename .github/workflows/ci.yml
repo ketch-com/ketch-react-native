@@ -59,6 +59,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      # Test change for versioning
       - name: Generate next version
         id: version
         uses: conventional-actions/next-version@v1
