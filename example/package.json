@@ -6,7 +6,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit --skipLibCheck",
+    "typecheck": "tsc --noEmit --skipLibCheck --jsx",
     "start": "react-native start",
     "build:apk": "cd android && ./gradlew clean assembleDebug",
     "test": "npm run build:apk && node --experimental-vm-modules node_modules/.bin/jest"
