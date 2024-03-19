@@ -90,6 +90,10 @@ jobs:
           output_path: package.json
           version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
 
+      - name: Install dependencies
+        run: npm install
+        shell: bash
+
       - name: Build package
         run: npm run prepare
 
