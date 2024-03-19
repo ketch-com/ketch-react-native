@@ -69,6 +69,9 @@ jobs:
           output_path: package.json
           version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
 
+      - name: Create Tag
+        run: git tag ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }} && git push origin ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
+
       # - name: Generate next version
       #   id: version
       #   uses: conventional-actions/next-version@v1
