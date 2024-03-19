@@ -78,7 +78,7 @@ jobs:
           NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
         run: echo "new tag $NEW_TAG"
 
-      # Comment to test version bumping
+      # Comment to test version bumping!
       # - name: Generate next version
       #   id: version
       #   uses: conventional-actions/next-version@v1
