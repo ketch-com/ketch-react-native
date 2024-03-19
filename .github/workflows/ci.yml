@@ -51,14 +51,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Generate next version
-        id: version
-        uses: conventional-actions/next-version@v1
+      # - name: Generate next version
+      #   id: version
+      #   uses: conventional-actions/next-version@v1
 
-      - name: Show the next version
-        run: |
-          echo ${{ steps.get_next_version.outputs.version }}
-          echo ${{ steps.get_next_version.outputs.hasNextVersion }}
+      # - name: Show the next version
+      #   run: |
+      #     echo ${{ steps.get_next_version.outputs.version }}
+      #     echo ${{ steps.get_next_version.outputs.hasNextVersion }}
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -98,8 +98,5 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Create Release
-        uses: conventional-actions/create-release@v1
-        with:
-          tag_name: ${{ needs.build.outputs.version }}
-          artifacts: '*'
+      - name: Release
+        run: npm run release
