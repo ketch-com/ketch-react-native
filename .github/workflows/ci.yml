@@ -55,6 +55,11 @@ jobs:
         id: version
         uses: conventional-actions/next-version@v1
 
+      - name: Show the next version
+        run: |
+          echo ${{ steps.get_next_version.outputs.version }}
+          echo ${{ steps.get_next_version.outputs.hasNextVersion }}
+
       - name: Setup
         uses: ./.github/actions/setup
 
