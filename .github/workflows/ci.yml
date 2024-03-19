@@ -59,6 +59,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      # Comment to test version bumping
       - name: Generate next version
         id: version
         uses: conventional-actions/next-version@v1
