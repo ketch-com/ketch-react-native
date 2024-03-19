@@ -24,17 +24,20 @@ jobs:
         run: npm run typecheck
 
   # TODO:JB - Setup testing
-  # test:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-  #     - name: Setup
-  #       uses: ./.github/actions/setup
+      - name: Setup
+        uses: ./.github/actions/setup
 
-  #     - name: Run unit tests
-  #       run: npm test --maxWorkers=2 --coverage
+      - name: Install appium
+        run: npm install -g appium && appium -v
+
+      # - name: Run unit tests
+      #   run: npm test --maxWorkers=2 --coverage
 
   build-library:
     runs-on: ubuntu-latest
