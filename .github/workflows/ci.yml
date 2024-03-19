@@ -64,6 +64,12 @@ jobs:
         id: version
         uses: conventional-actions/next-version@v1
 
+      - name: Setup Node version
+        uses: conventional-actions/write-version@v1
+        with:
+          output_path: package.json
+          version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
+
       # - name: 'cat package.json'
       #   run: cat ./package.json
 
