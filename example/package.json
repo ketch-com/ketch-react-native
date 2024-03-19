@@ -24,8 +24,10 @@
     "@react-native/eslint-config": "0.73.2",
     "@react-native/metro-config": "0.73.5",
     "@react-native/typescript-config": "0.73.1",
+    "@tsconfig/react-native": "^3.0.3",
     "@types/react": "^18.2.6",
     "@types/react-test-renderer": "^18.0.0",
+    "appium": "^2.5.1",
     "appium-uiautomator2-driver": "^3.0.3",
     "babel-jest": "^29.6.3",
     "eslint": "^8.19.0",
@@ -34,8 +36,7 @@
     "react-test-renderer": "18.2.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.2",
-    "webdriverio": "^8.34.1",
-    "appium": "^2.5.1"
+    "webdriverio": "^8.34.1"
   },
   "engines": {
     "node": ">=18"
