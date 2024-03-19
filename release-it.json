@@ -1,5 +1,8 @@
 {
   "git": {
     "requireCleanWorkingDir": false
+  },
+  "hooks": {
+    "before:init": ["git update-index -q --refresh"]
   }
 }
