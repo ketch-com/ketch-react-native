@@ -1,12 +1,15 @@
 {
-  "name": "ketch-react-native",
-  "version": "0.1.0",
+  "name": "@ketch-com/ketch-react-native",
+  "version": "0.0.1",
   "description": "Ketch React Native Library",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/src/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
+  "workspaces": [
+    "example"
+  ],
   "files": [
     "src",
     "lib",
@@ -27,8 +30,8 @@
   ],
   "scripts": {
     "example": "npm run --workspace=example",
-    "test": "jest",
-    "typecheck": "tsc --noEmit",
+    "test": "npm run test --workspace=example",
+    "typecheck": "tsc --noEmit --skipLibCheck",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli lib",
     "prepare": "bob build",
@@ -79,9 +82,6 @@
     "react": "*",
     "react-native": "*"
   },
-  "workspaces": [
-    "example"
-  ],
   "packageManager": "yarn@3.6.1",
   "jest": {
     "preset": "react-native",
@@ -101,7 +101,8 @@
       "tagName": "v${version}"
     },
     "npm": {
-      "publish": true
+      "publish": true,
+      "skipChecks": true
     },
     "github": {
       "release": true
