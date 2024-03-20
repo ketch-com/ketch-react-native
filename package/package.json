@@ -7,9 +7,6 @@
   "types": "lib/typescript/src/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
-  "workspaces": [
-    "example"
-  ],
   "files": [
     "src",
     "lib",
@@ -29,9 +26,8 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "npm run --workspace=example",
-    "test": "npm run test --workspace=example",
-    "typecheck": "tsc --noEmit --skipLibCheck",
+    "all": "npm run clean && npm run typecheck && npm run lint && npm run prepare",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli lib",
     "prepare": "bob build",

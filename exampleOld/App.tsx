@@ -5,7 +5,7 @@
  * @format
  */
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {
   Button,
   SafeAreaView,
@@ -18,8 +18,6 @@ import {
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {RadioList} from './UI';
-
-import {multiply} from '@ketch-com/ketch-react-native';
 
 // TODO: This should be a text input not hardcoded
 const LANGUAGES = [
@@ -53,12 +51,6 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const [result, setResult] = useState(0);
-
-  useEffect(() => {
-    multiply(2, 4).then(answer => setResult(answer));
-  }, []);
-
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar
@@ -73,9 +65,7 @@ function App(): React.JSX.Element {
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           },
         ]}>
-        <Text style={styles.title}>
-          Ketch Mobile React Native test App - Multiply: {result}
-        </Text>
+        <Text style={styles.title}>Ketch Mobile React Native test App</Text>
 
         <Text style={styles.sectionTitle}>Consent Options</Text>
 

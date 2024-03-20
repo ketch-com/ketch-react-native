@@ -1,10 +1,3 @@
 {
-  "extends": "@tsconfig/react-native/tsconfig.json",
-  "compilerOptions": {
-    "target": "ES2015",
-    "moduleResolution": "nodenext",
-    "esModuleInterop": true,
-    "module": "NodeNext",
-    "types": []
-  }
+  "extends": "@react-native/typescript-config/tsconfig.json"
 }
