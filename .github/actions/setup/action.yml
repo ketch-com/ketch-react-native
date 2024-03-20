@@ -29,5 +29,6 @@ runs:
           ${{ runner.os }}-npm-
 
     - name: Install dependencies
+      working-directory: ./package
       run: npm install
       shell: bash
