@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@ketch-com/ketch-react-native": "^0.1.0",
+    "@ketch-com/ketch-react-native": "file:../package",
     "react": "18.2.0",
     "react-native": "0.73.6"
   },

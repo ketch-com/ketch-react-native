@@ -31,8 +31,3 @@ runs:
     - name: Install dependencies
       run: npm install
       shell: bash
-
-    - name: Install example dependencies
-      working-directory: ./example
-      run: npm install --workspaces=false
-      shell: bash
