@@ -113,6 +113,7 @@ function App(): React.JSX.Element {
           />
         </View>
         <Button title="Show Consent" />
+        <View style={styles.separator} />
         <Button title="Show Preferences" />
       </View>
     </SafeAreaView>
@@ -131,4 +132,6 @@ const styles = StyleSheet.create({
   sectionTitle: {fontSize: 20, marginBottom: 8},
 
   sectionContainer: {flexDirection: 'row', gap: 8, marginBottom: 20},
+
+  separator: {height: 8},
 });
