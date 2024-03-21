@@ -9,139 +9,248 @@ import React, {useEffect, useState} from 'react';
 import {
   Button,
   SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native';
 
-import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {RadioList} from './UI';
 
-import {multiply} from '@ketch-com/ketch-react-native';
+import {
+  multiply,
+  KetchApiRegion,
+  PreferenceTab,
+} from '@ketch-com/ketch-react-native';
+import {LabeledTextInput} from './src/components/LabeledTextInput/LabeledTextInput';
+import {Section} from './src/components/Section/Section';
+import {apiRegionLabels, preferenceTabLabels} from './src/labels';
 
-// TODO: This should be a text input not hardcoded
-const LANGUAGES = [
-  {key: 'en', label: 'EN'},
-  {key: 'fr', label: 'FR'},
-  {key: 'it', label: 'IT'},
-];
+// Comput list options
+const API_REGIONS = Object.values(KetchApiRegion).map(region => ({
+  key: region,
+  label: apiRegionLabels[region],
+}));
 
-const REGIONS = [
-  {key: 'uatUS', label: 'uatUS'},
-  {key: 'prdUS', label: 'prdUS'},
-  {key: 'prdEU', label: 'prdEU'},
-];
-
-const TABS = [
-  {key: 'overview', label: 'overview'},
-  {key: 'rights', label: 'rights'},
-  {key: 'consents', label: 'consents'},
-  {key: 'subscriptions', label: 'subscriptions'},
-];
+const PREFERENCE_TABS = Object.values(PreferenceTab).map(preferenceTab => ({
+  key: preferenceTab as string,
+  label: preferenceTabLabels[preferenceTab],
+}));
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [selectedRegion, setSelectedRegion] = useState('uatUS');
-  const [selectedTabs, setSelectedTabs] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState('consents');
+  const [selectedRegion, setSelectedRegion] = useState(KetchApiRegion.prdUS);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  // Global options
+  const [language, setLanguage] = useState<string | undefined>(undefined);
+  const [jurisdiction, setJurisdiction] = useState<string | undefined>(
+    undefined,
+  );
+  const [region, setRegion] = useState<string | undefined>(undefined);
+  const [environment, setEnvironment] = useState<string | undefined>(undefined);
+  const [identityName, setIdentityName] = useState('');
+  const [identityValue, setIdentityValue] = useState('');
+  const [identities, setIdentities] = useState({}); // TODO:JB - Default identities
 
-  const [result, setResult] = useState(0);
+  // Preference options
+  const [displayedTabs, setDisplayedTabs] = useState<PreferenceTab[]>([
+    PreferenceTab.OverviewTab,
+    PreferenceTab.ConsentsTab,
+    PreferenceTab.SubscriptionsTab,
+    PreferenceTab.RightsTab,
+  ]);
+  const [initialTab, setInitialTab] = useState<PreferenceTab>(
+    PreferenceTab.OverviewTab,
+  );
 
+  // Test using our react native package
+  const [_, setResult] = useState(0);
   useEffect(() => {
     multiply(2, 4).then(answer => setResult(answer));
   }, []);
 
+  // Reset identities
+  const handleResetIdentityPress = () => {
+    setIdentities({});
+    setIdentityName('');
+    setIdentityValue('');
+  };
+
+  // Update identities
+  const handleAddIdentityPress = () => {
+    if (identityName && identityValue) {
+      setIdentities({
+        ...identities,
+        [identityName]: identityValue,
+      });
+      setIdentityName('');
+      setIdentityValue('');
+    }
+  };
+
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <View
-        testID="appium-test"
-        style={[
-          styles.container,
-          {
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          },
-        ]}>
-        <Text style={styles.title}>
-          Ketch Mobile React Native test App - Multiply: {result}
-        </Text>
-
-        <Text style={styles.sectionTitle}>Consent Options</Text>
-
-        <View style={styles.sectionContainer}>
-          <RadioList
-            title="Language"
-            data={LANGUAGES}
-            isCheckbox={false}
-            onPressItem={key => setSelectedLanguage(key)}
-            getIsChecked={key => selectedLanguage === key}
-          />
-          <RadioList
-            title="Region"
-            data={REGIONS}
-            isCheckbox={false}
-            onPressItem={key => setSelectedRegion(key)}
-            getIsChecked={key => selectedRegion === key}
-          />
-        </View>
-
-        <Text style={styles.sectionTitle}>Preferences</Text>
-
-        <View style={styles.sectionContainer}>
-          <RadioList
-            title="Tabs"
-            data={TABS}
-            isCheckbox={true}
-            onPressItem={(key: string) =>
-              setSelectedTabs(state => {
-                if (state.includes(key)) {
-                  return state.filter(item => item !== key);
+    <SafeAreaView>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <ScrollView testID="appium-test" style={[styles.container]}>
+        <View style={styles.sectionsContainer}>
+          {/* Global options */}
+          <Section
+            title="Global Options"
+            subtitle="Options that apply to both experiences">
+            <View style={styles.sectionVerticalContainer}>
+              <LabeledTextInput
+                label="Language"
+                value={language}
+                onChangeText={newLanguage => setLanguage(newLanguage)}
+              />
+              <LabeledTextInput
+                label="Jurisdiction"
+                value={jurisdiction}
+                onChangeText={newJurisdiction =>
+                  setJurisdiction(newJurisdiction)
                 }
+              />
+              <LabeledTextInput
+                label="Region"
+                value={region}
+                onChangeText={newRegion => setRegion(newRegion)}
+              />
+              <LabeledTextInput
+                label="Environment"
+                value={environment}
+                onChangeText={newEnvironment => setEnvironment(newEnvironment)}
+              />
+              {/* Identity adder */}
+              <View style={styles.identitiesInput}>
+                <LabeledTextInput
+                  label="Identities"
+                  placeholder="Name"
+                  value={identityName}
+                  onChangeText={newIdentityName =>
+                    setIdentityName(newIdentityName)
+                  }
+                />
+                <LabeledTextInput
+                  value={identityValue}
+                  placeholder="Value"
+                  onChangeText={newIdentityValue =>
+                    setIdentityValue(newIdentityValue)
+                  }
+                  rightAdornment={
+                    <View style={styles.identitiesButtonView}>
+                      <Button
+                        title="Reset"
+                        onPress={handleResetIdentityPress}
+                        disabled={!Object.values(identities).length}
+                      />
+                      <Button
+                        title="Add"
+                        onPress={handleAddIdentityPress}
+                        disabled={!identityName || !identityValue}
+                      />
+                    </View>
+                  }
+                />
+              </View>
+              <RadioList
+                title="API Region"
+                data={API_REGIONS}
+                isCheckbox={false}
+                onPressItem={key => setSelectedRegion(key as KetchApiRegion)}
+                getIsChecked={key => selectedRegion === key}
+                horizontal
+              />
+            </View>
+          </Section>
 
-                return [...state, key];
-              })
-            }
-            getIsChecked={key => selectedTabs.includes(key)}
-          />
-          <RadioList
-            title="Active tab"
-            data={TABS}
-            isCheckbox={false}
-            onPressItem={key => setActiveTab(key)}
-            getIsChecked={key => activeTab === key}
-          />
+          {/* Preference Options */}
+          <Section
+            title="Preference Options"
+            subtitle="Options that only apply to the preference experience">
+            <View style={styles.sectionVerticalContainer}>
+              <RadioList
+                title="Allowed Tabs"
+                data={PREFERENCE_TABS}
+                isCheckbox={true}
+                onPressItem={(key: string) => {
+                  const tab = key as PreferenceTab;
+                  if (displayedTabs.includes(tab)) {
+                    setDisplayedTabs(displayedTabs.filter(t => t !== tab));
+                  } else {
+                    setDisplayedTabs([...displayedTabs, tab]);
+                  }
+                }}
+                getIsChecked={key =>
+                  displayedTabs.includes(key as PreferenceTab)
+                }
+                horizontal
+              />
+              <RadioList
+                title="Initial Tab"
+                data={PREFERENCE_TABS}
+                isCheckbox={false}
+                onPressItem={key => setInitialTab(key as PreferenceTab)}
+                getIsChecked={key => initialTab === key}
+                horizontal
+              />
+            </View>
+          </Section>
+
+          {/* SDK Actions */}
+          <Section title="Actions" subtitle="Trigger some SDK functionality">
+            <View style={styles.sectionHorizontalContainer}>
+              <Button title="Consent" />
+              <View style={styles.separator} />
+              <Button title="Preferences" />
+              <View style={styles.separator} />
+              <Button title="Privacy Strings" />
+            </View>
+          </Section>
         </View>
-        <Button title="Show Consent" />
-        <View style={styles.separator} />
-        <Button title="Show Preferences" />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-export default App;
-
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    // paddingTop: 0,
+    overflow: 'scroll',
   },
 
   title: {fontSize: 24, marginBottom: 40, textAlign: 'center'},
 
-  sectionTitle: {fontSize: 20, marginBottom: 8},
+  sectionTitle: {fontSize: 20, marginBottom: 8, color: 'black'},
 
-  sectionContainer: {flexDirection: 'row', gap: 8, marginBottom: 20},
+  sectionVerticalContainer: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+
+  sectionHorizontalContainer: {flexDirection: 'row', gap: 8},
 
   separator: {height: 8},
+
+  sectionsContainer: {
+    flexDirection: 'column',
+    gap: 24,
+  },
+
+  identitiesInput: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 8,
+  },
+
+  identitiesButtonView: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 8,
+  },
 });
+
+export default App;

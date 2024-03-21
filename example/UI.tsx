@@ -3,20 +3,20 @@ import {FlatList, Pressable, StyleSheet, Text, View} from 'react-native';
 
 const ListItemSeparator = () => <View style={styles.separator} />;
 
-const renderListHeader = (title: string) => () => <Text>{title}</Text>;
-
 export const RadioList = ({
   title,
   data,
   isCheckbox,
   getIsChecked,
   onPressItem,
+  horizontal = false,
 }: {
   title: string;
   data: {key: string; label: string}[];
   isCheckbox: boolean;
   getIsChecked: (key: string) => boolean;
   onPressItem: (key: string) => void;
+  horizontal?: boolean;
 }) => {
   const renderItem = ({item}: {item: {key: string; label: string}}) => {
     const onPress = () => {
@@ -34,15 +34,17 @@ export const RadioList = ({
   };
 
   return (
-    <FlatList
-      data={data}
-      renderItem={renderItem}
-      ListHeaderComponent={renderListHeader(title)}
-      ListHeaderComponentStyle={styles.listHeader}
-      ItemSeparatorComponent={ListItemSeparator}
-      scrollEnabled={false}
-      contentContainerStyle={styles.listContentContainer}
-    />
+    <View>
+      <Text style={styles.label}>{title}</Text>
+      <FlatList
+        data={data}
+        horizontal={horizontal}
+        renderItem={renderItem}
+        ItemSeparatorComponent={ListItemSeparator}
+        scrollEnabled={false}
+        contentContainerStyle={styles.listContentContainer}
+      />
+    </View>
   );
 };
 
@@ -73,7 +75,7 @@ const styles = StyleSheet.create({
   radioContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
   },
 
   circle: {
@@ -91,12 +93,16 @@ const styles = StyleSheet.create({
   checked: {backgroundColor: 'black'},
 
   listContentContainer: {
-    borderWidth: 1,
+    borderWidth: 0,
+    borderRadius: 6,
     borderColor: 'grey',
-    padding: 8,
   },
 
-  listHeader: {marginBottom: 12},
+  separator: {height: 8, width: 16},
 
-  separator: {height: 8},
+  label: {
+    color: 'black',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
 });

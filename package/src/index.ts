@@ -3,4 +3,5 @@ export function multiply(a: number, b: number): Promise<number> {
 }
 
 // export * from './KetchServiceProvider';
-// export * from './types';
+export * from './enums';
+export * from './types';
