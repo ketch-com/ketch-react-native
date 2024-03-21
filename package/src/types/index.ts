@@ -1,4 +1,4 @@
-import type { KetchApiRegion, LogLevel } from '../enums';
+import type { KetchApiRegion, LogLevel, PreferenceTab } from '../enums';
 
 /**
  * Consent object
@@ -10,6 +10,22 @@ export interface Consent {
   purposes?: Record<string, boolean>;
   vendors?: string[];
   protocols?: Record<string, string>;
+}
+
+/**
+ * Preference experience options
+ * @field tab - initial tab to show
+ * @field showOverviewTab - should the overview tab be included in the preference experience
+ * @field showConsentsTab - should the consents (purposes) tab be included in the preference experience
+ * @field showSubscriptionsTab - should the subscriptions tab be included in the preference experience
+ * @field showRightsTab - should the rights (requests) tab be included in the preference experience
+ */
+export interface PreferenceExperienceOptions {
+  tab?: PreferenceTab;
+  showOverviewTab?: boolean;
+  showConsentsTab?: boolean;
+  showSubscriptionsTab?: boolean;
+  showRightsTab?: boolean;
 }
 
 export interface KetchMobile {
@@ -72,6 +88,11 @@ export interface KetchMobile {
    * Do not display any experiences, forced or otherwise.
    */
   hideExperience?: boolean;
+
+  /**
+   * Options for the preference experience
+   */
+  preferenceExperienceOptions?: PreferenceExperienceOptions;
 
   /**
    * Environment update listener
