@@ -1,4 +1,10 @@
-import type { KetchApiRegion, LogLevel, PreferenceTab } from '../enums';
+import type {
+  KetchApiRegion,
+  LogLevel,
+  PreferenceTab,
+  PrivacyProtocol,
+  ShownComponent,
+} from '../enums';
 
 /**
  * Consent object
@@ -75,22 +81,17 @@ export interface KetchMobile {
   logLevel?: LogLevel;
 
   /**
-   * Force show the consent experience
+   * Force show the consent experience initially
    */
   forceConsentExperience?: boolean;
 
   /**
-   * Force show the preference experience
+   * Force show the preference experience initially
    */
   forcePreferenceExperience?: boolean;
 
   /**
-   * Do not display any experiences, forced or otherwise.
-   */
-  hideExperience?: boolean;
-
-  /**
-   * Options for the preference experience
+   * Options for the preference experience when forceShowPreferenceExperience is true
    */
   preferenceExperienceOptions?: PreferenceExperienceOptions;
 
@@ -131,19 +132,14 @@ export interface KetchMobile {
   onError?: (errorMessage: string) => void;
 
   /**
-   * Privacy string update listener
-   * @param privacyStringKey The privacy string that was updated
-   * @param privacyStringValue The new value of the updated privacy string
+   * Privacy protcol update listener
+   * @param privacyProtocolKey The privacy protocol that was updated
+   * @param privacyProtocolObject The new object for the updated privacy protocol
    */
   onPrivacyStringUpdated?: (
-    privacyStringKey: string,
-    privacyStringValue: string
+    privacyProtocolKey: PrivacyProtocol,
+    privacyProtocolObject: Record<string, string>
   ) => void;
-}
-
-export enum ShownComponent {
-  CONSENT = 'consent',
-  PREFERENCES = 'preferences',
 }
 
 export interface KetchService {

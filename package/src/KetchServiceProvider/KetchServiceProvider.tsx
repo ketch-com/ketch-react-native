@@ -9,11 +9,11 @@ import React, {
 } from 'react';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
-import { ShownComponent, type KetchMobile, type KetchService } from '../types';
+import { type KetchMobile, type KetchService } from '../types';
 import styles from './styles';
 import { Action, initialParameters, reducer } from './reducer';
 import { View } from 'react-native';
-import { KetchApiRegion, LogLevel } from '../enums';
+import { KetchApiRegion, LogLevel, ShownComponent } from '../enums';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: JSX.Element;
@@ -54,7 +54,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   logLevel = LogLevel.ERROR,
   forceConsentExperience = false,
   forcePreferenceExperience = false,
-  hideExperience = false,
   preferenceExperienceOptions,
   onEnvironmentUpdated,
   onRegionUpdated,
@@ -78,7 +77,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     logLevel,
     forceConsentExperience,
     forcePreferenceExperience,
-    hideExperience,
     preferenceExperienceOptions,
     onEnvironmentUpdated,
     onRegionUpdated,
