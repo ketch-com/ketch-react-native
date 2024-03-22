@@ -1,32 +1,145 @@
-import type { KetchApiRegion } from '../enums';
+import type {
+  KetchApiRegion,
+  LogLevel,
+  PreferenceTab,
+  PrivacyProtocol,
+  ShownComponent,
+} from '../enums';
 
-export interface KetchMobile {
-  organization: string | undefined;
-  identities?: Record<string, string>;
-  language?: string;
-  region?: string;
-  jurisdiction?: string;
-  environment?: string;
-  ketchApiRegion?: KetchApiRegion;
-  logLevel?: string;
-  onEnvironmentUpdated?: (environment: string) => void;
-  onRegionUpdated?: (region: string) => void;
-  onJurisdictionUpdated?: (jurisdiction: string) => void;
-  onIdentitiesUpdated?: (identities: Record<string, string>) => void;
-  onConsentUpdated?: () => void;
-  onError?: () => void;
-  onPrivacyStringUpdated?: (
-    privacyStringKey: string,
-    privacyStringValue: string
-  ) => void;
-
-  // ?
-  orgPropertyNameCode: string;
+/**
+ * Consent object
+ * @field purposes - mapping of purpose codes to the consent value (yes or no)
+ * @field vendors - list of TCF vendor codes
+ * @field protocols - mapping of privacy protocols to purpose codes
+ */
+export interface Consent {
+  purposes?: Record<string, boolean>;
+  vendors?: string[];
+  protocols?: Record<string, string>;
 }
 
-export enum ShownComponent {
-  CONSENT = 'consent',
-  PREFERENCES = 'preferences',
+/**
+ * Preference experience options
+ * @field tab - initial tab to show
+ * @field showOverviewTab - should the overview tab be included in the preference experience
+ * @field showConsentsTab - should the consents (purposes) tab be included in the preference experience
+ * @field showSubscriptionsTab - should the subscriptions tab be included in the preference experience
+ * @field showRightsTab - should the rights (requests) tab be included in the preference experience
+ */
+export interface PreferenceExperienceOptions {
+  tab?: PreferenceTab;
+  showOverviewTab?: boolean;
+  showConsentsTab?: boolean;
+  showSubscriptionsTab?: boolean;
+  showRightsTab?: boolean;
+}
+
+export interface KetchMobile {
+  /**
+   * Ketch organization code
+   */
+  organizationCode: string;
+
+  /**
+   * Ketch property code
+   */
+  propertyCode: string;
+
+  /**
+   * Ketch identity map of identity space names to values
+   */
+  identities?: Record<string, string>;
+
+  /**
+   * ISO 639-1 language code
+   */
+  languageCode?: string;
+
+  /**
+   * ISO 3166 Country code
+   */
+  regionCode?: string;
+
+  /**
+   * Ketch jurisdiction code
+   */
+  jurisdictionCode?: string;
+
+  /**
+   * Ketch environment name
+   */
+  environmentName?: string;
+
+  /**
+   * Ketch API region
+   */
+  ketchApiRegion?: KetchApiRegion;
+
+  /**
+   * Log level for SDK log messages
+   */
+  logLevel?: LogLevel;
+
+  /**
+   * Force show the consent experience initially
+   */
+  forceConsentExperience?: boolean;
+
+  /**
+   * Force show the preference experience initially
+   */
+  forcePreferenceExperience?: boolean;
+
+  /**
+   * Options for the preference experience when forceShowPreferenceExperience is true
+   */
+  preferenceExperienceOptions?: PreferenceExperienceOptions;
+
+  /**
+   * Environment update listener
+   * @param environment The new environment name
+   */
+  onEnvironmentUpdated?: (environmentName: string) => void;
+
+  /**
+   * Region update listener
+   * @param region The updated ISO 3166 region code
+   */
+  onRegionUpdated?: (regionCode: string) => void;
+
+  /**
+   * Jurisdiction update listener
+   * @param jurisdiction The updated jurisdiction code
+   */
+  onJurisdictionUpdated?: (jurisdictionCode: string) => void;
+
+  /**
+   * Identities update listener
+   * @param identities The updated identities object
+   */
+  onIdentitiesUpdated?: (identities: Record<string, string>) => void;
+
+  /**
+   * Consent update listener
+   * @param consent The updated consent object
+   */
+  onConsentUpdated?: (consent: Consent) => void;
+
+  /**
+   * Error listener
+   * @param errorMessage The error message string
+   */
+  onError?: (errorMessage: string) => void;
+
+  /**
+   * Privacy protcol update listener
+   * @param privacyProtocolKey The privacy protocol that was updated
+   * @param privacyProtocolObject The new object for the updated privacy protocol
+   */
+  onPrivacyStringUpdated?: (
+    privacyProtocolKey: PrivacyProtocol,
+    privacyProtocolObject: Record<string, string>
+  ) => void;
 }
 
 export interface KetchService {

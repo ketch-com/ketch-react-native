@@ -18,3 +18,14 @@ export enum PreferenceTab {
   SubscriptionsTab = 'subscriptionsTab',
   RightsTab = 'rightsTab',
 }
+
+export enum PrivacyProtocol {
+  USPrivacy = 'usprivacy_updated_data',
+  GPP = 'gpp_updated_data',
+  TCF = 'tcf_updated_data',
+}
+
+export enum ShownComponent {
+  CONSENT = 'consent',
+  PREFERENCES = 'preferences',
+}
