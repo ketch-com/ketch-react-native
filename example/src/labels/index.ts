@@ -1,4 +1,4 @@
-import {KetchApiRegion, PreferenceTab} from '@ketch-com/ketch-react-native';
+import {KetchApiRegion, PreferenceTab} from '../lib/enums';
 
 export const apiRegionLabels: {[apiRegion: string]: string} = {
   [KetchApiRegion.prdUS]: 'Prod - US',
