@@ -4,6 +4,12 @@ export enum KetchApiRegion {
   uatUS = 'uatUS',
 }
 
+export const MobileSdkUrlByRegionMap = {
+  [KetchApiRegion.prdUS]: 'https://global.ketchcdn.com/web/v3',
+  [KetchApiRegion.prdEU]: 'https://eu.ketchcdn.com/web/v3',
+  [KetchApiRegion.uatUS]: 'https://dev.ketchcdn.com/web/v3',
+};
+
 export enum LogLevel {
   TRACE = 'trace',
   DEBUG = 'debug',

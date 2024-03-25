@@ -1,8 +1,13 @@
+import {MobileSdkUrlByRegionMap} from '../enums';
 import {CommonExperienceOptions, PreferenceExperienceOptions} from '../types';
 
 export const createOptionsString = (
   options: Partial<PreferenceExperienceOptions>,
 ) => {
+  const ketchApiRegion = options?.ketchApiRegion
+    ? `ketchApiRegion: "${options.ketchApiRegion}",`
+    : '';
+
   const language = options?.languageCode
     ? `language: "${options.languageCode}",`
     : '';
@@ -39,12 +44,18 @@ export const createOptionsString = (
       ? `showRightsTab: ${options.showRightsTab},`
       : '';
 
-  return `{${language}${region}${jurisdiction}${environment}${tab}${showOverviewTab}${showConsentsTab}${showSubscriptionsTab}${showRightsTab}}`;
+  return `{${ketchApiRegion}${language}${region}${jurisdiction}${environment}${tab}${showOverviewTab}${showConsentsTab}${showSubscriptionsTab}${showRightsTab}}`;
 };
 
 export const createUrlParamsString = (
   parameters: Partial<CommonExperienceOptions>,
 ) => {
+  const mobileSdkUrl = parameters.ketchApiRegion
+    ? `&ketch_mobilesdk_url=${
+        MobileSdkUrlByRegionMap[parameters.ketchApiRegion]
+      }`
+    : '';
+
   const language = parameters.languageCode
     ? `&ketch_lang=${parameters.languageCode}`
     : '';
@@ -65,7 +76,7 @@ export const createUrlParamsString = (
     ? `&ketch_log_level=${parameters.logLevel}`
     : '';
 
-  let result = `${language}${region}${jurisdiction}${environment}${logLevel}`;
+  let result = `${mobileSdkUrl}${language}${region}${jurisdiction}${environment}${logLevel}`;
 
   if (parameters.identities) {
     const entries = Object.entries(parameters.identities).reduce(
