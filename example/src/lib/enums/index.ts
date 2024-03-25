@@ -1,7 +1,7 @@
-export enum KetchApiRegion {
-  prdUS = 'prdUS',
-  prdEU = 'prdEU',
-  uatUS = 'uatUS',
+export enum KetchDataCenter {
+  US = 'US',
+  EU = 'EU',
+  UAT = 'UAT',
 }
 
 export const MobileSdkUrlByRegionMap = {
