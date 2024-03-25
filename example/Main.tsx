@@ -25,6 +25,7 @@ import {Section} from './src/components/Section/Section';
 import {apiRegionLabels, preferenceTabLabels} from './src/labels';
 import {KetchApiRegion, PreferenceTab} from './src/lib/enums';
 import {useKetchService} from './src/lib/KetchServiceProvider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Comput list options
 const API_REGIONS = Object.values(KetchApiRegion).map(region => ({
@@ -108,6 +109,16 @@ function Main(): React.JSX.Element {
     setTimeout(() => {
       ketch.dismissExperience();
     }, 6000);
+  };
+
+  const consoleLogPrivacyDataFromStorage = async () => {
+    const allKeys = await AsyncStorage.getAllKeys();
+
+    allKeys.forEach(async key => {
+      const value = await AsyncStorage.getItem(key);
+
+      console.log(`storage key: ${key}, value: ${value} `);
+    });
   };
 
   return (
@@ -241,9 +252,7 @@ function Main(): React.JSX.Element {
               <Button title="Preferences" onPress={showPreferences} />
               <Button
                 title="Privacy Strings"
-                onPress={() => {
-                  console.log(Math.random().toString());
-                }}
+                onPress={consoleLogPrivacyDataFromStorage}
               />
             </View>
           </Section>
