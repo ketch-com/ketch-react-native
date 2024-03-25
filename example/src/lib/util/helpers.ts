@@ -1,11 +1,11 @@
-import {MobileSdkUrlByRegionMap} from '../enums';
+import {MobileSdkUrlByDataCenterMap} from '../enums';
 import {CommonExperienceOptions, PreferenceExperienceOptions} from '../types';
 
 export const createOptionsString = (
   options: Partial<PreferenceExperienceOptions>,
 ) => {
-  const ketchApiRegion = options?.ketchApiRegion
-    ? `ketchApiRegion: "${options.ketchApiRegion}",`
+  const dataCenter = options?.dataCenter
+    ? `dataCenter: "${options.dataCenter}",`
     : '';
 
   const language = options?.languageCode
@@ -44,15 +44,15 @@ export const createOptionsString = (
       ? `showRightsTab: ${options.showRightsTab},`
       : '';
 
-  return `{${ketchApiRegion}${language}${region}${jurisdiction}${environment}${tab}${showOverviewTab}${showConsentsTab}${showSubscriptionsTab}${showRightsTab}}`;
+  return `{${dataCenter}${language}${region}${jurisdiction}${environment}${tab}${showOverviewTab}${showConsentsTab}${showSubscriptionsTab}${showRightsTab}}`;
 };
 
 export const createUrlParamsString = (
   parameters: Partial<CommonExperienceOptions>,
 ) => {
-  const mobileSdkUrl = parameters.ketchApiRegion
+  const mobileSdkUrl = parameters.dataCenter
     ? `&ketch_mobilesdk_url=${
-        MobileSdkUrlByRegionMap[parameters.ketchApiRegion]
+        MobileSdkUrlByDataCenterMap[parameters.dataCenter]
       }`
     : '';
 

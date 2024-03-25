@@ -4,10 +4,10 @@ export enum KetchDataCenter {
   UAT = 'UAT',
 }
 
-export const MobileSdkUrlByRegionMap = {
-  [KetchApiRegion.prdUS]: 'https://global.ketchcdn.com/web/v3',
-  [KetchApiRegion.prdEU]: 'https://eu.ketchcdn.com/web/v3',
-  [KetchApiRegion.uatUS]: 'https://dev.ketchcdn.com/web/v3',
+export const MobileSdkUrlByDataCenterMap = {
+  [KetchDataCenter.US]: 'https://global.ketchcdn.com/web/v3',
+  [KetchDataCenter.EU]: 'https://eu.ketchcdn.com/web/v3',
+  [KetchDataCenter.UAT]: 'https://dev.ketchcdn.com/web/v3',
 };
 
 export enum LogLevel {

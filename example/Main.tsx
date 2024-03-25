@@ -22,15 +22,15 @@ import {RadioList} from './UI';
 
 import {LabeledTextInput} from './src/components/LabeledTextInput/LabeledTextInput';
 import {Section} from './src/components/Section/Section';
-import {apiRegionLabels, preferenceTabLabels} from './src/labels';
-import {KetchApiRegion, PreferenceTab} from './src/lib/enums';
+import {dataCenterLabels, preferenceTabLabels} from './src/labels';
+import {KetchDataCenter, PreferenceTab} from './src/lib/enums';
 import {useKetchService} from './src/lib/KetchServiceProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Comput list options
-const API_REGIONS = Object.values(KetchApiRegion).map(region => ({
+const API_REGIONS = Object.values(KetchDataCenter).map(region => ({
   key: region,
-  label: apiRegionLabels[region],
+  label: dataCenterLabels[region],
 }));
 
 const PREFERENCE_TABS = Object.values(PreferenceTab).map(preferenceTab => ({
@@ -41,7 +41,7 @@ const PREFERENCE_TABS = Object.values(PreferenceTab).map(preferenceTab => ({
 function Main(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const ketch = useKetchService();
-  const [selectedRegion, setSelectedRegion] = useState(KetchApiRegion.prdUS);
+  const [selectedRegion, setSelectedRegion] = useState(KetchDataCenter.US);
 
   // Global options
   const [language, setLanguage] = useState<string | undefined>(undefined);
@@ -205,7 +205,7 @@ function Main(): React.JSX.Element {
                 title="API Region"
                 data={API_REGIONS}
                 isCheckbox={false}
-                onPressItem={key => setSelectedRegion(key as KetchApiRegion)}
+                onPressItem={key => setSelectedRegion(key as KetchDataCenter)}
                 getIsChecked={key => selectedRegion === key}
                 horizontal
               />

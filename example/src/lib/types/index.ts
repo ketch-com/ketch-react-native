@@ -27,7 +27,7 @@ export type CommonExperienceOptions = Pick<
   | 'regionCode'
   | 'jurisdictionCode'
   | 'environmentName'
-  | 'ketchApiRegion'
+  | 'dataCenter'
   | 'logLevel'
 >;
 

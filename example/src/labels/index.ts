@@ -1,9 +1,9 @@
-import {KetchApiRegion, PreferenceTab} from '../lib/enums';
+import {KetchDataCenter, PreferenceTab} from '../lib/enums';
 
-export const apiRegionLabels: {[apiRegion: string]: string} = {
-  [KetchApiRegion.prdUS]: 'Prod - US',
-  [KetchApiRegion.prdEU]: 'Prod - EU',
-  [KetchApiRegion.uatUS]: 'UAT',
+export const dataCenterLabels: {[apiRegion: string]: string} = {
+  [KetchDataCenter.US]: 'Prod - US',
+  [KetchDataCenter.EU]: 'Prod - EU',
+  [KetchDataCenter.UAT]: 'UAT',
 };
 
 export const preferenceTabLabels: {[preferenceTab: string]: string} = {
