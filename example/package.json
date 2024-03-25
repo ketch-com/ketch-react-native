@@ -7,7 +7,8 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "build:apk": "cd android && ./gradlew clean assembleDebug"
   },
   "dependencies": {
     "@ketch-com/ketch-react-native": "file:../package",
