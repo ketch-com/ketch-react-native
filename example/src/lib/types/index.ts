@@ -1,6 +1,6 @@
 import type {
   EventName,
-  KetchApiRegion,
+  KetchDataCenter,
   LogLevel,
   PreferenceTab,
   PrivacyProtocol,
@@ -89,9 +89,9 @@ export interface KetchMobile {
   environmentName?: string;
 
   /**
-   * Ketch API region
+   * Ketch data center region
    */
-  ketchApiRegion?: KetchApiRegion;
+  dataCenter?: KetchDataCenter;
 
   /**
    * Log level for SDK log messages

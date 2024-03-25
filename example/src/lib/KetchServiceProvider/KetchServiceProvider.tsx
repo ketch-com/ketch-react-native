@@ -18,7 +18,7 @@ import {
   OnMessageEventData,
 } from '../types';
 import {Action, reducer} from './reducer';
-import {EventName, KetchApiRegion, LogLevel, PrivacyProtocol} from '../enums';
+import {EventName, KetchDataCenter, LogLevel, PrivacyProtocol} from '../enums';
 import styles from './styles';
 import {createOptionsString, createUrlParamsString} from '../util/helpers';
 import {savePrivacyToStorage} from '../util/services';
@@ -41,7 +41,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   regionCode,
   jurisdictionCode = 'default',
   environmentName,
-  ketchApiRegion = KetchApiRegion.prdUS,
+  dataCenter = KetchDataCenter.US,
   logLevel = LogLevel.ERROR,
   forceConsentExperience = false,
   forcePreferenceExperience = false,
@@ -68,7 +68,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     regionCode,
     jurisdictionCode,
     environmentName,
-    ketchApiRegion,
+    dataCenter,
     logLevel,
     onEnvironmentUpdated,
     onRegionUpdated,
