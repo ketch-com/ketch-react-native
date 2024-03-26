@@ -3,8 +3,7 @@ import {StyleSheet} from 'react-native';
 export default StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    // backgroundColor: 'transparent',
-    backgroundColor: 'aquamarine',
+    backgroundColor: 'transparent',
     zIndex: 99999,
   },
 

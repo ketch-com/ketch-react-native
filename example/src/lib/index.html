@@ -108,11 +108,13 @@
       // Get organization code from query parameters
       let orgCode = params.get('orgCode');
 
-      var e = document.createElement('script');
-      e.type = 'text/javascript';
-      e.src = `${url}/config/${orgCode}/${propertyName}/boot.js`;
-      e.defer = e.async = !0;
-      document.getElementsByTagName('head')[0].appendChild(e);
+      if (orgCode && propertyName) {
+        var e = document.createElement('script');
+        e.type = 'text/javascript';
+        e.src = `${url}/config/${orgCode}/${propertyName}/boot.js`;
+        e.defer = e.async = !0;
+        document.getElementsByTagName('head')[0].appendChild(e);
+      }
     </script>
     <style>
       body {
