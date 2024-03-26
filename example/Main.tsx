@@ -44,6 +44,10 @@ function Main(): React.JSX.Element {
   const [selectedRegion, setSelectedRegion] = useState(KetchDataCenter.US);
 
   // Global options
+  const [organization, setOrganization] = useState<string | undefined>(
+    undefined,
+  );
+  const [property, setProperty] = useState<string | undefined>(undefined);
   const [language, setLanguage] = useState<string | undefined>(undefined);
   const [jurisdiction, setJurisdiction] = useState<string | undefined>(
     undefined,
@@ -131,50 +135,80 @@ function Main(): React.JSX.Element {
             title="Global Options"
             subtitle="Options that apply to both experiences">
             <View style={styles.sectionVerticalContainer}>
-              <LabeledTextInput
-                label="Language"
-                value={language}
-                onChangeText={setLanguage}
-                onEndEditing={(
-                  e: NativeSyntheticEvent<TextInputEndEditingEventData>,
-                ) => {
-                  ketch.updateParameters({languageCode: e.nativeEvent.text});
-                }}
-              />
-              <LabeledTextInput
-                label="Jurisdiction"
-                value={jurisdiction}
-                onChangeText={setJurisdiction}
-                onEndEditing={(
-                  e: NativeSyntheticEvent<TextInputEndEditingEventData>,
-                ) => {
-                  ketch.updateParameters({
-                    jurisdictionCode: e.nativeEvent.text,
-                  });
-                }}
-              />
-              <LabeledTextInput
-                label="Region"
-                value={region}
-                onChangeText={setRegion}
-                onEndEditing={(
-                  e: NativeSyntheticEvent<TextInputEndEditingEventData>,
-                ) => {
-                  ketch.updateParameters({regionCode: e.nativeEvent.text});
-                }}
-              />
-              <LabeledTextInput
-                label="Environment"
-                value={environment}
-                onChangeText={setEnvironment}
-                onEndEditing={(
-                  e: NativeSyntheticEvent<TextInputEndEditingEventData>,
-                ) => {
-                  ketch.updateParameters({environmentName: e.nativeEvent.text});
-                }}
-              />
+              <View style={styles.sectionHorizontalContainer}>
+                <LabeledTextInput
+                  label="Organization"
+                  value={organization}
+                  onChangeText={setOrganization}
+                  onEndEditing={(
+                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
+                  ) => {
+                    ketch.updateParameters({
+                      organizationCode: e.nativeEvent.text,
+                    });
+                  }}
+                />
+                <LabeledTextInput
+                  label="Property"
+                  value={property}
+                  onChangeText={setProperty}
+                  onEndEditing={(
+                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
+                  ) => {
+                    ketch.updateParameters({
+                      propertyCode: e.nativeEvent.text,
+                    });
+                  }}
+                />
+                <LabeledTextInput
+                  label="Environment"
+                  value={environment}
+                  onChangeText={setEnvironment}
+                  onEndEditing={(
+                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
+                  ) => {
+                    ketch.updateParameters({
+                      environmentName: e.nativeEvent.text,
+                    });
+                  }}
+                />
+              </View>
+              <View style={styles.sectionHorizontalContainer}>
+                <LabeledTextInput
+                  label="Language"
+                  value={language}
+                  onChangeText={setLanguage}
+                  onEndEditing={(
+                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
+                  ) => {
+                    ketch.updateParameters({languageCode: e.nativeEvent.text});
+                  }}
+                />
+                <LabeledTextInput
+                  label="Jurisdiction"
+                  value={jurisdiction}
+                  onChangeText={setJurisdiction}
+                  onEndEditing={(
+                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
+                  ) => {
+                    ketch.updateParameters({
+                      jurisdictionCode: e.nativeEvent.text,
+                    });
+                  }}
+                />
+                <LabeledTextInput
+                  label="Region"
+                  value={region}
+                  onChangeText={setRegion}
+                  onEndEditing={(
+                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
+                  ) => {
+                    ketch.updateParameters({regionCode: e.nativeEvent.text});
+                  }}
+                />
+              </View>
               {/* Identity adder */}
-              <View style={styles.identitiesInput}>
+              <View style={styles.sectionHorizontalContainer}>
                 <LabeledTextInput
                   label="Identities"
                   placeholder="Name"
@@ -266,7 +300,6 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    // paddingTop: 0,
     overflow: 'scroll',
   },
 
@@ -279,17 +312,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
 
-  sectionHorizontalContainer: {flexDirection: 'row', gap: 8},
+  sectionHorizontalContainer: {display: 'flex', flexDirection: 'row', gap: 8},
 
   sectionsContainer: {
     flexDirection: 'column',
     gap: 24,
-  },
-
-  identitiesInput: {
-    display: 'flex',
-    flexDirection: 'row',
-    gap: 8,
   },
 
   identitiesButtonView: {

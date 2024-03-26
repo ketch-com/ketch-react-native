@@ -10,6 +10,7 @@ import React from 'react';
 // import {multiply} from '@ketch-com/ketch-react-native';
 import {KetchServiceProvider} from './src/lib/KetchServiceProvider';
 import Main from './Main';
+import {LogLevel} from './src/lib/enums';
 
 function App(): React.JSX.Element {
   // Test using our react native package
@@ -52,7 +53,8 @@ function App(): React.JSX.Element {
       onJurisdictionUpdated={onJurisdictionUpdated}
       onIdentitiesUpdated={onIdentitiesUpdated}
       onConsentUpdated={onConsentUpdated}
-      onPrivacyStringUpdated={onPrivacyStringUpdated}>
+      onPrivacyStringUpdated={onPrivacyStringUpdated}
+      logLevel={LogLevel.TRACE}>
       <Main />
     </KetchServiceProvider>
   );

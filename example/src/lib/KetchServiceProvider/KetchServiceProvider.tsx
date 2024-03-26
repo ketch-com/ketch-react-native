@@ -36,7 +36,7 @@ const deviceLanguage: string =
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
   propertyCode,
-  identities,
+  identities = {email: 'test@ketch.com'},
   languageCode = deviceLanguage,
   regionCode,
   jurisdictionCode = 'default',
@@ -81,6 +81,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
   useEffect(() => {
     const urlParams = createUrlParamsString(parameters);
+
+    console.log('parameters', parameters);
 
     webViewRef.current?.injectJavaScript(
       `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`,

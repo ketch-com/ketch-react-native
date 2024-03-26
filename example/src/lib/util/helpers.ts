@@ -73,7 +73,7 @@ export const createUrlParamsString = (
     : '';
 
   const logLevel = parameters.logLevel
-    ? `&ketch_log_level=${parameters.logLevel}`
+    ? `&ketch_log=${parameters.logLevel}`
     : '';
 
   let result = `${mobileSdkUrl}${language}${region}${jurisdiction}${environment}${logLevel}`;

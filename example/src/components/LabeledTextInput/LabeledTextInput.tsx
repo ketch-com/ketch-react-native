@@ -13,6 +13,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     height: 40,
     minWidth: 115,
+    maxWidth: 115,
+    paddingHorizontal: 5,
   },
 
   inputView: {
@@ -32,6 +34,9 @@ type Props = TextInputProps & LabeledTextInputProps;
 export const LabeledTextInput: React.FC<Props> = ({
   label = ' ',
   rightAdornment,
+  autoCapitalize = 'none',
+  autoComplete = 'off',
+  autoCorrect = false,
   ...rest
 }) => {
   return (
@@ -39,11 +44,23 @@ export const LabeledTextInput: React.FC<Props> = ({
       <Text style={styles.label}>{label}</Text>
       {rightAdornment ? (
         <View style={styles.inputView}>
-          <TextInput style={styles.input} {...rest} />
+          <TextInput
+            style={styles.input}
+            autoCapitalize={autoCapitalize}
+            autoComplete={autoComplete}
+            autoCorrect={autoCorrect}
+            {...rest}
+          />
           {rightAdornment}
         </View>
       ) : (
-        <TextInput style={styles.input} {...rest} />
+        <TextInput
+          style={styles.input}
+          autoCapitalize={autoCapitalize}
+          autoComplete={autoComplete}
+          autoCorrect={autoCorrect}
+          {...rest}
+        />
       )}
     </View>
   );
