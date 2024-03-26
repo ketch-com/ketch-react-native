@@ -36,7 +36,7 @@ const deviceLanguage: string =
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
   propertyCode,
-  identities = {email: 'test@ketch.com'},
+  identities,
   languageCode = deviceLanguage,
   regionCode,
   jurisdictionCode = 'default',
