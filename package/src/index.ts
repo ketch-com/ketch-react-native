@@ -1,7 +1,5 @@
-export function multiply(a: number, b: number): Promise<number> {
-  return Promise.resolve(a * b);
-}
-
-// export * from './KetchServiceProvider';
+export * from './context';
 export * from './enums';
+export * from './KetchServiceProvider';
 export * from './types';
+export * from './util';

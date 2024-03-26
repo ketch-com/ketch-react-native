@@ -1,4 +1,5 @@
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
+const path = require('path');
 
 /**
  * Metro configuration
@@ -7,7 +8,7 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
  * @type {import('metro-config').MetroConfig}
  */
 
-const packagePath = '/Users/justin/Source/ketch-com/ketch-react-native/package';
+const packagePath = path.resolve(__dirname + '/../package/');
 
 const config = {
   resolver: {

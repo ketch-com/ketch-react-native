@@ -1,5 +1,5 @@
+import { Platform, NativeModules } from 'react-native';
 import React, {
-  createContext,
   useContext,
   useRef,
   useState,
@@ -7,65 +7,65 @@ import React, {
   useCallback,
   useEffect,
 } from 'react';
+import { View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
-import { type KetchMobile, type KetchService } from '../types';
+import { KetchServiceContext } from '../context';
+import {
+  type PreferenceExperienceOptions,
+  type KetchMobile,
+  type KetchService,
+  type OnMessageEventData,
+} from '../types';
+import { Action, reducer } from './reducer';
+import {
+  EventName,
+  KetchDataCenter,
+  LogLevel,
+  PrivacyProtocol,
+} from '../enums';
 import styles from './styles';
-import { Action, initialParameters, reducer } from './reducer';
-import { View } from 'react-native';
-import { KetchApiRegion, LogLevel, ShownComponent } from '../enums';
+import { createOptionsString, createUrlParamsString } from '../util/helpers';
+import { savePrivacyToStorage } from '../util/services';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: JSX.Element;
 }
 
-type EventName =
-  | 'consent'
-  | 'environment'
-  | 'geoip'
-  | 'identities'
-  | 'jurisdiction'
-  | 'regionInfo'
-  | 'willShowExperience'
-  | 'hideExperience';
-
-interface OnMessageEventData {
-  event: string;
-  data: EventName;
-}
-
-const KetchServiceContext = createContext<KetchService>({
-  shownComponent: null,
-  showConsent: () => {},
-  showPreferences: () => {},
-  hide: () => {},
-  updateParameters: () => {},
-});
+const deviceLanguage: string =
+  Platform.OS === 'ios'
+    ? NativeModules.SettingsManager.settings.AppleLocale ||
+      NativeModules.SettingsManager.settings.AppleLanguages[0] //iOS 13
+    : NativeModules.I18nManager.localeIdentifier;
 
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
   propertyCode,
   identities,
-  languageCode, // TODO: Language should default to device language
+  languageCode = deviceLanguage,
   regionCode,
   jurisdictionCode = 'default',
   environmentName,
-  ketchApiRegion = KetchApiRegion.prdUS,
+  dataCenter = KetchDataCenter.US,
   logLevel = LogLevel.ERROR,
   forceConsentExperience = false,
   forcePreferenceExperience = false,
   preferenceExperienceOptions,
+  children,
   onEnvironmentUpdated,
   onRegionUpdated,
   onJurisdictionUpdated,
   onIdentitiesUpdated,
   onConsentUpdated,
-  onError,
   onPrivacyStringUpdated,
-  children,
+  onError,
 }) => {
-  // Temporarily log all params for debugging and to supress lint warnings
-  console.log('Params: ', {
+  const webViewRef = useRef<WebView>(null);
+  const source = require('../assets/index.html');
+
+  const [isVisible, setIsVisible] = useState(false);
+
+  const [parameters, dispatch] = useReducer(reducer, {
     organizationCode,
     propertyCode,
     identities,
@@ -73,76 +73,135 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     regionCode,
     jurisdictionCode,
     environmentName,
-    ketchApiRegion,
+    dataCenter,
     logLevel,
-    forceConsentExperience,
-    forcePreferenceExperience,
-    preferenceExperienceOptions,
     onEnvironmentUpdated,
     onRegionUpdated,
     onJurisdictionUpdated,
     onIdentitiesUpdated,
     onConsentUpdated,
-    onError,
     onPrivacyStringUpdated,
-  });
-
-  const webViewRef = useRef<WebView>(null);
-  const source = require('../index.html');
-
-  const [shownComponent, setShownComponent] = useState<ShownComponent | null>(
-    null
-  );
-  const [isVisible, setIsVisible] = useState(false);
-
-  const [parameters, dispatch] = useReducer(reducer, {
-    ...initialParameters,
-    organizationCode,
-    propertyCode,
+    onError,
   });
 
   useEffect(() => {
-    if (shownComponent === ShownComponent.CONSENT) {
-      webViewRef.current?.injectJavaScript(`ketch('showConsent')`);
-    }
+    const urlParams = createUrlParamsString(parameters);
 
-    if (shownComponent === ShownComponent.PREFERENCES) {
-      webViewRef.current?.injectJavaScript(`ketch('showPreferences')`);
-    }
+    console.log('parameters', parameters);
 
-    if (shownComponent === null) {
-      setIsVisible(false);
-    }
-  }, [shownComponent]);
+    webViewRef.current?.injectJavaScript(
+      `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`
+    );
+  }, [parameters]);
 
-  const showConsent = useCallback(() => {
-    setShownComponent(ShownComponent.CONSENT);
+  const showConsentExperience = useCallback(() => {
+    webViewRef.current?.injectJavaScript('ketch("showConsent")');
   }, []);
 
-  const showPreferences = useCallback(() => {
-    setShownComponent(ShownComponent.PREFERENCES);
+  const showPreferenceExperience = useCallback(
+    (preferencesOptions?: Partial<PreferenceExperienceOptions>) => {
+      let expression = 'ketch("showPreferences")';
+
+      if (preferencesOptions) {
+        const preferencesOptionsSerialized =
+          createOptionsString(preferencesOptions);
+
+        console.log(
+          'preferencesOptionsSerialized',
+          preferencesOptionsSerialized
+        );
+
+        expression = `ketch("showPreferences", ${preferencesOptionsSerialized})`;
+      }
+
+      webViewRef.current?.injectJavaScript(expression);
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (forceConsentExperience) {
+      showConsentExperience();
+    }
+
+    if (forcePreferenceExperience) {
+      showPreferenceExperience(preferenceExperienceOptions);
+    }
+  }, [
+    forceConsentExperience,
+    forcePreferenceExperience,
+    preferenceExperienceOptions,
+    showConsentExperience,
+    showPreferenceExperience,
+  ]);
+
+  const dismissExperience = useCallback(() => {
+    setIsVisible(false);
   }, []);
 
-  const hide = useCallback(() => {
-    setShownComponent(null);
-  }, []);
-
-  const updateParameters = (params: Partial<KetchMobile>) => {
-    dispatch({ type: Action.UPDATE_PARAMETERS, payload: params });
-  };
+  const updateParameters = useCallback(
+    (params: Partial<KetchMobile>) => {
+      console.log(params);
+      dispatch({ type: Action.UPDATE_PARAMETERS, payload: params });
+    },
+    [dispatch]
+  );
 
   const handleMessageRecieve = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
-    console.log('onMessage', data);
+
+    console.log('message', JSON.stringify(data));
+
     switch (data.event) {
-      case 'willShowExperience':
+      case EventName.willShowExperience:
         setIsVisible(true);
         break;
 
-      case 'hideExperience':
-      case 'experienceClosed':
-      case 'tapOutside':
+      case EventName.hideExperience:
+      case EventName.tapOutside:
         setIsVisible(false);
+        break;
+
+      case EventName.environment:
+        parameters.onEnvironmentUpdated?.(data.data);
+        break;
+
+      case EventName.regionInfo:
+        parameters.onRegionUpdated?.(data.data);
+        break;
+
+      case EventName.jurisdiction:
+        parameters.onJurisdictionUpdated?.(data.data);
+        break;
+
+      case EventName.identities:
+        parameters.onIdentitiesUpdated?.(data.data);
+        break;
+
+      case EventName.consent:
+        parameters.onConsentUpdated?.(data.data);
+        break;
+
+      case EventName.updateCCPA:
+        savePrivacyToStorage(data.data);
+        parameters.onPrivacyStringUpdated?.(
+          PrivacyProtocol.USPrivacy,
+          data.data
+        );
+        break;
+
+      case EventName.updateGPP:
+        savePrivacyToStorage(data.data);
+        parameters.onPrivacyStringUpdated?.(PrivacyProtocol.GPP, data.data);
+        break;
+
+      case EventName.updateTCF:
+        savePrivacyToStorage(data.data);
+        parameters.onPrivacyStringUpdated?.(PrivacyProtocol.TCF, data.data);
+        break;
+
+      case EventName.error:
+        onError?.(data.data);
         break;
 
       default:
@@ -153,10 +212,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   return (
     <KetchServiceContext.Provider
       value={{
-        shownComponent,
-        showConsent,
-        showPreferences,
-        hide,
+        showConsentExperience,
+        showPreferenceExperience,
+        dismissExperience,
         updateParameters,
       }}
     >
@@ -171,10 +229,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           javaScriptEnabled
           webviewDebuggingEnabled
           domStorageEnabled
-          injectedJavaScriptObject={{
-            orgCode: parameters.organizationCode,
-            orgPropertyNameCode: parameters.propertyCode,
-          }}
           onMessage={handleMessageRecieve}
           style={styles.webView}
         />

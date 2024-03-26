@@ -12,10 +12,9 @@
   },
   "dependencies": {
     "@ketch-com/ketch-react-native": "file:../package",
-    "@react-native-async-storage/async-storage": "^1.23.1",
     "react": "18.2.0",
     "react-native": "0.73.6",
-    "react-native-webview": "^13.8.2"
+    "@react-native-async-storage/async-storage": "1.23.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

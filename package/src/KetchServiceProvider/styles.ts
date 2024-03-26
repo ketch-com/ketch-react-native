@@ -11,7 +11,7 @@ export default StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  shown: { transform: [{ scale: 1 }] },
+  shown: { display: 'flex' },
 
-  hidden: { transform: [{ scale: 0 }] },
+  hidden: { display: 'none' },
 });

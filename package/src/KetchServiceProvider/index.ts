@@ -1,1 +1,1 @@
-// export * from './KetchServiceProvider';
+export * from './KetchServiceProvider';

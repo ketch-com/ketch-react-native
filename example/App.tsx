@@ -4,20 +4,11 @@
  *
  * @format
  */
-
 import React from 'react';
-
-// import {multiply} from '@ketch-com/ketch-react-native';
-import {KetchServiceProvider} from './src/lib/KetchServiceProvider';
+import { KetchServiceProvider, LogLevel } from '@ketch-com/ketch-react-native';
 import Main from './Main';
-import {LogLevel} from './src/lib/enums';
 
 function App(): React.JSX.Element {
-  // Test using our react native package
-  // const [_, setResult] = useState(0);
-  // useEffect(() => {
-  //   multiply(2, 4).then((answer: number) => setResult(answer));
-  // }, []);
 
   const onEnvironmentUpdated = (data: string) => {
     console.log('onEnvironmentUpdated', JSON.stringify(data));

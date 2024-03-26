@@ -1,8 +1,11 @@
-import {MobileSdkUrlByDataCenterMap} from '../enums';
-import {CommonExperienceOptions, PreferenceExperienceOptions} from '../types';
+import { MobileSdkUrlByDataCenterMap } from '../enums';
+import {
+  type CommonExperienceOptions,
+  type PreferenceExperienceOptions,
+} from '../types';
 
 export const createOptionsString = (
-  options: Partial<PreferenceExperienceOptions>,
+  options: Partial<PreferenceExperienceOptions>
 ) => {
   const dataCenter = options?.dataCenter
     ? `dataCenter: "${options.dataCenter}",`
@@ -48,7 +51,7 @@ export const createOptionsString = (
 };
 
 export const createUrlParamsString = (
-  parameters: Partial<CommonExperienceOptions>,
+  parameters: Partial<CommonExperienceOptions>
 ) => {
   const mobileSdkUrl = parameters.dataCenter
     ? `&ketch_mobilesdk_url=${
@@ -81,7 +84,7 @@ export const createUrlParamsString = (
   if (parameters.identities) {
     const entries = Object.entries(parameters.identities).reduce(
       (acc, [key, value]) => acc + `&${key}=${value}`,
-      '',
+      ''
     );
 
     result = result + entries;

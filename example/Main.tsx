@@ -23,8 +23,8 @@ import {RadioList} from './UI';
 import {LabeledTextInput} from './src/components/LabeledTextInput/LabeledTextInput';
 import {Section} from './src/components/Section/Section';
 import {dataCenterLabels, preferenceTabLabels} from './src/labels';
-import {KetchDataCenter, PreferenceTab} from './src/lib/enums';
-import {useKetchService} from './src/lib/KetchServiceProvider';
+import { useKetchService, KetchDataCenter, PreferenceTab } from '@ketch-com/ketch-react-native';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Comput list options
