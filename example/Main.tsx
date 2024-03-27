@@ -92,15 +92,10 @@ function Main(): React.JSX.Element {
 
   const showConsent = () => {
     ketch.showConsentExperience();
-
-    setTimeout(() => {
-      ketch.dismissExperience();
-    }, 6000);
   };
 
   const showPreferences = () => {
     ketch.showPreferenceExperience({
-      languageCode: language,
       tab: initialTab,
       showConsentsTab: displayedTabs.includes(PreferenceTab.ConsentsTab),
       showOverviewTab: displayedTabs.includes(PreferenceTab.OverviewTab),
@@ -109,10 +104,6 @@ function Main(): React.JSX.Element {
       ),
       showRightsTab: displayedTabs.includes(PreferenceTab.RightsTab),
     });
-
-    setTimeout(() => {
-      ketch.dismissExperience();
-    }, 6000);
   };
 
   const consoleLogPrivacyDataFromStorage = async () => {
@@ -239,7 +230,10 @@ function Main(): React.JSX.Element {
                 title="API Region"
                 data={API_REGIONS}
                 isCheckbox={false}
-                onPressItem={key => setSelectedRegion(key as KetchDataCenter)}
+                onPressItem={key => {
+                  setSelectedRegion(key as KetchDataCenter);
+                  ketch.updateParameters({dataCenter: key as KetchDataCenter});
+                }}
                 getIsChecked={key => selectedRegion === key}
                 horizontal
               />

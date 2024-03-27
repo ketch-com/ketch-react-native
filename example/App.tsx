@@ -7,18 +7,11 @@
 
 import React from 'react';
 
-// import {multiply} from '@ketch-com/ketch-react-native';
 import {KetchServiceProvider} from './src/lib/KetchServiceProvider';
 import Main from './Main';
 import {LogLevel} from './src/lib/enums';
 
 function App(): React.JSX.Element {
-  // Test using our react native package
-  // const [_, setResult] = useState(0);
-  // useEffect(() => {
-  //   multiply(2, 4).then((answer: number) => setResult(answer));
-  // }, []);
-
   const onEnvironmentUpdated = (data: string) => {
     console.log('onEnvironmentUpdated', JSON.stringify(data));
   };
@@ -39,14 +32,21 @@ function App(): React.JSX.Element {
     console.log('onConsentUpdated', JSON.stringify(data));
   };
 
-  const onPrivacyStringUpdated = (key: string, object: Record<string, any>) => {
-    console.log('onPrivacyStringUpdated:key', JSON.stringify(key));
-    console.log('onPrivacyStringUpdated:object', JSON.stringify(object));
+  const onPrivacyProtocolUpdated = (
+    key: string,
+    object: Record<string, any>,
+  ) => {
+    console.log('onPrivacyProtocolUpdated:key', JSON.stringify(key));
+    console.log('onPrivacyProtocolUpdated:object', JSON.stringify(object));
+  };
+
+  const onError = (errorMsg: string) => {
+    console.log(errorMsg);
   };
 
   return (
     <KetchServiceProvider
-      organizationCode="experiencev2"
+      organizationCode="ketch_samples"
       propertyCode="react_native_sample_app"
       identities={{email: 'test@ketch.com'}}
       onEnvironmentUpdated={onEnvironmentUpdated}
@@ -54,7 +54,8 @@ function App(): React.JSX.Element {
       onJurisdictionUpdated={onJurisdictionUpdated}
       onIdentitiesUpdated={onIdentitiesUpdated}
       onConsentUpdated={onConsentUpdated}
-      onPrivacyStringUpdated={onPrivacyStringUpdated}
+      onPrivacyProtocolUpdated={onPrivacyProtocolUpdated}
+      onError={onError}
       logLevel={LogLevel.TRACE}>
       <Main />
     </KetchServiceProvider>

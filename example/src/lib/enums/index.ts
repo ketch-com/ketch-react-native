@@ -26,9 +26,9 @@ export enum PreferenceTab {
 }
 
 export enum PrivacyProtocol {
-  USPrivacy = 'usprivacy_updated_data',
-  GPP = 'gpp_updated_data',
-  TCF = 'tcf_updated_data',
+  USPrivacy = 'usPrivacy',
+  GPP = 'gpp',
+  TCF = 'tcf',
 }
 
 export enum EventName {
@@ -41,8 +41,8 @@ export enum EventName {
   willShowExperience = 'willShowExperience',
   hideExperience = 'hideExperience',
   tapOutside = 'tapOutside',
-  updateCCPA = 'updateCCPA',
-  updateTCF = 'updateTCF',
-  updateGPP = 'updateGPP',
+  updateUSPrivacy = 'usprivacy_updated_data',
+  updateTCF = 'tcf_updated_data',
+  updateGPP = 'gpp_updated_data',
   error = 'error',
 }

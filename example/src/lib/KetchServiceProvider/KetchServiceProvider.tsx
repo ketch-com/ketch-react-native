@@ -39,20 +39,20 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   identities,
   languageCode = deviceLanguage,
   regionCode,
-  jurisdictionCode = 'default',
+  jurisdictionCode,
   environmentName,
   dataCenter = KetchDataCenter.US,
   logLevel = LogLevel.ERROR,
   forceConsentExperience = false,
   forcePreferenceExperience = false,
-  preferenceExperienceOptions,
+  preferenceExperienceOptions = {},
   children,
   onEnvironmentUpdated,
   onRegionUpdated,
   onJurisdictionUpdated,
   onIdentitiesUpdated,
   onConsentUpdated,
-  onPrivacyStringUpdated,
+  onPrivacyProtocolUpdated,
   onError,
 }) => {
   const webViewRef = useRef<WebView>(null);
@@ -75,7 +75,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onJurisdictionUpdated,
     onIdentitiesUpdated,
     onConsentUpdated,
-    onPrivacyStringUpdated,
+    onPrivacyProtocolUpdated,
     onError,
   });
 
@@ -94,12 +94,17 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   }, []);
 
   const showPreferenceExperience = useCallback(
-    (preferencesOptions?: Partial<PreferenceExperienceOptions>) => {
+    (preferencesOptions: Partial<PreferenceExperienceOptions> = {}) => {
       let expression = 'ketch("showPreferences")';
 
-      if (preferencesOptions) {
-        const preferencesOptionsSerialized =
-          createOptionsString(preferencesOptions);
+      // Merge the preference options passed as a component property with those passed in this function call
+      const mergedOptions = {
+        ...preferenceExperienceOptions,
+        ...preferencesOptions, // The function call preference options take priority
+      };
+
+      if (mergedOptions) {
+        const preferencesOptionsSerialized = createOptionsString(mergedOptions);
 
         console.log(
           'preferencesOptionsSerialized',
@@ -177,9 +182,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         parameters.onConsentUpdated?.(data.data);
         break;
 
-      case EventName.updateCCPA:
+      case EventName.updateUSPrivacy:
         savePrivacyToStorage(data.data);
-        parameters.onPrivacyStringUpdated?.(
+        parameters.onPrivacyProtocolUpdated?.(
           PrivacyProtocol.USPrivacy,
           data.data,
         );
@@ -187,12 +192,12 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       case EventName.updateGPP:
         savePrivacyToStorage(data.data);
-        parameters.onPrivacyStringUpdated?.(PrivacyProtocol.GPP, data.data);
+        parameters.onPrivacyProtocolUpdated?.(PrivacyProtocol.GPP, data.data);
         break;
 
       case EventName.updateTCF:
         savePrivacyToStorage(data.data);
-        parameters.onPrivacyStringUpdated?.(PrivacyProtocol.TCF, data.data);
+        parameters.onPrivacyProtocolUpdated?.(PrivacyProtocol.TCF, data.data);
         break;
 
       case EventName.error:
