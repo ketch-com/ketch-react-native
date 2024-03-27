@@ -85,7 +85,5 @@ export const createUrlParamsString = (
     result = result + entries;
   }
 
-  console.log('url params', result);
-
   return result;
 };

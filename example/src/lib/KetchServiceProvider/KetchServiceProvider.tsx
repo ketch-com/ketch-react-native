@@ -56,10 +56,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onError,
 }) => {
   const webViewRef = useRef<WebView>(null);
+  const isForceConsentExperienceShown = useRef(false);
+  const isForcePreferenceExperienceShown = useRef(false);
   const source = require('../index.html');
 
   const [isVisible, setIsVisible] = useState(false);
-  const [isLoadEnd, setIsLoadEnd] = useState(false);
+  const [isInitialLoadEnd, setIsInitialLoadEnd] = useState(false);
+  const [isServiceReady, setIsServiceReady] = useState(false);
 
   const [parameters, dispatch] = useReducer(reducer, {
     organizationCode,
@@ -81,16 +84,14 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   });
 
   useEffect(() => {
-    if (isLoadEnd) {
+    if (isInitialLoadEnd) {
       const urlParams = createUrlParamsString(parameters);
-
-      console.log('parameters', parameters);
 
       webViewRef.current?.injectJavaScript(
         `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`,
       );
     }
-  }, [parameters, isLoadEnd]);
+  }, [parameters, isInitialLoadEnd]);
 
   const showConsentExperience = useCallback(() => {
     webViewRef.current?.injectJavaScript('ketch("showConsent")');
@@ -123,14 +124,24 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   );
 
   useEffect(() => {
-    if (forceConsentExperience) {
-      showConsentExperience();
-    }
+    if (isServiceReady) {
+      if (forceConsentExperience && !isForceConsentExperienceShown.current) {
+        showConsentExperience();
 
-    if (forcePreferenceExperience) {
-      showPreferenceExperience(preferenceExperienceOptions);
+        isForceConsentExperienceShown.current = true;
+      }
+
+      if (
+        forcePreferenceExperience &&
+        !isForcePreferenceExperienceShown.current
+      ) {
+        showPreferenceExperience(preferenceExperienceOptions);
+
+        isForcePreferenceExperienceShown.current = true;
+      }
     }
   }, [
+    isServiceReady,
     forceConsentExperience,
     forcePreferenceExperience,
     preferenceExperienceOptions,
@@ -154,6 +165,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
 
     console.log('message', JSON.stringify(data));
+    setIsServiceReady(true);
 
     switch (data.event) {
       case EventName.willShowExperience:
@@ -212,8 +224,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     }
   };
 
-  const setIsLoadEndTrue = () => {
-    setIsLoadEnd(true);
+  const onLoadEnd = () => {
+    setIsInitialLoadEnd(true);
   };
 
   return (
@@ -235,7 +247,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           webviewDebuggingEnabled
           domStorageEnabled
           onMessage={handleMessageRecieve}
-          onLoadEnd={setIsLoadEndTrue}
+          onLoadEnd={onLoadEnd}
           style={styles.webView}
         />
       </View>
