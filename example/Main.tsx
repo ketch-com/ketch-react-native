@@ -25,7 +25,7 @@ import {Section} from './src/components/Section/Section';
 import {dataCenterLabels, preferenceTabLabels} from './src/labels';
 import {KetchDataCenter, PreferenceTab} from './src/lib/enums';
 import {useKetchService} from './src/lib/KetchServiceProvider';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import DefaultPreference from 'react-native-default-preference';
 
 // Comput list options
 const API_REGIONS = Object.values(KetchDataCenter).map(region => ({
@@ -107,13 +107,9 @@ function Main(): React.JSX.Element {
   };
 
   const consoleLogPrivacyDataFromStorage = async () => {
-    const allKeys = await AsyncStorage.getAllKeys();
+    const privacyData = await DefaultPreference.getAll();
 
-    allKeys.forEach(async key => {
-      const value = await AsyncStorage.getItem(key);
-
-      console.log(`storage key: ${key}, value: ${value} `);
-    });
+    console.log('privacy data from storage: ', privacyData);
   };
 
   return (
