@@ -92,10 +92,6 @@ function Main(): React.JSX.Element {
 
   const showConsent = () => {
     ketch.showConsentExperience();
-
-    setTimeout(() => {
-      ketch.dismissExperience();
-    }, 6000);
   };
 
   const showPreferences = () => {
@@ -109,10 +105,6 @@ function Main(): React.JSX.Element {
       ),
       showRightsTab: displayedTabs.includes(PreferenceTab.RightsTab),
     });
-
-    setTimeout(() => {
-      ketch.dismissExperience();
-    }, 6000);
   };
 
   const consoleLogPrivacyDataFromStorage = async () => {

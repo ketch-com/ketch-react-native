@@ -59,6 +59,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const source = require('../index.html');
 
   const [isVisible, setIsVisible] = useState(false);
+  const [isLoadEnd, setIsLoadEnd] = useState(false);
 
   const [parameters, dispatch] = useReducer(reducer, {
     organizationCode,
@@ -80,14 +81,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   });
 
   useEffect(() => {
-    const urlParams = createUrlParamsString(parameters);
+    if (isLoadEnd) {
+      const urlParams = createUrlParamsString(parameters);
 
-    console.log('parameters', parameters);
+      console.log('parameters', parameters);
 
-    webViewRef.current?.injectJavaScript(
-      `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`,
-    );
-  }, [parameters]);
+      webViewRef.current?.injectJavaScript(
+        `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`,
+      );
+    }
+  }, [parameters, isLoadEnd]);
 
   const showConsentExperience = useCallback(() => {
     webViewRef.current?.injectJavaScript('ketch("showConsent")');
@@ -204,6 +207,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     }
   };
 
+  const setIsLoadEndTrue = () => {
+    setIsLoadEnd(true);
+  };
+
   return (
     <KetchServiceContext.Provider
       value={{
@@ -223,6 +230,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           webviewDebuggingEnabled
           domStorageEnabled
           onMessage={handleMessageRecieve}
+          onLoadEnd={setIsLoadEndTrue}
           style={styles.webView}
         />
       </View>
