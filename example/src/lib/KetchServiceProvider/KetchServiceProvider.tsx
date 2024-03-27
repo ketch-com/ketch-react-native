@@ -116,7 +116,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       webViewRef.current?.injectJavaScript(expression);
     },
-    [],
+    [preferenceExperienceOptions],
   );
 
   useEffect(() => {
