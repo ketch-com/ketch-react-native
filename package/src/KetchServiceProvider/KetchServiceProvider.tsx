@@ -260,6 +260,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           ref={webViewRef}
           source={{ uri: source }}
           javaScriptEnabled
+          allowFileAccess
           webviewDebuggingEnabled
           domStorageEnabled
           onMessage={handleMessageRecieve}
