@@ -1,4 +1,4 @@
-import { KetchDataCenter, PreferenceTab } from '@ketch-com/ketch-react-native';
+import {KetchDataCenter, PreferenceTab} from '@ketch-com/ketch-react-native';
 
 export const dataCenterLabels: {[apiRegion: string]: string} = {
   [KetchDataCenter.US]: 'Prod - US',
