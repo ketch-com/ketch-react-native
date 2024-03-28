@@ -63,8 +63,11 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const webViewRef = useRef<WebView>(null);
   const isForceConsentExperienceShown = useRef(false);
   const isForcePreferenceExperienceShown = useRef(false);
-  const source = require('../index.html');
+  // const source = require('../index.html');
 
+  const [source, setSource] = useState(
+    'file:///android_asset/local-index.html'
+  );
   const [isVisible, setIsVisible] = useState(false);
   const [isInitialLoadEnd, setIsInitialLoadEnd] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
@@ -92,11 +95,17 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     if (isInitialLoadEnd) {
       const urlParams = createUrlParamsString(parameters);
 
-      webViewRef.current?.injectJavaScript(
-        `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`
+      setSource(
+        source +
+          `?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}` +
+          urlParams
       );
+
+      // webViewRef.current?.injectJavaScript(
+      //   `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`
+      // );
     }
-  }, [parameters, isInitialLoadEnd]);
+  }, [parameters, isInitialLoadEnd, source]);
 
   const showConsentExperience = useCallback(() => {
     webViewRef.current?.injectJavaScript('ketch("showConsent")');
@@ -249,7 +258,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       >
         <WebView
           ref={webViewRef}
-          source={source}
+          source={{ uri: source }}
           javaScriptEnabled
           webviewDebuggingEnabled
           domStorageEnabled
