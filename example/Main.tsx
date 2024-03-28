@@ -23,9 +23,12 @@ import {RadioList} from './UI';
 import {LabeledTextInput} from './src/components/LabeledTextInput/LabeledTextInput';
 import {Section} from './src/components/Section/Section';
 import {dataCenterLabels, preferenceTabLabels} from './src/labels';
-import { useKetchService, KetchDataCenter, PreferenceTab } from '@ketch-com/ketch-react-native';
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  useKetchService,
+  KetchDataCenter,
+  PreferenceTab,
+} from '@ketch-com/ketch-react-native';
+import DefaultPreference from 'react-native-default-preference';
 
 // Comput list options
 const API_REGIONS = Object.values(KetchDataCenter).map(region => ({
@@ -92,15 +95,10 @@ function Main(): React.JSX.Element {
 
   const showConsent = () => {
     ketch.showConsentExperience();
-
-    setTimeout(() => {
-      ketch.dismissExperience();
-    }, 6000);
   };
 
   const showPreferences = () => {
     ketch.showPreferenceExperience({
-      languageCode: language,
       tab: initialTab,
       showConsentsTab: displayedTabs.includes(PreferenceTab.ConsentsTab),
       showOverviewTab: displayedTabs.includes(PreferenceTab.OverviewTab),
@@ -109,20 +107,12 @@ function Main(): React.JSX.Element {
       ),
       showRightsTab: displayedTabs.includes(PreferenceTab.RightsTab),
     });
-
-    setTimeout(() => {
-      ketch.dismissExperience();
-    }, 6000);
   };
 
   const consoleLogPrivacyDataFromStorage = async () => {
-    const allKeys = await AsyncStorage.getAllKeys();
+    const privacyData = await DefaultPreference.getAll();
 
-    allKeys.forEach(async key => {
-      const value = await AsyncStorage.getItem(key);
-
-      console.log(`storage key: ${key}, value: ${value} `);
-    });
+    console.log('privacy data from storage: ', privacyData);
   };
 
   return (
@@ -239,7 +229,10 @@ function Main(): React.JSX.Element {
                 title="API Region"
                 data={API_REGIONS}
                 isCheckbox={false}
-                onPressItem={key => setSelectedRegion(key as KetchDataCenter)}
+                onPressItem={key => {
+                  setSelectedRegion(key as KetchDataCenter);
+                  ketch.updateParameters({dataCenter: key as KetchDataCenter});
+                }}
                 getIsChecked={key => selectedRegion === key}
                 horizontal
               />
