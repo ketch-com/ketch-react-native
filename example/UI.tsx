@@ -9,14 +9,16 @@ export const RadioList = ({
   isCheckbox,
   getIsChecked,
   onPressItem,
-  horizontal = false,
+  numColumns = 2,
+  columnWidth,
 }: {
   title: string;
   data: {key: string; label: string}[];
   isCheckbox: boolean;
   getIsChecked: (key: string) => boolean;
   onPressItem: (key: string) => void;
-  horizontal?: boolean;
+  numColumns?: number;
+  columnWidth?: number;
 }) => {
   const renderItem = ({item}: {item: {key: string; label: string}}) => {
     const onPress = () => {
@@ -29,6 +31,7 @@ export const RadioList = ({
         isCheckbox={isCheckbox}
         isChecked={getIsChecked(item.key)}
         onPress={onPress}
+        columnWidth={columnWidth}
       />
     );
   };
@@ -38,11 +41,11 @@ export const RadioList = ({
       <Text style={styles.label}>{title}</Text>
       <FlatList
         data={data}
-        horizontal={horizontal}
         renderItem={renderItem}
         ItemSeparatorComponent={ListItemSeparator}
         scrollEnabled={false}
         contentContainerStyle={styles.listContentContainer}
+        numColumns={numColumns}
       />
     </View>
   );
@@ -53,13 +56,17 @@ export const RadioOption = ({
   isChecked,
   isCheckbox,
   onPress,
+  columnWidth,
 }: {
   label: string;
   isChecked: boolean;
   isCheckbox: boolean;
   onPress: () => void;
+  columnWidth?: number;
 }) => (
-  <Pressable onPress={onPress} style={styles.radioContainer}>
+  <Pressable
+    onPress={onPress}
+    style={{...styles.radioContainer, width: columnWidth}}>
     <View
       style={[
         styles.circle,

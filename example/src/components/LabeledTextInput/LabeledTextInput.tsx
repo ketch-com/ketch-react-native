@@ -2,6 +2,10 @@ import React from 'react';
 import {StyleSheet, Text, TextInput, TextInputProps, View} from 'react-native';
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+
   label: {
     color: 'black',
     fontWeight: '600',
@@ -12,8 +16,6 @@ const styles = StyleSheet.create({
     borderColor: 'grey',
     borderRadius: 10,
     height: 40,
-    minWidth: 115,
-    maxWidth: 115,
     paddingHorizontal: 5,
   },
 
@@ -40,7 +42,7 @@ export const LabeledTextInput: React.FC<Props> = ({
   ...rest
 }) => {
   return (
-    <View>
+    <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
       {rightAdornment ? (
         <View style={styles.inputView}>

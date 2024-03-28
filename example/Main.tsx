@@ -209,32 +209,33 @@ function Main(): React.JSX.Element {
                   value={identityValue}
                   placeholder="Value"
                   onChangeText={setIdentityValue}
-                  rightAdornment={
-                    <View style={styles.identitiesButtonView}>
-                      <Button
-                        title="Reset"
-                        onPress={handleResetIdentityPress}
-                        disabled={!Object.values(identities).length}
-                      />
-                      <Button
-                        title="Add"
-                        onPress={handleAddIdentityPress}
-                        disabled={!identityName || !identityValue}
-                      />
-                    </View>
-                  }
                 />
+                <View>
+                  <View style={styles.identitiesButtonView}>
+                    <Button
+                      title="Reset"
+                      onPress={handleResetIdentityPress}
+                      disabled={!Object.values(identities).length}
+                    />
+                    <Button
+                      title="Add"
+                      onPress={handleAddIdentityPress}
+                      disabled={!identityName || !identityValue}
+                    />
+                  </View>
+                </View>
               </View>
               <RadioList
                 title="API Region"
                 data={API_REGIONS}
                 isCheckbox={false}
+                numColumns={3}
+                columnWidth={100}
                 onPressItem={key => {
                   setSelectedRegion(key as KetchDataCenter);
                   ketch.updateParameters({dataCenter: key as KetchDataCenter});
                 }}
                 getIsChecked={key => selectedRegion === key}
-                horizontal
               />
             </View>
           </Section>
@@ -248,6 +249,7 @@ function Main(): React.JSX.Element {
                 title="Allowed Tabs"
                 data={PREFERENCE_TABS}
                 isCheckbox={true}
+                columnWidth={125}
                 onPressItem={(key: string) => {
                   const tab = key as PreferenceTab;
                   if (displayedTabs.includes(tab)) {
@@ -259,15 +261,14 @@ function Main(): React.JSX.Element {
                 getIsChecked={key =>
                   displayedTabs.includes(key as PreferenceTab)
                 }
-                horizontal
               />
               <RadioList
                 title="Initial Tab"
                 data={PREFERENCE_TABS}
                 isCheckbox={false}
+                columnWidth={125}
                 onPressItem={key => setInitialTab(key as PreferenceTab)}
                 getIsChecked={key => initialTab === key}
-                horizontal
               />
             </View>
           </Section>
@@ -278,7 +279,7 @@ function Main(): React.JSX.Element {
               <Button title="Consent" onPress={showConsent} />
               <Button title="Preferences" onPress={showPreferences} />
               <Button
-                title="Privacy Strings"
+                title="Protocols"
                 onPress={consoleLogPrivacyDataFromStorage}
               />
             </View>
@@ -305,7 +306,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
 
-  sectionHorizontalContainer: {display: 'flex', flexDirection: 'row', gap: 8},
+  sectionHorizontalContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    width: '100%',
+    gap: 8,
+  },
 
   sectionsContainer: {
     flexDirection: 'column',
@@ -315,7 +321,9 @@ const styles = StyleSheet.create({
   identitiesButtonView: {
     display: 'flex',
     flexDirection: 'row',
+    flex: 1,
     gap: 8,
+    paddingTop: 20,
   },
 });
 
