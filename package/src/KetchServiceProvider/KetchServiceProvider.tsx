@@ -250,6 +250,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         <WebView
           ref={webViewRef}
           originWhitelist={['*']}
+          // allowFileAccess
           // allowFileAccessFromFileURLs
           // allowUniversalAccessFromFileURLs
           // allowingReadAccessToURL
