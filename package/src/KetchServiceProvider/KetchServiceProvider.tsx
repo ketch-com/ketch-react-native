@@ -11,11 +11,11 @@ import { View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
 import { KetchServiceContext } from '../context';
-import {
-  type PreferenceExperienceOptions,
-  type KetchMobile,
-  type KetchService,
-  type OnMessageEventData,
+import type {
+  PreferenceExperienceOptions,
+  KetchMobile,
+  KetchService,
+  OnMessageEventData,
 } from '../types';
 import { Action, reducer } from './reducer';
 import {
@@ -44,26 +44,30 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   identities,
   languageCode = deviceLanguage,
   regionCode,
-  jurisdictionCode = 'default',
+  jurisdictionCode,
   environmentName,
   dataCenter = KetchDataCenter.US,
   logLevel = LogLevel.ERROR,
   forceConsentExperience = false,
   forcePreferenceExperience = false,
-  preferenceExperienceOptions,
+  preferenceExperienceOptions = {},
   children,
   onEnvironmentUpdated,
   onRegionUpdated,
   onJurisdictionUpdated,
   onIdentitiesUpdated,
   onConsentUpdated,
-  onPrivacyStringUpdated,
+  onPrivacyProtocolUpdated,
   onError,
 }) => {
   const webViewRef = useRef<WebView>(null);
-  const source = require('../assets/index.html');
+  const isForceConsentExperienceShown = useRef(false);
+  const isForcePreferenceExperienceShown = useRef(false);
+  const source = require('../index.html');
 
   const [isVisible, setIsVisible] = useState(false);
+  const [isInitialLoadEnd, setIsInitialLoadEnd] = useState(false);
+  const [isServiceReady, setIsServiceReady] = useState(false);
 
   const [parameters, dispatch] = useReducer(reducer, {
     organizationCode,
@@ -80,31 +84,36 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onJurisdictionUpdated,
     onIdentitiesUpdated,
     onConsentUpdated,
-    onPrivacyStringUpdated,
+    onPrivacyProtocolUpdated,
     onError,
   });
 
   useEffect(() => {
-    const urlParams = createUrlParamsString(parameters);
+    if (isInitialLoadEnd) {
+      const urlParams = createUrlParamsString(parameters);
 
-    console.log('parameters', parameters);
-
-    webViewRef.current?.injectJavaScript(
-      `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`
-    );
-  }, [parameters]);
+      webViewRef.current?.injectJavaScript(
+        `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`
+      );
+    }
+  }, [parameters, isInitialLoadEnd]);
 
   const showConsentExperience = useCallback(() => {
     webViewRef.current?.injectJavaScript('ketch("showConsent")');
   }, []);
 
   const showPreferenceExperience = useCallback(
-    (preferencesOptions?: Partial<PreferenceExperienceOptions>) => {
+    (preferencesOptions: Partial<PreferenceExperienceOptions> = {}) => {
       let expression = 'ketch("showPreferences")';
 
-      if (preferencesOptions) {
-        const preferencesOptionsSerialized =
-          createOptionsString(preferencesOptions);
+      // Merge the preference options passed as a component property with those passed in this function call
+      const mergedOptions = {
+        ...preferenceExperienceOptions,
+        ...preferencesOptions, // The function call preference options take priority
+      };
+
+      if (mergedOptions) {
+        const preferencesOptionsSerialized = createOptionsString(mergedOptions);
 
         console.log(
           'preferencesOptionsSerialized',
@@ -116,18 +125,28 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       webViewRef.current?.injectJavaScript(expression);
     },
-    []
+    [preferenceExperienceOptions]
   );
 
   useEffect(() => {
-    if (forceConsentExperience) {
-      showConsentExperience();
-    }
+    if (isServiceReady) {
+      if (forceConsentExperience && !isForceConsentExperienceShown.current) {
+        showConsentExperience();
 
-    if (forcePreferenceExperience) {
-      showPreferenceExperience(preferenceExperienceOptions);
+        isForceConsentExperienceShown.current = true;
+      }
+
+      if (
+        forcePreferenceExperience &&
+        !isForcePreferenceExperienceShown.current
+      ) {
+        showPreferenceExperience(preferenceExperienceOptions);
+
+        isForcePreferenceExperienceShown.current = true;
+      }
     }
   }, [
+    isServiceReady,
     forceConsentExperience,
     forcePreferenceExperience,
     preferenceExperienceOptions,
@@ -151,6 +170,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
 
     console.log('message', JSON.stringify(data));
+    setIsServiceReady(true);
 
     switch (data.event) {
       case EventName.willShowExperience:
@@ -182,9 +202,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         parameters.onConsentUpdated?.(data.data);
         break;
 
-      case EventName.updateCCPA:
+      case EventName.updateUSPrivacy:
         savePrivacyToStorage(data.data);
-        parameters.onPrivacyStringUpdated?.(
+        parameters.onPrivacyProtocolUpdated?.(
           PrivacyProtocol.USPrivacy,
           data.data
         );
@@ -192,12 +212,12 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       case EventName.updateGPP:
         savePrivacyToStorage(data.data);
-        parameters.onPrivacyStringUpdated?.(PrivacyProtocol.GPP, data.data);
+        parameters.onPrivacyProtocolUpdated?.(PrivacyProtocol.GPP, data.data);
         break;
 
       case EventName.updateTCF:
         savePrivacyToStorage(data.data);
-        parameters.onPrivacyStringUpdated?.(PrivacyProtocol.TCF, data.data);
+        parameters.onPrivacyProtocolUpdated?.(PrivacyProtocol.TCF, data.data);
         break;
 
       case EventName.error:
@@ -207,6 +227,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       default:
         break;
     }
+  };
+
+  const onLoadEnd = () => {
+    setIsInitialLoadEnd(true);
   };
 
   return (
@@ -230,6 +254,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           webviewDebuggingEnabled
           domStorageEnabled
           onMessage={handleMessageRecieve}
+          onLoadEnd={onLoadEnd}
           style={styles.webView}
         />
       </View>

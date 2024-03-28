@@ -1,12 +1,7 @@
 import { MobileSdkUrlByDataCenterMap } from '../enums';
-import {
-  type CommonExperienceOptions,
-  type PreferenceExperienceOptions,
-} from '../types';
+import type { AllExperienceOptions, CommonExperienceOptions } from '../types';
 
-export const createOptionsString = (
-  options: Partial<PreferenceExperienceOptions>
-) => {
+export const createOptionsString = (options: Partial<AllExperienceOptions>) => {
   const dataCenter = options?.dataCenter
     ? `dataCenter: "${options.dataCenter}",`
     : '';
@@ -72,7 +67,7 @@ export const createUrlParamsString = (
     : '';
 
   const environment = parameters.environmentName
-    ? `&ketch_environment=${parameters.environmentName}`
+    ? `&ketch_env=${parameters.environmentName}`
     : '';
 
   const logLevel = parameters.logLevel
@@ -89,8 +84,6 @@ export const createUrlParamsString = (
 
     result = result + entries;
   }
-
-  console.log('url params', result);
 
   return result;
 };

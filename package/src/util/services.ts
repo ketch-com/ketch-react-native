@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import DefaultPreference from 'react-native-default-preference';
 
 export const savePrivacyToStorage = async (
   privacyProtocolObject: Record<string, string>
@@ -8,7 +8,7 @@ export const savePrivacyToStorage = async (
     try {
       const value = privacyProtocolObject[key];
 
-      await AsyncStorage.setItem(key, value || '');
+      if (value) await DefaultPreference.set(key, value);
     } catch (error: any) {
       Alert.alert('Saving privacy data to storage error', error.message);
     }

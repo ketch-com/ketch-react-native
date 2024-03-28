@@ -39,13 +39,16 @@ export type CommonExperienceOptions = Pick<
  * @field showSubscriptionsTab - should the subscriptions tab be included in the preference experience
  * @field showRightsTab - should the rights (requests) tab be included in the preference experience
  */
-export type PreferenceExperienceOptions = CommonExperienceOptions & {
+export type PreferenceExperienceOptions = {
   tab?: PreferenceTab;
   showOverviewTab?: boolean;
   showConsentsTab?: boolean;
   showSubscriptionsTab?: boolean;
   showRightsTab?: boolean;
 };
+
+export type AllExperienceOptions = CommonExperienceOptions &
+  PreferenceExperienceOptions;
 
 export interface OnMessageEventData {
   event: EventName;
@@ -154,7 +157,7 @@ export interface KetchMobile {
    * @param privacyProtocolKey The privacy protocol that was updated
    * @param privacyProtocolObject The new object for the updated privacy protocol
    */
-  onPrivacyStringUpdated?: (
+  onPrivacyProtocolUpdated?: (
     privacyProtocolKey: PrivacyProtocol,
     privacyProtocolObject: Record<string, string>
   ) => void;
