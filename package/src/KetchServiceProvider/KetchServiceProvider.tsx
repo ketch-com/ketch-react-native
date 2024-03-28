@@ -38,6 +38,8 @@ const deviceLanguage: string =
       NativeModules.SettingsManager.settings.AppleLanguages[0] //iOS 13
     : NativeModules.I18nManager.localeIdentifier;
 
+const BASE_URL = 'file:///android_asset/local-index.html';
+
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
   propertyCode,
@@ -65,9 +67,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const isForcePreferenceExperienceShown = useRef(false);
   // const source = require('../index.html');
 
-  const [source, setSource] = useState(
-    'file:///android_asset/local-index.html'
-  );
+  const [source, setSource] = useState(BASE_URL);
   const [isVisible, setIsVisible] = useState(false);
   const [isInitialLoadEnd, setIsInitialLoadEnd] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
@@ -96,7 +96,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       const urlParams = createUrlParamsString(parameters);
 
       setSource(
-        source +
+        BASE_URL +
           `?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}` +
           urlParams
       );
@@ -105,7 +105,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       //   `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`
       // );
     }
-  }, [parameters, isInitialLoadEnd, source]);
+  }, [parameters, isInitialLoadEnd]);
 
   const showConsentExperience = useCallback(() => {
     webViewRef.current?.injectJavaScript('ketch("showConsent")');
