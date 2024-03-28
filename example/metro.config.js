@@ -8,7 +8,7 @@ const path = require('path');
  * @type {import('metro-config').MetroConfig}
  */
 
-const packagePath = path.resolve(__dirname, '/../package/');
+const packagePath = path.resolve(__dirname, '../package/');
 
 const config = {
   resolver: {
