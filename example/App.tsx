@@ -7,9 +7,8 @@
 
 import React from 'react';
 
-import {KetchServiceProvider} from '@ketch-com/ketch-react-native';
+import {KetchServiceProvider, LogLevel} from '@ketch-com/ketch-react-native';
 import Main from './Main';
-import {LogLevel} from './src/lib/enums';
 
 function App(): React.JSX.Element {
   const onEnvironmentUpdated = (data: string) => {
