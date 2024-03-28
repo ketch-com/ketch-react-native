@@ -44,7 +44,7 @@
             window.webkit.messageHandlers[event].postMessage(argument);
           } else {
             console.warn(
-              `Can't pass message to native code because '${event}' handler is not registered`
+              `Can't pass message to native code because '${event}' handler is not registered`,
             );
           }
         }
@@ -58,20 +58,20 @@
 
       // Simulating "error" event
       // Capturing all the unhandled crashes of Ketch Tag
-      window.addEventListener('error', (event) => {
+      window.addEventListener('error', event => {
         const errorMessage = `${event.message}`;
         emitEvent('error', [errorMessage]);
       });
 
       // Capturing all the unhandled promise rejections of Ketch Tag
-      window.addEventListener('unhandledrejection', (event) => {
+      window.addEventListener('unhandledrejection', event => {
         const errorMessage = `${event.reason.message}`;
         emitEvent('error', [errorMessage]);
       });
 
       // Capturing all the internal loggin for errors handled by Ketch Tag
       // TODO: Remove this once lanyard.js will emit error events
-      ((logger) => {
+      (logger => {
         var oldErr = logger.error;
         logger.error = (...args) => {
           emitEvent('error', [args.join(' ')]);
@@ -83,7 +83,7 @@
       // TODO: remove this once there will be a way to get dialogs position from JS SDK
       function getDialogSize() {
         var domElem = document.querySelector(
-          '#lanyard_root div[role="dialog"]'
+          '#lanyard_root div[role="dialog"]',
         );
         if (!domElem) {
           return;
@@ -103,27 +103,18 @@
         'https://global.ketchcdn.com/web/v3';
 
       // Get property name from query parameters
-      // let propertyName = params.get("propertyName");
-      let propertyName = null;
+      let propertyName = params.get('propertyName');
 
       // Get organization code from query parameters
-      // let orgCode = params.get("orgCode");
-      let orgCode = null;
+      let orgCode = params.get('orgCode');
 
-      if (window.ReactNativeWebView.injectedObjectJson()) {
-        const injectedData = JSON.parse(
-          window.ReactNativeWebView.injectedObjectJson()
-        );
-
-        propertyName = injectedData.orgPropertyNameCode;
-        orgCode = injectedData.orgCode;
+      if (orgCode && propertyName) {
+        var e = document.createElement('script');
+        e.type = 'text/javascript';
+        e.src = `${url}/config/${orgCode}/${propertyName}/boot.js`;
+        e.defer = e.async = !0;
+        document.getElementsByTagName('head')[0].appendChild(e);
       }
-
-      var e = document.createElement('script');
-      e.type = 'text/javascript';
-      e.src = `${url}/config/${orgCode}/${propertyName}/boot.js`;
-      e.defer = e.async = !0;
-      document.getElementsByTagName('head')[0].appendChild(e);
     </script>
     <style>
       body {
@@ -134,8 +125,7 @@
     </style>
     <meta
       name="viewport"
-      content="width=device-width, height=device-height, initial-scale=1, viewport-fit=cover"
-    />
+      content="width=device-width, height=device-height, initial-scale=1, viewport-fit=cover" />
   </head>
   <body>
     <script>

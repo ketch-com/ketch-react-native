@@ -7,7 +7,7 @@
 
 import React from 'react';
 
-import {KetchServiceProvider} from './src/lib/KetchServiceProvider';
+import {KetchServiceProvider} from '@ketch-com/ketch-react-native';
 import Main from './Main';
 import {LogLevel} from './src/lib/enums';
 

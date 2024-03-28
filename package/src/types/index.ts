@@ -1,9 +1,9 @@
 import type {
-  KetchApiRegion,
+  EventName,
+  KetchDataCenter,
   LogLevel,
   PreferenceTab,
   PrivacyProtocol,
-  ShownComponent,
 } from '../enums';
 
 /**
@@ -18,6 +18,19 @@ export interface Consent {
   protocols?: Record<string, string>;
 }
 
+export type CommonExperienceOptions = Pick<
+  KetchMobile,
+  | 'organizationCode'
+  | 'propertyCode'
+  | 'identities'
+  | 'languageCode'
+  | 'regionCode'
+  | 'jurisdictionCode'
+  | 'environmentName'
+  | 'dataCenter'
+  | 'logLevel'
+>;
+
 /**
  * Preference experience options
  * @field tab - initial tab to show
@@ -26,12 +39,20 @@ export interface Consent {
  * @field showSubscriptionsTab - should the subscriptions tab be included in the preference experience
  * @field showRightsTab - should the rights (requests) tab be included in the preference experience
  */
-export interface PreferenceExperienceOptions {
+export type PreferenceExperienceOptions = {
   tab?: PreferenceTab;
   showOverviewTab?: boolean;
   showConsentsTab?: boolean;
   showSubscriptionsTab?: boolean;
   showRightsTab?: boolean;
+};
+
+export type AllExperienceOptions = CommonExperienceOptions &
+  PreferenceExperienceOptions;
+
+export interface OnMessageEventData {
+  event: EventName;
+  data: any;
 }
 
 export interface KetchMobile {
@@ -48,7 +69,7 @@ export interface KetchMobile {
   /**
    * Ketch identity map of identity space names to values
    */
-  identities?: Record<string, string>;
+  identities: Record<string, string>;
 
   /**
    * ISO 639-1 language code
@@ -71,9 +92,9 @@ export interface KetchMobile {
   environmentName?: string;
 
   /**
-   * Ketch API region
+   * Ketch data center region
    */
-  ketchApiRegion?: KetchApiRegion;
+  dataCenter?: KetchDataCenter;
 
   /**
    * Log level for SDK log messages
@@ -136,16 +157,32 @@ export interface KetchMobile {
    * @param privacyProtocolKey The privacy protocol that was updated
    * @param privacyProtocolObject The new object for the updated privacy protocol
    */
-  onPrivacyStringUpdated?: (
+  onPrivacyProtocolUpdated?: (
     privacyProtocolKey: PrivacyProtocol,
     privacyProtocolObject: Record<string, string>
   ) => void;
 }
 
 export interface KetchService {
-  shownComponent: ShownComponent | null;
-  showConsent: () => void;
-  showPreferences: () => void;
-  hide: () => void;
+  /**
+   * Show consent modal
+   */
+  showConsentExperience: () => void;
+
+  /**
+   * Show preferences modal
+   */
+  showPreferenceExperience: (
+    options?: Partial<PreferenceExperienceOptions>
+  ) => void;
+
+  /**
+   * Hide modal
+   */
+  dismissExperience: () => void;
+
+  /**
+   * Update service parameters
+   */
   updateParameters: (parameters: Partial<KetchMobile>) => void;
 }
