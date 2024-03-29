@@ -1,4 +1,4 @@
-import { Platform, NativeModules } from 'react-native';
+import { Platform, NativeModules, Image } from 'react-native';
 import React, {
   useContext,
   useRef,
@@ -25,8 +25,8 @@ import {
   PrivacyProtocol,
 } from '../enums';
 import styles from './styles';
-import { createOptionsString, createUrlParamsString } from '../util/helpers';
-import { savePrivacyToStorage } from '../util/services';
+import { createOptionsString, createUrlParamsString } from '../util';
+import { savePrivacyToStorage } from '../util';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: JSX.Element;
@@ -38,7 +38,12 @@ const deviceLanguage: string =
       NativeModules.SettingsManager.settings.AppleLanguages[0] //iOS 13
     : NativeModules.I18nManager.localeIdentifier;
 
-const BASE_URL = 'file:///android_asset/local-index.html';
+const BASE_URL =
+  Platform.OS === 'ios'
+    ? Image.resolveAssetSource(require('../local-index.html')).uri
+    : 'file:///android_asset/local-index.html';
+
+console.log('BASE_URL', BASE_URL);
 
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
@@ -95,11 +100,14 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     if (isInitialLoadEnd) {
       const urlParams = createUrlParamsString(parameters);
 
-      setSource(
+      const sourceUri =
         BASE_URL +
-          `?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}` +
-          urlParams
-      );
+        `?a=a&orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}` +
+        urlParams;
+
+      console.log('BASE_URL', sourceUri);
+
+      setSource(sourceUri);
 
       // webViewRef.current?.injectJavaScript(
       //   `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`
@@ -259,10 +267,15 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         <WebView
           ref={webViewRef}
           source={{ uri: source }}
+          allowingReadAccessToURL={source}
+          originWhitelist={['*']}
           javaScriptEnabled
           allowFileAccess
           webviewDebuggingEnabled
           domStorageEnabled
+          mixedContentMode="always"
+          allowFileAccessFromFileURLs
+          allowUniversalAccessFromFileURLs
           onMessage={handleMessageRecieve}
           onLoadEnd={onLoadEnd}
           style={styles.webView}
