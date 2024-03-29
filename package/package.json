@@ -73,18 +73,16 @@
     "typescript": "^5.4.3"
   },
   "peerDependencies": {
-    "@react-native-async-storage/async-storage": "~1.23.1",
     "react": "^18.2.0",
     "react-native": "^0.73.6",
     "react-native-default-preference": "^1.4.4",
-    "react-native-webview": "~13.8.2"
+    "react-native-webview": "~13.8.4"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "~1.23.1",
     "react": "^18.2.0",
     "react-native": "^0.73.6",
     "react-native-default-preference": "^1.4.4",
-    "react-native-webview": "~13.8.2"
+    "react-native-webview": "~13.8.4"
   },
   "resolutions": {
     "@types/react": "^18.2.44"

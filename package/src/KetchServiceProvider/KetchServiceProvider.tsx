@@ -1,4 +1,4 @@
-import { Platform, NativeModules } from 'react-native';
+import { Platform, NativeModules, Image } from 'react-native';
 import React, {
   useContext,
   useRef,
@@ -25,8 +25,8 @@ import {
   PrivacyProtocol,
 } from '../enums';
 import styles from './styles';
-import { createOptionsString, createUrlParamsString } from '../util/helpers';
-import { savePrivacyToStorage } from '../util/services';
+import { createOptionsString, createUrlParamsString } from '../util';
+import { savePrivacyToStorage } from '../util';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: JSX.Element;
@@ -37,6 +37,13 @@ const deviceLanguage: string =
     ? NativeModules.SettingsManager.settings.AppleLocale ||
       NativeModules.SettingsManager.settings.AppleLanguages[0] //iOS 13
     : NativeModules.I18nManager.localeIdentifier;
+
+const BASE_URL =
+  Platform.OS === 'ios'
+    ? Image.resolveAssetSource(require('../local-index.html')).uri
+    : 'file:///android_asset/local-index.html';
+
+console.log('BASE_URL', BASE_URL);
 
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
@@ -63,8 +70,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const webViewRef = useRef<WebView>(null);
   const isForceConsentExperienceShown = useRef(false);
   const isForcePreferenceExperienceShown = useRef(false);
-  const source = require('../index.html');
+  // const source = require('../index.html');
 
+  const [source, setSource] = useState(BASE_URL);
   const [isVisible, setIsVisible] = useState(false);
   const [isInitialLoadEnd, setIsInitialLoadEnd] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
@@ -92,9 +100,18 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     if (isInitialLoadEnd) {
       const urlParams = createUrlParamsString(parameters);
 
-      webViewRef.current?.injectJavaScript(
-        `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`
-      );
+      const sourceUri =
+        BASE_URL +
+        `?a=a&orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}` +
+        urlParams;
+
+      console.log('BASE_URL', sourceUri);
+
+      setSource(sourceUri);
+
+      // webViewRef.current?.injectJavaScript(
+      //   `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`
+      // );
     }
   }, [parameters, isInitialLoadEnd]);
 
@@ -249,10 +266,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       >
         <WebView
           ref={webViewRef}
-          source={source}
+          source={{ uri: source }}
+          allowingReadAccessToURL={source}
+          originWhitelist={['*']}
           javaScriptEnabled
+          allowFileAccess
           webviewDebuggingEnabled
           domStorageEnabled
+          mixedContentMode="always"
+          allowFileAccessFromFileURLs
+          allowUniversalAccessFromFileURLs
           onMessage={handleMessageRecieve}
           onLoadEnd={onLoadEnd}
           style={styles.webView}

@@ -5,22 +5,12 @@ Ketch React Native Library
 ## Installation
 
 ```sh
-npm install ketch-react-native
+yarn add ketch-react-native
 ```
 
 ## Usage
 
-```js
-import { multiply } from 'ketch-react-native';
-
-// ...
-
-const result = await multiply(3, 7);
-```
-
-## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+See our [Getting Started](https://developers.ketch.com/v3.0/docs/ketch-react-native-sdk-getting-started) and [Technical Documentation](https://developers.ketch.com/v3.0/docs/ketch-react-native-sdk-reference) documentation for usage instructions.
 
 ## License
 

@@ -16,4 +16,4 @@ react-native bundle --platform android --dev false --entry-file index.js --bundl
 rm -rf android/app/build
 
 # Go to android folder, clean and assemble debug
-cd android && ./gradlew clean assembleDebug && cd ..
+cd android && ./gradlew clean assembleRelease && cd ..
