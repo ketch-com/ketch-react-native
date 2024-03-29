@@ -14,4 +14,4 @@ See the package [README](/package/README.md).
 
 ## Running
 
-See the example app [README](/example/README.md) to run the example app.
+See the example app [README](/example/README.md).
