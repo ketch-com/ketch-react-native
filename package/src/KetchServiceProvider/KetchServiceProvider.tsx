@@ -70,12 +70,19 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const webViewRef = useRef<WebView>(null);
   const isForceConsentExperienceShown = useRef(false);
   const isForcePreferenceExperienceShown = useRef(false);
-  // const source = require('../index.html');
 
   const [source, setSource] = useState(BASE_URL);
   const [isVisible, setIsVisible] = useState(false);
   const [isInitialLoadEnd, setIsInitialLoadEnd] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
+
+  // Set flag and warn if no identities passed
+  const noIdentities = !Object.keys(identities).length;
+  if (noIdentities) {
+    console.warn(
+      'You must pass at least one identity to KetchServiceProvider to use the Ketch React Native SDK.'
+    );
+  }
 
   const [parameters, dispatch] = useReducer(reducer, {
     organizationCode,
@@ -108,10 +115,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       console.log('BASE_URL', sourceUri);
 
       setSource(sourceUri);
-
-      // webViewRef.current?.injectJavaScript(
-      //   `location.assign(location.origin+location.pathname+"?orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}"+"${urlParams}")`
-      // );
     }
   }, [parameters, isInitialLoadEnd]);
 
@@ -253,7 +256,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     setIsInitialLoadEnd(true);
   };
 
-  return (
+  // Simply render children if no identities passed as SDK cannot be used
+  return noIdentities ? (
+    children
+  ) : (
     <KetchServiceContext.Provider
       value={{
         showConsentExperience,
