@@ -33,10 +33,10 @@ function App(): React.JSX.Element {
 
   const onPrivacyProtocolUpdated = (
     key: string,
-    object: Record<string, any>,
+    array: (string | Record<string, string>)[],
   ) => {
-    console.log('onPrivacyProtocolUpdated:key', JSON.stringify(key));
-    console.log('onPrivacyProtocolUpdated:object', JSON.stringify(object));
+    console.log('onPrivacyProtocolUpdated:key', key);
+    console.log('onPrivacyProtocolUpdated:array', array);
   };
 
   const onError = (errorMsg: string) => {

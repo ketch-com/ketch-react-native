@@ -220,21 +220,24 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         break;
 
       case EventName.updateUSPrivacy:
-        savePrivacyToStorage(data.data);
+        const usPrivacyArray = JSON.parse(data.data);
+        savePrivacyToStorage(usPrivacyArray);
         parameters.onPrivacyProtocolUpdated?.(
           PrivacyProtocol.USPrivacy,
-          data.data
+          usPrivacyArray
         );
         break;
 
       case EventName.updateGPP:
-        savePrivacyToStorage(data.data);
-        parameters.onPrivacyProtocolUpdated?.(PrivacyProtocol.GPP, data.data);
+        const gppArray = JSON.parse(data.data);
+        savePrivacyToStorage(gppArray);
+        parameters.onPrivacyProtocolUpdated?.(PrivacyProtocol.GPP, gppArray);
         break;
 
       case EventName.updateTCF:
-        savePrivacyToStorage(data.data);
-        parameters.onPrivacyProtocolUpdated?.(PrivacyProtocol.TCF, data.data);
+        const tcfArray = JSON.parse(data.data);
+        savePrivacyToStorage(tcfArray);
+        parameters.onPrivacyProtocolUpdated?.(PrivacyProtocol.TCF, tcfArray);
         break;
 
       case EventName.error:

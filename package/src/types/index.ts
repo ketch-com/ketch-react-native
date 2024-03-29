@@ -155,11 +155,11 @@ export interface KetchMobile {
   /**
    * Privacy protcol update listener
    * @param privacyProtocolKey The privacy protocol that was updated
-   * @param privacyProtocolObject The new object for the updated privacy protocol
+   * @param privacyProtocolArray The new array for the updated privacy protocol
    */
   onPrivacyProtocolUpdated?: (
     privacyProtocolKey: PrivacyProtocol,
-    privacyProtocolObject: Record<string, string>
+    privacyProtocolArray: (string | Record<string, string>)[]
   ) => void;
 }
 
