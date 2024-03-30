@@ -9,7 +9,7 @@ yarn add ketch-react-native
 ```
 1. (Yarn users) Install peer dependencies:
 ```sh
-yarn add @react-native-community/async-storage @react-native-community/netinfo
+yarn add react-native-default-preference react-native-webview
 ````
 
 1. Make sure your `react-native.config.js` contains the following:
