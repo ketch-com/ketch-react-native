@@ -43,7 +43,7 @@ const indexHtml = require('../assets/local-index.html');
 const BASE_URL =
   Platform.OS === 'ios'
     ? Image.resolveAssetSource(indexHtml).uri
-    : 'file:///android_asset/local-index.html';
+    : 'file:///android_asset/custom/local-index.html';
 
 console.log('BASE_URL', BASE_URL);
 
