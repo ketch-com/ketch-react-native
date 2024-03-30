@@ -50,9 +50,9 @@ cd ios && pod install
 
 ```tsx
 <KetchServiceProvider
-  organizationCode="<YOUR_ORGANIZATION_CODE>"
-  propertyCode="<YOUR_PROPERTY_CODE>"
-  identities={{ YOUR_IDENTIFIER_NAME: "<YOUR_IDENTIFIER_VALUE>" }}
+  organizationCode="YOUR_ORGANIZATION_CODE"
+  propertyCode="YOUR_PROPERTY_CODE"
+  identities={{ YOUR_IDENTIFIER_NAME: "YOUR_IDENTIFIER_VALUE" }}
 >
   {/* The rest of your app code here */}
 </KetchServiceProvider>
