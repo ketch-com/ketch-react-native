@@ -20,7 +20,7 @@ npm install @ketch-com/ketch-react-native react-native-default-preference react-
 yarn add @ketch-com/ketch-react-native react-native-default-preference react-native-webview
 ```
 
-2. Setup static assets
+2. Configure static assets
 
 - In the root directory of your app, create or update `react-native.config.js` with the following `assets` line:
 
@@ -34,7 +34,7 @@ yarn add @ketch-com/ketch-react-native react-native-default-preference react-nat
   };
   ```
 
-- Link the static assets:
+- Link assets:
 
   ```sh
   npx react-native-asset
