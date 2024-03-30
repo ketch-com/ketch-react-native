@@ -67,7 +67,8 @@ function App(): React.JSX.Element {
     <KetchServiceProvider
       organizationCode="ketch_samples"
       propertyCode="react_native_example_app"
-      identities={{email: 'test@ketch.com'}}>
+      identities={{email: 'test@ketch.com'}}
+      forceConsentExperience>
       <SafeAreaView style={backgroundStyle}>
         <StatusBar
           barStyle={isDarkMode ? 'light-content' : 'dark-content'}
