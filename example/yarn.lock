@@ -2066,8 +2066,8 @@ __metadata:
   linkType: hard
 
 "@ketch-com/ketch-react-native@file:../package::locator=example%40workspace%3A.":
-  version: 0.1.2
-  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=a92ba7&locator=example%40workspace%3A."
+  version: 0.2.0
+  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=9e2278&locator=example%40workspace%3A."
   dependencies:
     react: "npm:^18.2.0"
     react-native: "npm:^0.73.6"
@@ -2078,7 +2078,7 @@ __metadata:
     react-native: ^0.73.6
     react-native-default-preference: ^1.4.4
     react-native-webview: ~13.8.4
-  checksum: 10c0/152ca22eb2ff6e31a68ee0119a149de5d49548276804b74fcd98ea4c3fffded08df9c6e11ae65e2839be9fe7dc87196624238e47e2e630774dba3ac22a4b2bcb
+  checksum: 10c0/a544806dc80c996e6ea3df54aee259f1d9b9a042862a586a13ee438c217a8a34fe7e16e5cb14af0f2e35f47f37e017a4feb79427f1840c233781e6438221a2bf
   languageName: node
   linkType: hard
 

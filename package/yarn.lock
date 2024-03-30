@@ -2379,14 +2379,14 @@ __metadata:
     react-native: "npm:^0.73.6"
     react-native-builder-bob: "npm:^0.23.2"
     react-native-default-preference: "npm:^1.4.4"
-    react-native-webview: "npm:~13.8.2"
+    react-native-webview: "npm:~13.8.4"
     release-it: "npm:^15.0.0"
     typescript: "npm:^5.4.3"
   peerDependencies:
     react: ^18.2.0
     react-native: ^0.73.6
     react-native-default-preference: ^1.4.4
-    react-native-webview: ~13.8.2
+    react-native-webview: ~13.8.4
   languageName: unknown
   linkType: soft
 
@@ -10868,7 +10868,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-webview@npm:~13.8.2":
+"react-native-webview@npm:~13.8.4":
   version: 13.8.4
   resolution: "react-native-webview@npm:13.8.4"
   dependencies:
