@@ -1,29 +1,18 @@
 {
   "name": "@ketch-com/ketch-react-native",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "description": "Ketch React Native Library",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/src/index.d.ts",
-  "react-native": "lib/commonjs/index",
+  "react-native": "lib/module/index",
   "source": "src/index",
   "files": [
+    "package.json",
+    "react-native.config.js",
+    "tsconfig.json",
     "src",
-    "lib",
-    "android",
-    "ios",
-    "cpp",
-    "*.podspec",
-    "!ios/build",
-    "!android/build",
-    "!android/gradle",
-    "!android/gradlew",
-    "!android/gradlew.bat",
-    "!android/local.properties",
-    "!**/__tests__",
-    "!**/__fixtures__",
-    "!**/__mocks__",
-    "!**/.*"
+    "lib"
   ],
   "scripts": {
     "all": "npm run clean && npm run lint && npm run typecheck && npm run prepare",
@@ -73,12 +62,6 @@
     "typescript": "^5.4.3"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-native": "^0.73.6",
-    "react-native-default-preference": "^1.4.4",
-    "react-native-webview": "~13.8.4"
-  },
-  "dependencies": {
     "react": "^18.2.0",
     "react-native": "^0.73.6",
     "react-native-default-preference": "^1.4.4",

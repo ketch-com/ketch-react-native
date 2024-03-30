@@ -38,9 +38,11 @@ const deviceLanguage: string =
       NativeModules.SettingsManager.settings.AppleLanguages[0] //iOS 13
     : NativeModules.I18nManager.localeIdentifier;
 
+const indexHtml = require('../assets/local-index.html');
+
 const BASE_URL =
   Platform.OS === 'ios'
-    ? Image.resolveAssetSource(require('../local-index.html')).uri
+    ? Image.resolveAssetSource(indexHtml).uri
     : 'file:///android_asset/local-index.html';
 
 console.log('BASE_URL', BASE_URL);
