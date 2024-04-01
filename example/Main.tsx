@@ -290,6 +290,19 @@ function Main(): React.JSX.Element {
                     title="Log Protocols"
                     onPress={consoleLogPrivacyDataFromStorage}
                   />
+                  <Button
+                    title="Add Identity"
+                    onPress={() => {
+                      console.log('pressed');
+                      console.log(ketch);
+                      console.log(ketch.updateParameters.arguments);
+                      ketch.updateParameters({
+                        identities: {
+                          email: 'test12345@ketch.com',
+                        },
+                      });
+                    }}
+                  />
                 </View>
               </View>
             </>

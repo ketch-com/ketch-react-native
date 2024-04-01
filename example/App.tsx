@@ -47,7 +47,6 @@ function App(): React.JSX.Element {
     <KetchServiceProvider
       organizationCode="ketch_samples"
       propertyCode="react_native_sample_app"
-      identities={{email: 'test@ketch.com'}}
       onEnvironmentUpdated={onEnvironmentUpdated}
       onRegionUpdated={onRegionUpdated}
       onJurisdictionUpdated={onJurisdictionUpdated}
