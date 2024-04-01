@@ -48,9 +48,11 @@ function Main(): React.JSX.Element {
 
   // Global options
   const [organization, setOrganization] = useState<string | undefined>(
-    undefined,
+    'ketch_samples',
   );
-  const [property, setProperty] = useState<string | undefined>(undefined);
+  const [property, setProperty] = useState<string | undefined>(
+    'react_native_sample_app',
+  );
   const [language, setLanguage] = useState<string | undefined>(undefined);
   const [jurisdiction, setJurisdiction] = useState<string | undefined>(
     undefined,
@@ -289,19 +291,6 @@ function Main(): React.JSX.Element {
                   <Button
                     title="Log Protocols"
                     onPress={consoleLogPrivacyDataFromStorage}
-                  />
-                  <Button
-                    title="Add Identity"
-                    onPress={() => {
-                      console.log('pressed');
-                      console.log(ketch);
-                      console.log(ketch.updateParameters.arguments);
-                      ketch.updateParameters({
-                        identities: {
-                          email: 'test12345@ketch.com',
-                        },
-                      });
-                    }}
                   />
                 </View>
               </View>

@@ -47,6 +47,7 @@ function App(): React.JSX.Element {
     <KetchServiceProvider
       organizationCode="ketch_samples"
       propertyCode="react_native_sample_app"
+      identities={{email: 'test123@ketch.com'}}
       onEnvironmentUpdated={onEnvironmentUpdated}
       onRegionUpdated={onRegionUpdated}
       onJurisdictionUpdated={onJurisdictionUpdated}
@@ -54,8 +55,7 @@ function App(): React.JSX.Element {
       onConsentUpdated={onConsentUpdated}
       onPrivacyProtocolUpdated={onPrivacyProtocolUpdated}
       onError={onError}
-      logLevel={LogLevel.TRACE}
-      forceConsentExperience>
+      logLevel={LogLevel.TRACE}>
       <Main />
     </KetchServiceProvider>
   );
