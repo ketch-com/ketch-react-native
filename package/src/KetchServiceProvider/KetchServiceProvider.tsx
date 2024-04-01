@@ -45,8 +45,6 @@ const BASE_URL =
     ? Image.resolveAssetSource(indexHtml).uri
     : 'file:///android_asset/custom/local-index.html';
 
-console.log('BASE_URL', BASE_URL);
-
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
   propertyCode,
@@ -114,8 +112,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         `?a=a&orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}` +
         urlParams;
 
-      console.log('BASE_URL', sourceUri);
-
       setSource(sourceUri);
     }
   }, [parameters, isInitialLoadEnd]);
@@ -136,11 +132,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       if (mergedOptions) {
         const preferencesOptionsSerialized = createOptionsString(mergedOptions);
-
-        console.log(
-          'preferencesOptionsSerialized',
-          preferencesOptionsSerialized
-        );
 
         expression = `ketch("showPreferences", ${preferencesOptionsSerialized})`;
       }
@@ -182,7 +173,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
   const updateParameters = useCallback(
     (params: Partial<KetchMobile>) => {
-      console.log(params);
       dispatch({ type: Action.UPDATE_PARAMETERS, payload: params });
     },
     [dispatch]
@@ -191,7 +181,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const handleMessageRecieve = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
 
-    console.log('message', JSON.stringify(data));
     setIsServiceReady(true);
 
     switch (data.event) {
@@ -246,6 +235,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         break;
 
       case EventName.error:
+        console.log('Error:', JSON.stringify(data.data));
         onError?.(data.data);
         break;
 
