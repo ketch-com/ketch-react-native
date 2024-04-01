@@ -182,6 +182,11 @@ export interface KetchService {
   dismissExperience: () => void;
 
   /**
+   * Get current consent data
+   */
+  getConsent: () => Consent | undefined;
+
+  /**
    * Update service parameters
    */
   updateParameters: (parameters: Partial<KetchMobile>) => void;

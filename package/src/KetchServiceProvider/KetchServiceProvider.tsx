@@ -16,6 +16,7 @@ import type {
   KetchMobile,
   KetchService,
   OnMessageEventData,
+  Consent,
 } from '../types';
 import { Action, reducer } from './reducer';
 import {
@@ -70,13 +71,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onError,
 }) => {
   const webViewRef = useRef<WebView>(null);
-  const isForceConsentExperienceShown = useRef(false);
-  const isForcePreferenceExperienceShown = useRef(false);
 
   const [source, setSource] = useState(BASE_URL);
   const [isVisible, setIsVisible] = useState(false);
   const [isInitialLoadEnd, setIsInitialLoadEnd] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
+
+  // Internal state values which shouldn't cause re-render
+  const isForceConsentExperienceShown = useRef(false);
+  const isForcePreferenceExperienceShown = useRef(false);
+  const consent = useRef<Consent>();
 
   // Set flag and warn if no identities passed
   const noIdentities = !Object.keys(identities).length;
@@ -180,6 +184,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     setIsVisible(false);
   }, []);
 
+  const getConsent = useCallback(() => consent.current, []);
+
   const updateParameters = useCallback(
     (params: Partial<KetchMobile>) => {
       console.log(params);
@@ -221,6 +227,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         break;
 
       case EventName.consent:
+        consent.current = JSON.parse(data.data || {}) as Consent;
         parameters.onConsentUpdated?.(data.data);
         break;
 
@@ -267,6 +274,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         showConsentExperience,
         showPreferenceExperience,
         dismissExperience,
+        getConsent,
         updateParameters,
       }}
     >

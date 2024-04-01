@@ -55,7 +55,8 @@ function App(): React.JSX.Element {
       onConsentUpdated={onConsentUpdated}
       onPrivacyProtocolUpdated={onPrivacyProtocolUpdated}
       onError={onError}
-      logLevel={LogLevel.TRACE}>
+      logLevel={LogLevel.TRACE}
+      forceConsentExperience>
       <Main />
     </KetchServiceProvider>
   );

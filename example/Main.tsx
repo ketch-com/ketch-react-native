@@ -275,14 +275,24 @@ function Main(): React.JSX.Element {
 
           {/* SDK Actions */}
           <Section title="Actions" subtitle="Trigger some SDK functionality">
-            <View style={styles.sectionHorizontalContainer}>
-              <Button title="Consent" onPress={showConsent} />
-              <Button title="Preferences" onPress={showPreferences} />
-              <Button
-                title="Protocols"
-                onPress={consoleLogPrivacyDataFromStorage}
-              />
-            </View>
+            <>
+              <View style={styles.sectionVerticalContainer}>
+                <View style={styles.sectionHorizontalContainer}>
+                  <Button title="Show Consent" onPress={showConsent} />
+                  <Button title="Show Preferences" onPress={showPreferences} />
+                </View>
+                <View style={styles.sectionHorizontalContainer}>
+                  <Button
+                    title="Log Consent"
+                    onPress={() => console.log(ketch.getConsent())}
+                  />
+                  <Button
+                    title="Log Protocols"
+                    onPress={consoleLogPrivacyDataFromStorage}
+                  />
+                </View>
+              </View>
+            </>
           </Section>
         </View>
       </ScrollView>
