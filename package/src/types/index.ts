@@ -69,7 +69,7 @@ export interface KetchMobile {
   /**
    * Ketch identity map of identity space names to values
    */
-  identities: Record<string, string>;
+  identities?: Record<string, string>;
 
   /**
    * ISO 639-1 language code
@@ -180,6 +180,11 @@ export interface KetchService {
    * Hide modal
    */
   dismissExperience: () => void;
+
+  /**
+   * Get current consent data
+   */
+  getConsent: () => Consent | undefined;
 
   /**
    * Update service parameters

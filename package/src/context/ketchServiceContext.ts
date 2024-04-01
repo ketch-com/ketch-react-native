@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createContext } from 'react';
-import type { KetchService } from '../types';
+import type { Consent, KetchMobile, KetchService } from '../types';
 
 export const KetchServiceContext = createContext<KetchService>({
   showConsentExperience: () => {},
   showPreferenceExperience: () => {},
   dismissExperience: () => {},
-  updateParameters: () => {},
+  getConsent: () => ({}) as Consent,
+  // @ts-ignore
+  updateParameters: (parameters: Partial<KetchMobile>) => {},
 });

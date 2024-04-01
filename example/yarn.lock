@@ -2066,19 +2066,14 @@ __metadata:
   linkType: hard
 
 "@ketch-com/ketch-react-native@file:../package::locator=example%40workspace%3A.":
-  version: 0.2.0
-  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=9e2278&locator=example%40workspace%3A."
-  dependencies:
-    react: "npm:^18.2.0"
-    react-native: "npm:^0.73.6"
-    react-native-default-preference: "npm:^1.4.4"
-    react-native-webview: "npm:~13.8.4"
+  version: 0.3.3
+  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=f4b727&locator=example%40workspace%3A."
   peerDependencies:
     react: ^18.2.0
     react-native: ^0.73.6
     react-native-default-preference: ^1.4.4
     react-native-webview: ~13.8.4
-  checksum: 10c0/a544806dc80c996e6ea3df54aee259f1d9b9a042862a586a13ee438c217a8a34fe7e16e5cb14af0f2e35f47f37e017a4feb79427f1840c233781e6438221a2bf
+  checksum: 10c0/c425c557fcbeef3de52183372ce181d507026a04da4deb334a8186a4cdecaf6ce12d7b5ab1703a9a991d10c99ef6c3c5ec415b7704d362358161d84b01cdb850
   languageName: node
   linkType: hard
 
@@ -8954,7 +8949,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-webview@npm:^13.8.4, react-native-webview@npm:~13.8.4":
+"react-native-webview@npm:^13.8.4":
   version: 13.8.4
   resolution: "react-native-webview@npm:13.8.4"
   dependencies:
@@ -8967,7 +8962,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native@npm:0.73.6, react-native@npm:^0.73.6":
+"react-native@npm:0.73.6":
   version: 0.73.6
   resolution: "react-native@npm:0.73.6"
   dependencies:
@@ -9049,7 +9044,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.2.0, react@npm:^18.2.0":
+"react@npm:18.2.0":
   version: 18.2.0
   resolution: "react@npm:18.2.0"
   dependencies:

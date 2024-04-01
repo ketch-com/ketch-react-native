@@ -48,9 +48,11 @@ function Main(): React.JSX.Element {
 
   // Global options
   const [organization, setOrganization] = useState<string | undefined>(
-    undefined,
+    'ketch_samples',
   );
-  const [property, setProperty] = useState<string | undefined>(undefined);
+  const [property, setProperty] = useState<string | undefined>(
+    'react_native_sample_app',
+  );
   const [language, setLanguage] = useState<string | undefined>(undefined);
   const [jurisdiction, setJurisdiction] = useState<string | undefined>(
     undefined,
@@ -275,14 +277,24 @@ function Main(): React.JSX.Element {
 
           {/* SDK Actions */}
           <Section title="Actions" subtitle="Trigger some SDK functionality">
-            <View style={styles.sectionHorizontalContainer}>
-              <Button title="Consent" onPress={showConsent} />
-              <Button title="Preferences" onPress={showPreferences} />
-              <Button
-                title="Protocols"
-                onPress={consoleLogPrivacyDataFromStorage}
-              />
-            </View>
+            <>
+              <View style={styles.sectionVerticalContainer}>
+                <View style={styles.sectionHorizontalContainer}>
+                  <Button title="Show Consent" onPress={showConsent} />
+                  <Button title="Show Preferences" onPress={showPreferences} />
+                </View>
+                <View style={styles.sectionHorizontalContainer}>
+                  <Button
+                    title="Log Consent"
+                    onPress={() => console.log(ketch.getConsent())}
+                  />
+                  <Button
+                    title="Log Protocols"
+                    onPress={consoleLogPrivacyDataFromStorage}
+                  />
+                </View>
+              </View>
+            </>
           </Section>
         </View>
       </ScrollView>

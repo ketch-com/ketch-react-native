@@ -16,6 +16,7 @@ import type {
   KetchMobile,
   KetchService,
   OnMessageEventData,
+  Consent,
 } from '../types';
 import { Action, reducer } from './reducer';
 import {
@@ -68,21 +69,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onError,
 }) => {
   const webViewRef = useRef<WebView>(null);
-  const isForceConsentExperienceShown = useRef(false);
-  const isForcePreferenceExperienceShown = useRef(false);
 
   const [source, setSource] = useState(BASE_URL);
   const [isVisible, setIsVisible] = useState(false);
   const [isInitialLoadEnd, setIsInitialLoadEnd] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
 
-  // Set flag and warn if no identities passed
-  const noIdentities = !Object.keys(identities).length;
-  if (noIdentities) {
-    console.warn(
-      'You must pass at least one identity to KetchServiceProvider to use the Ketch React Native SDK.'
-    );
-  }
+  // Internal state values which shouldn't cause re-render
+  const isForceConsentExperienceShown = useRef(false);
+  const isForcePreferenceExperienceShown = useRef(false);
+  const consent = useRef<Consent>();
 
   const [parameters, dispatch] = useReducer(reducer, {
     organizationCode,
@@ -171,6 +167,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     setIsVisible(false);
   }, []);
 
+  const getConsent = useCallback(() => consent.current, []);
+
   const updateParameters = useCallback(
     (params: Partial<KetchMobile>) => {
       dispatch({ type: Action.UPDATE_PARAMETERS, payload: params });
@@ -210,6 +208,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         break;
 
       case EventName.consent:
+        consent.current = JSON.parse(data.data || {}) as Consent;
         parameters.onConsentUpdated?.(data.data);
         break;
 
@@ -249,14 +248,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   };
 
   // Simply render children if no identities passed as SDK cannot be used
-  return noIdentities ? (
-    children
-  ) : (
+  return (
     <KetchServiceContext.Provider
       value={{
         showConsentExperience,
         showPreferenceExperience,
         dismissExperience,
+        getConsent,
         updateParameters,
       }}
     >
