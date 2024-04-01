@@ -82,14 +82,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const isForcePreferenceExperienceShown = useRef(false);
   const consent = useRef<Consent>();
 
-  // Set flag and warn if no identities passed
-  const noIdentities = !identities || !Object.keys(identities).length;
-  if (noIdentities) {
-    // console.warn(
-    //   'You must pass at least one identity to KetchServiceProvider to use the Ketch React Native SDK.'
-    // );
-  }
-
   const [parameters, dispatch] = useReducer(reducer, {
     organizationCode,
     propertyCode,
@@ -186,18 +178,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
   const getConsent = useCallback(() => consent.current, []);
 
-  // const updateParameters = useCallback(
-  //   (params: Partial<KetchMobile>) => {
-  //     console.log(params);
-  //     dispatch({ type: Action.UPDATE_PARAMETERS, payload: params });
-  //   },
-  //   [dispatch]
-  // );
-
-  const updateParameters = (params: Partial<KetchMobile>) => {
-    console.log(params);
-    dispatch({ type: Action.UPDATE_PARAMETERS, payload: params });
-  };
+  const updateParameters = useCallback(
+    (params: Partial<KetchMobile>) => {
+      console.log(params);
+      dispatch({ type: Action.UPDATE_PARAMETERS, payload: params });
+    },
+    [dispatch]
+  );
 
   const handleMessageRecieve = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
@@ -271,9 +258,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   };
 
   // Simply render children if no identities passed as SDK cannot be used
-  return noIdentities ? (
-    children
-  ) : (
+  return (
     <KetchServiceContext.Provider
       value={{
         showConsentExperience,

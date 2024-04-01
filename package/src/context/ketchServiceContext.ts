@@ -8,7 +8,5 @@ export const KetchServiceContext = createContext<KetchService>({
   dismissExperience: () => {},
   getConsent: () => ({}) as Consent,
   // @ts-ignore
-  updateParameters: (parameters: Partial<KetchMobile>) => {
-    console.log('default update params called');
-  },
+  updateParameters: (parameters: Partial<KetchMobile>) => {},
 });

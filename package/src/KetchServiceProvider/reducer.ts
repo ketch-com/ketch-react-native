@@ -8,8 +8,6 @@ export const reducer = (
   state: KetchMobile,
   { type, payload }: { type: Action; payload: Partial<KetchMobile> }
 ) => {
-  console.log('updating in reduce', type);
-  console.log('updating in reduce', payload);
   switch (type) {
     case 'updateParameters':
       return { ...state, ...payload };
