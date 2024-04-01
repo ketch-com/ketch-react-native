@@ -280,8 +280,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         showPreferenceExperience,
         dismissExperience,
         getConsent,
-        updateParameters: () => console.log('NOT default updateParameters'),
-        // updateParameters,
+        updateParameters,
       }}
     >
       {children}
