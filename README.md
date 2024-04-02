@@ -54,7 +54,7 @@ cd ios && pod install
 </KetchServiceProvider>
 ```
 
-Where `<YOUR_ORGANIZATION_CODE>`, `<YOUR_PROPERTY_CODE>`, `YOUR_IDENTIFIER_NAME`, and `<YOUR_IDENTIFIER_VALUE>` are replaced with those configured within the Ketch application.
+Where `YOUR_ORGANIZATION_CODE`, `YOUR_PROPERTY_CODE`, `YOUR_IDENTIFIER_NAME`, and `YOUR_IDENTIFIER_VALUE` are replaced with those configured within the Ketch application.
 
 See our [Getting Started](https://developers.ketch.com/v3.0/docs/ketch-react-native-sdk-getting-started) and [Technical Documentation](https://developers.ketch.com/v3.0/docs/ketch-react-native-sdk-reference) documentation for further usage instructions.
 
