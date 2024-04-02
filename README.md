@@ -15,9 +15,6 @@ This repository contains the Ketch [React Native](https://reactnative.dev/) pack
 ```sh
 # using npm
 npm install @ketch-com/ketch-react-native react-native-default-preference react-native-webview
-
-# OR using yarn
-yarn add @ketch-com/ketch-react-native react-native-default-preference react-native-webview
 ```
 
 2. Configure static assets
