@@ -6,7 +6,6 @@ This repository contains the Ketch [React Native](https://reactnative.dev/) pack
 
 - `node` - We use `node v20.11.1` (LTS).
   - It's recommended to use [Node Version Manager (NVM)](https://github.com/nvm-sh/nvm) to manage your Node.js versions.
-- `yarn` - We use `yarn v4.1.1`
 
 ## Usage
 
