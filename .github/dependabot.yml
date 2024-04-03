@@ -7,8 +7,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    assignees:
-      - "@ketch-com/developers"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -16,5 +14,3 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    assignees:
-      - "@ketch-com/developers"
