@@ -7,14 +7,6 @@ const path = require('path');
  *
  * @type {import('metro-config').MetroConfig}
  */
-
-const packagePath = path.resolve(__dirname + '/../package/');
-
-const config = {
-  resolver: {
-    nodeModulesPaths: [packagePath],
-  },
-  watchFolders: [packagePath],
-};
+const config = {};
 
 module.exports = mergeConfig(getDefaultConfig(__dirname), config);

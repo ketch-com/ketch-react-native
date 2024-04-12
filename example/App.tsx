@@ -7,55 +7,16 @@
 
 import React from 'react';
 
-import {KetchServiceProvider, LogLevel} from '@ketch-com/ketch-react-native';
-import Main from './Main';
+import {KetchServiceProvider} from '@ketch-com/ketch-react-native';
+import Main from './src/components/Main';
 
 function App(): React.JSX.Element {
-  const onEnvironmentUpdated = (data: string) => {
-    console.log('onEnvironmentUpdated', JSON.stringify(data));
-  };
-
-  const onRegionUpdated = (data: string) => {
-    console.log('onRegionUpdated', JSON.stringify(data));
-  };
-
-  const onJurisdictionUpdated = (data: string) => {
-    console.log('onJurisdictionUpdated', JSON.stringify(data));
-  };
-
-  const onIdentitiesUpdated = (data: Record<string, string>) => {
-    console.log('onIdentitiesUpdated', JSON.stringify(data));
-  };
-
-  const onConsentUpdated = (data: Record<string, any>) => {
-    console.log('onConsentUpdated', JSON.stringify(data));
-  };
-
-  const onPrivacyProtocolUpdated = (
-    key: string,
-    array: (string | Record<string, string>)[],
-  ) => {
-    console.log('onPrivacyProtocolUpdated:key', key);
-    console.log('onPrivacyProtocolUpdated:array', array);
-  };
-
-  const onError = (errorMsg: string) => {
-    console.log(errorMsg);
-  };
-
   return (
     <KetchServiceProvider
-      organizationCode="ketch_samples"
-      propertyCode="react_native_sample_app"
+      organizationCode="doceree_poc"
+      propertyCode="website_smart_tag"
       identities={{email: 'test@ketch.com'}}
-      onEnvironmentUpdated={onEnvironmentUpdated}
-      onRegionUpdated={onRegionUpdated}
-      onJurisdictionUpdated={onJurisdictionUpdated}
-      onIdentitiesUpdated={onIdentitiesUpdated}
-      onConsentUpdated={onConsentUpdated}
-      onPrivacyProtocolUpdated={onPrivacyProtocolUpdated}
-      onError={onError}
-      logLevel={LogLevel.TRACE}>
+      forceConsentExperience>
       <Main />
     </KetchServiceProvider>
   );
