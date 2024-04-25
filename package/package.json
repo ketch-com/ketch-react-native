@@ -1,6 +1,6 @@
 {
   "name": "@ketch-com/ketch-react-native",
-  "version": "0.4.1",
+  "version": "0.4.0",
   "description": "Ketch React Native Library",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -39,7 +39,8 @@
   },
   "homepage": "https://github.com/ketch-com/ketch-react-native#readme",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
