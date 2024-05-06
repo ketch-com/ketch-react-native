@@ -26,6 +26,24 @@ jobs:
       - name: Typecheck files
         run: npm run typecheck
 
+      - name: Build library
+          run: npm run all
+      
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          always-auth: true
+          registry-url: https://registry.npmjs.com/
+          scope: ketch-com
+          node-version: 16
+          cache: "npm"
+
+      - name: Publish
+        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
   # TODO:JB - Setup testing
   # test:
   #   runs-on: ubuntu-latest
@@ -66,13 +84,13 @@ jobs:
   #       id: version
   #       uses: conventional-actions/next-version@v1
 
-  #     - name: Setup npmrc for ketch-sdk
-  #       uses: conventional-actions/setup-npmrc@v1
-  #       with:
-  #         always-auth: true
-  #         registry-url: https://registry.npmjs.com/
-  #         scope: ketch-sdk
-  #         token: ${{ secrets.NPM_TOKEN }}
+      # - name: Setup npmrc for ketch-sdk
+      #   uses: conventional-actions/setup-npmrc@v1
+      #   with:
+      #     always-auth: true
+      #     registry-url: https://registry.npmjs.com/
+      #     scope: ketch-sdk
+      #     token: ${{ secrets.NPM_TOKEN }}
 
   #     - name: Setup npmrc for ketch-com
   #       uses: conventional-actions/setup-npmrc@v1
