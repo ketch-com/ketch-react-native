@@ -29,6 +29,8 @@ import styles from './styles';
 import { createOptionsString, createUrlParamsString } from '../util';
 import { savePrivacyToStorage } from '../util';
 
+import content from '../assets/index';
+
 interface KetchServiceProviderParams extends KetchMobile {
   children: JSX.Element;
 }
@@ -181,6 +183,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
     setIsServiceReady(true);
 
+    console.log(`Message: ${data.event}`);
+
     switch (data.event) {
       case EventName.willShowExperience:
         setIsVisible(true);
@@ -192,15 +196,15 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         break;
 
       case EventName.environment:
-        parameters.onEnvironmentUpdated?.(data.data);
+        // parameters.onEnvironmentUpdated?.(data.data);
         break;
 
       case EventName.regionInfo:
-        parameters.onRegionUpdated?.(data.data);
+        // parameters.onRegionUpdated?.(data.data);
         break;
 
       case EventName.jurisdiction:
-        parameters.onJurisdictionUpdated?.(data.data);
+        // parameters.onJurisdictionUpdated?.(data.data);
         break;
 
       case EventName.identities:
@@ -247,6 +251,18 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     setIsInitialLoadEnd(true);
   };
 
+  console.log(content);
+
+  // const content = `
+  //   <html>
+  //     <head>
+  //       <script>
+  //         console.log(window.location)
+  //       </script>
+  //     </head>
+  //   </html>
+  // `;
+
   // Simply render children if no identities passed as SDK cannot be used
   return (
     <KetchServiceContext.Provider
@@ -265,8 +281,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       >
         <WebView
           ref={webViewRef}
-          source={{ uri: source }}
+          source={{ html: content }}
           allowingReadAccessToURL={source}
+          injectedJavaScriptObject={parameters}
           originWhitelist={['*']}
           javaScriptEnabled
           allowFileAccess
