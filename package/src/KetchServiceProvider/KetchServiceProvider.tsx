@@ -251,18 +251,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     setIsInitialLoadEnd(true);
   };
 
-  console.log(content);
-
-  // const content = `
-  //   <html>
-  //     <head>
-  //       <script>
-  //         console.log(window.location)
-  //       </script>
-  //     </head>
-  //   </html>
-  // `;
-
   // Simply render children if no identities passed as SDK cannot be used
   return (
     <KetchServiceContext.Provider
@@ -281,6 +269,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       >
         <WebView
           ref={webViewRef}
+          // source={{ uri: source }}
           source={{ html: content }}
           allowingReadAccessToURL={source}
           injectedJavaScriptObject={parameters}
