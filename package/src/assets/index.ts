@@ -7,7 +7,8 @@ export default `
       const parameters = JSON.parse(
         window.ReactNativeWebView.injectedObjectJson()
       );
-      console.log(parameters)
+
+      // TODO: Use parmaters to set SDK query params here
 
       window.semaphore = window.semaphore || [];
       window.ketch = function () {
@@ -125,8 +126,6 @@ export default `
         e.defer = e.async = !0;
         document.getElementsByTagName('head')[0].appendChild(e);
       }
-
-      console.log('finished script')
 
     </script>
     <style>

@@ -270,7 +270,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         <WebView
           ref={webViewRef}
           // source={{ uri: source }}
-          source={{ html: content }}
+          source={{ html: content, baseUrl: 'http://localhost' }}
           allowingReadAccessToURL={source}
           injectedJavaScriptObject={parameters}
           originWhitelist={['*']}
