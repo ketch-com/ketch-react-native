@@ -1,4 +1,4 @@
-import { Platform, NativeModules, Image } from 'react-native';
+import { Platform, NativeModules } from 'react-native';
 import React, {
   useContext,
   useRef,
@@ -26,7 +26,7 @@ import {
   PrivacyProtocol,
 } from '../enums';
 import styles from './styles';
-import { createOptionsString, createUrlParamsString } from '../util';
+import { createOptionsString } from '../util';
 import { savePrivacyToStorage } from '../util';
 
 import content from '../assets/index';
@@ -40,13 +40,6 @@ const deviceLanguage: string =
     ? NativeModules.SettingsManager.settings.AppleLocale ||
       NativeModules.SettingsManager.settings.AppleLanguages[0] //iOS 13
     : NativeModules.I18nManager.localeIdentifier;
-
-const indexHtml = require('../assets/local-index.html');
-
-const BASE_URL =
-  Platform.OS === 'ios'
-    ? Image.resolveAssetSource(indexHtml).uri
-    : 'file:///android_asset/custom/local-index.html';
 
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
@@ -71,8 +64,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onError,
 }) => {
   const webViewRef = useRef<WebView>(null);
-
-  const [source, setSource] = useState(BASE_URL);
   const [isVisible, setIsVisible] = useState(false);
   const [isInitialLoadEnd, setIsInitialLoadEnd] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
@@ -101,19 +92,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onError,
   });
 
-  useEffect(() => {
-    if (isInitialLoadEnd) {
-      const urlParams = createUrlParamsString(parameters);
-
-      const sourceUri =
-        BASE_URL +
-        `?a=a&orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}` +
-        urlParams;
-
-      setSource(sourceUri);
-    }
-  }, [parameters, isInitialLoadEnd]);
-
   const showConsentExperience = useCallback(() => {
     webViewRef.current?.injectJavaScript('ketch("showConsent")');
   }, []);
@@ -130,7 +108,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       if (mergedOptions) {
         const preferencesOptionsSerialized = createOptionsString(mergedOptions);
-
         expression = `ketch("showPreferences", ${preferencesOptionsSerialized})`;
       }
 
@@ -178,7 +155,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [dispatch]
   );
 
-  const handleMessageRecieve = (e: WebViewMessageEvent) => {
+  const handleMessageReceive = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
 
     setIsServiceReady(true);
@@ -196,15 +173,15 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         break;
 
       case EventName.environment:
-        // parameters.onEnvironmentUpdated?.(data.data);
+        parameters.onEnvironmentUpdated?.(data.data);
         break;
 
       case EventName.regionInfo:
-        // parameters.onRegionUpdated?.(data.data);
+        parameters.onRegionUpdated?.(data.data);
         break;
 
       case EventName.jurisdiction:
-        // parameters.onJurisdictionUpdated?.(data.data);
+        parameters.onJurisdictionUpdated?.(data.data);
         break;
 
       case EventName.identities:
@@ -248,7 +225,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   };
 
   const onLoadEnd = () => {
-    setIsInitialLoadEnd(true);
+    if (!isInitialLoadEnd) {
+      webViewRef.current?.injectJavaScript(`
+        window.parameters = ${JSON.stringify(parameters)};
+        initKetchTag();
+      `);
+      setIsInitialLoadEnd(true);
+    }
   };
 
   // Simply render children if no identities passed as SDK cannot be used
@@ -269,9 +252,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       >
         <WebView
           ref={webViewRef}
-          // source={{ uri: source }}
           source={{ html: content, baseUrl: 'http://localhost' }}
-          allowingReadAccessToURL={source}
           injectedJavaScriptObject={parameters}
           originWhitelist={['*']}
           javaScriptEnabled
@@ -281,7 +262,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           mixedContentMode="always"
           allowFileAccessFromFileURLs
           allowUniversalAccessFromFileURLs
-          onMessage={handleMessageRecieve}
+          onMessage={handleMessageReceive}
           onLoadEnd={onLoadEnd}
           style={styles.webView}
         />
@@ -292,6 +273,5 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
 export const useKetchService = () => {
   const context = useContext(KetchServiceContext);
-
   return context ? context : ({} as KetchService);
 };
