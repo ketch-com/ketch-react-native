@@ -21,11 +21,6 @@ export default `
         window.semaphore.push(arguments);
       };
 
-      // Get parameters inject into webview
-      window.parameters = JSON.parse(
-        window.ReactNativeWebView.injectedObjectJson()
-      );
-
       // Simulating events similar to ones coming from lanyard.js
       // TODO: remove this once JS SDK covers all required events
       function emitEvent(event, args) {

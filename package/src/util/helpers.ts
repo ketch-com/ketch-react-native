@@ -48,6 +48,14 @@ export const createOptionsString = (options: Partial<AllExperienceOptions>) => {
 export const createUrlParamsString = (
   parameters: Partial<CommonExperienceOptions>
 ) => {
+  const orgCode = parameters.organizationCode
+    ? `&orgCode=${parameters.organizationCode}`
+    : '';
+
+  const propertyName = parameters.propertyCode
+    ? `&propertyName=${parameters.propertyCode}`
+    : '';
+
   const mobileSdkUrl = parameters.dataCenter
     ? `&ketch_mobilesdk_url=${
         MobileSdkUrlByDataCenterMap[parameters.dataCenter]
@@ -74,7 +82,7 @@ export const createUrlParamsString = (
     ? `&ketch_log=${parameters.logLevel}`
     : '';
 
-  let result = `${mobileSdkUrl}${language}${region}${jurisdiction}${environment}${logLevel}`;
+  let result = `${orgCode}${propertyName}${mobileSdkUrl}${language}${region}${jurisdiction}${environment}${logLevel}`;
 
   if (parameters.identities) {
     const entries = Object.entries(parameters.identities).reduce(
@@ -85,5 +93,5 @@ export const createUrlParamsString = (
     result = result + entries;
   }
 
-  return result;
+  return result ? '?' + result : '';
 };

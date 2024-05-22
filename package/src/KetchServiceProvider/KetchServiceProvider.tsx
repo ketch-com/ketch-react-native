@@ -26,8 +26,11 @@ import {
   PrivacyProtocol,
 } from '../enums';
 import styles from './styles';
-import { createOptionsString } from '../util';
-import { savePrivacyToStorage } from '../util';
+import {
+  createOptionsString,
+  createUrlParamsString,
+  savePrivacyToStorage,
+} from '../util';
 
 import content from '../assets/index';
 
@@ -142,6 +145,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     showPreferenceExperience,
   ]);
 
+  useEffect(() => {
+    if (isInitialLoadEnd) {
+      const urlParams = createUrlParamsString(parameters);
+
+      const injection = `window.history.replaceState({}, '', '${urlParams}');`;
+
+      webViewRef.current?.injectJavaScript(injection);
+    }
+  }, [isInitialLoadEnd, parameters]);
+
   const dismissExperience = useCallback(() => {
     setIsVisible(false);
   }, []);
@@ -253,7 +266,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         <WebView
           ref={webViewRef}
           source={{ html: content, baseUrl: 'http://localhost' }}
-          injectedJavaScriptObject={parameters}
           originWhitelist={['*']}
           javaScriptEnabled
           allowFileAccess
