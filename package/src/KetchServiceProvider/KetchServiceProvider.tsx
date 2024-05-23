@@ -6,6 +6,7 @@ import React, {
   useReducer,
   useCallback,
   useEffect,
+  useMemo,
 } from 'react';
 import { View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
@@ -28,8 +29,9 @@ import {
 import styles from './styles';
 import {
   createOptionsString,
-  createUrlParamsString,
+  createUrlParamsObject,
   savePrivacyToStorage,
+  usePrevious,
 } from '../util';
 
 import content from '../assets/index';
@@ -68,7 +70,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 }) => {
   const webViewRef = useRef<WebView>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [isInitialLoadEnd, setIsInitialLoadEnd] = useState(false);
+  const [isLoadEnd, setIsLoadEnd] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
 
   // Internal state values which shouldn't cause re-render
@@ -94,6 +96,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onPrivacyProtocolUpdated,
     onError,
   });
+
+  const prevParameters = usePrevious(parameters);
+  const injectedJs = useMemo(() => {
+    const urlParams = createUrlParamsObject(parameters);
+
+    return `window.parameters = ${JSON.stringify(urlParams)};`;
+  }, [parameters]);
 
   const showConsentExperience = useCallback(() => {
     webViewRef.current?.injectJavaScript('ketch("showConsent")');
@@ -146,14 +155,12 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   ]);
 
   useEffect(() => {
-    if (isInitialLoadEnd) {
-      const urlParams = createUrlParamsString(parameters);
+    if (isLoadEnd && prevParameters !== parameters) {
+      webViewRef.current?.reload();
 
-      const injection = `window.history.replaceState({}, '', '${urlParams}');`;
-
-      webViewRef.current?.injectJavaScript(injection);
+      setIsLoadEnd(false);
     }
-  }, [isInitialLoadEnd, parameters]);
+  }, [isLoadEnd, parameters, prevParameters]);
 
   const dismissExperience = useCallback(() => {
     setIsVisible(false);
@@ -238,12 +245,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   };
 
   const onLoadEnd = () => {
-    if (!isInitialLoadEnd) {
-      webViewRef.current?.injectJavaScript(`
-        window.parameters = ${JSON.stringify(parameters)};
-        initKetchTag();
-      `);
-      setIsInitialLoadEnd(true);
+    if (!isLoadEnd) {
+      webViewRef.current?.injectJavaScript('initKetchTag();');
+      setIsLoadEnd(true);
     }
   };
 
@@ -266,6 +270,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         <WebView
           ref={webViewRef}
           source={{ html: content, baseUrl: 'http://localhost' }}
+          injectedJavaScriptBeforeContentLoaded={injectedJs}
           originWhitelist={['*']}
           javaScriptEnabled
           allowFileAccess
