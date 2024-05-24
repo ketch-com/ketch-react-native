@@ -113,20 +113,16 @@ export default `
       }
 
       function initKetchTag() {
-        debugger;
         console.log('Ketch Tag is initialization started...');
-
         // Use parameters to set SDK query params here
         const urlParams = new URLSearchParams(window.parameters);
         window.history.replaceState({}, '', '?' + urlParams.toString());
 
         console.log('Ketch Parameters BEFORE:', window.parameters);
-
         // Get query parameters
         let params = new URL(document.location).searchParams;
 
         console.log('Ketch Parameters AFTER:', params);
-
         // Get url override from query parameters
         let url =
           params.get('ketch_mobilesdk_url') ||
@@ -137,9 +133,7 @@ export default `
 
         // Get organization code from query parameters
         let orgCode = params.get('organizationCode');
-
         console.log('Ketch org data:', orgCode, propertyName, url);
-        debugger;
 
         if (orgCode && propertyName) {
           var e = document.createElement('script');
@@ -149,11 +143,10 @@ export default `
           document.getElementsByTagName('head')[0].appendChild(e);
         }
       }
-
     </script>
     <script>
       // We put the script inside body, otherwise document.body will be null
-      // Trigger taps outside of the dialog
+      // Trigger taps outside the dialog
       document.body.addEventListener('touchstart', function (e) {
         if (e.target === document.body) {
           emitEvent('tapOutside', [getDialogSize()]);

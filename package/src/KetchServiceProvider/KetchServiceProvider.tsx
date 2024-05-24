@@ -101,7 +101,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const injectedJs = useMemo(() => {
     const urlParams = createUrlParamsObject(parameters);
 
-    return `window.parameters = ${JSON.stringify(urlParams)};`;
+    return `window.parameters = ${JSON.stringify(urlParams)}; true;`;
   }, [parameters]);
 
   const showConsentExperience = useCallback(() => {
@@ -246,7 +246,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
   const onLoadEnd = () => {
     if (!isLoadEnd) {
-      webViewRef.current?.injectJavaScript('initKetchTag();');
+      webViewRef.current?.injectJavaScript('initKetchTag(); true;');
       setIsLoadEnd(true);
     }
   };
