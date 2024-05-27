@@ -6,7 +6,6 @@ import React, {
   useReducer,
   useCallback,
   useEffect,
-  useMemo,
 } from 'react';
 import { View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
@@ -98,11 +97,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   });
 
   const prevParameters = usePrevious(parameters);
-  const injectedJs = useMemo(() => {
-    const urlParams = createUrlParamsObject(parameters);
-
-    return `window.parameters = ${JSON.stringify(urlParams)}; true;`;
-  }, [parameters]);
 
   const showConsentExperience = useCallback(() => {
     webViewRef.current?.injectJavaScript('ketch("showConsent")');
@@ -246,7 +240,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
   const onLoadEnd = () => {
     if (!isLoadEnd) {
-      webViewRef.current?.injectJavaScript('initKetchTag(); true;');
+      const urlParams = createUrlParamsObject(parameters);
+
+      const parametersStringified = JSON.stringify(urlParams);
+
+      webViewRef.current?.injectJavaScript(
+        `initKetchTag(${parametersStringified})`
+      );
       setIsLoadEnd(true);
     }
   };
@@ -270,7 +270,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         <WebView
           ref={webViewRef}
           source={{ html: content, baseUrl: 'http://localhost' }}
-          injectedJavaScriptBeforeContentLoaded={injectedJs}
           originWhitelist={['*']}
           javaScriptEnabled
           allowFileAccess

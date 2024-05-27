@@ -112,13 +112,13 @@ export default `
         }
       }
 
-      function initKetchTag() {
+      function initKetchTag(parameters) {
         console.log('Ketch Tag is initialization started...');
         // Use parameters to set SDK query params here
-        const urlParams = new URLSearchParams(window.parameters);
+        const urlParams = new URLSearchParams(parameters);
         window.history.replaceState({}, '', '?' + urlParams.toString());
 
-        console.log('Ketch Parameters BEFORE:', window.parameters);
+        console.log('Ketch Parameters BEFORE:', parameters);
         // Get query parameters
         let params = new URL(document.location).searchParams;
 
