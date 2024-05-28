@@ -16,33 +16,13 @@ This repository contains the Ketch [React Native](https://reactnative.dev/) pack
 npm install @ketch-com/ketch-react-native react-native-default-preference react-native-webview
 ```
 
-2. Configure static assets
-
-- In the root directory of your app, create or update `react-native.config.js` with the following `assets` line:
-
-  ```javascript
-  module.exports = {
-    project: {
-      ios: {},
-      android: {},
-    },
-    assets: ["./node_modules/@ketch-com/ketch-react-native/src/assets/"], // <== line to add
-  };
-  ```
-
-- Link assets:
-
-  ```sh
-  npx react-native-asset
-  ```
-
-3. Install Pods **(IOS)**
+2. Install Pods **(IOS)**
 
 ```sh
 cd ios && pod install
 ```
 
-4. Use the `<KetchServiceProvider/>` component
+3. Use the `<KetchServiceProvider/>` component
 
 ```tsx
 <KetchServiceProvider
