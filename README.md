@@ -9,20 +9,27 @@ This repository contains the Ketch [React Native](https://reactnative.dev/) pack
 
 ## Usage
 
-1. Install package and dependencies
+1. Install core dependency
 
 ```sh
-# using npm
-npm install @ketch-com/ketch-react-native react-native-default-preference react-native-webview
+npm install @ketch-com/ketch-react-native --registry=https://npm.pkg.github.com --legacy-peer-deps
 ```
 
-2. Install Pods **(IOS)**
+When running the above command, you may see a `401 Unauthorized` response. This occurs because Github packages require authentication through a personal access token (PAT). See their [Authentication to Github Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-with-a-personal-access-token) document to set this up.
+
+2. Install peer dependencies
+
+```sh
+npm install react-native-default-preference react-native-webview
+```
+
+3. Install Pods **(IOS)**
 
 ```sh
 cd ios && pod install
 ```
 
-3. Use the `<KetchServiceProvider/>` component
+4. Use the `<KetchServiceProvider/>` component
 
 ```tsx
 <KetchServiceProvider
