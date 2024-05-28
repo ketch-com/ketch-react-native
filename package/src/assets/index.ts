@@ -1,4 +1,9 @@
-export default `
+import { createUrlParamsObject, type KetchMobile } from '../';
+
+export const getIndexHtml = (parameters: KetchMobile) => {
+  const urlParams = createUrlParamsObject(parameters);
+  const parametersStringified = JSON.stringify(urlParams);
+  return `
 <html>
   <head>
     <style>
@@ -143,8 +148,6 @@ export default `
           document.getElementsByTagName('head')[0].appendChild(e);
         }
       }
-    </script>
-    <script>
       // We put the script inside body, otherwise document.body will be null
       // Trigger taps outside the dialog
       document.body.addEventListener('touchstart', function (e) {
@@ -152,7 +155,10 @@ export default `
           emitEvent('tapOutside', [getDialogSize()]);
         }
       });
+
+      initKetchTag(${parametersStringified});
     </script>
   </body>
 </html>
 `;
+};

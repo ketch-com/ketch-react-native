@@ -1,4 +1,3 @@
-import { Platform, NativeModules } from 'react-native';
 import React, {
   useContext,
   useRef,
@@ -7,10 +6,10 @@ import React, {
   useCallback,
   useEffect,
 } from 'react';
-import { View } from 'react-native';
+
+import { Platform, NativeModules, View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
-import { KetchServiceContext } from '../context';
 import type {
   PreferenceExperienceOptions,
   KetchMobile,
@@ -18,22 +17,19 @@ import type {
   OnMessageEventData,
   Consent,
 } from '../types';
-import { Action, reducer } from './reducer';
+
 import {
   EventName,
   KetchDataCenter,
   LogLevel,
   PrivacyProtocol,
 } from '../enums';
-import styles from './styles';
-import {
-  createOptionsString,
-  createUrlParamsObject,
-  savePrivacyToStorage,
-  usePrevious,
-} from '../util';
 
-import content from '../assets/index';
+import { KetchServiceContext } from '../context';
+import { Action, reducer } from './reducer';
+import { createOptionsString, savePrivacyToStorage } from '../util';
+import { getIndexHtml } from '../assets';
+import styles from './styles';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: JSX.Element;
@@ -69,7 +65,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 }) => {
   const webViewRef = useRef<WebView>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [isLoadEnd, setIsLoadEnd] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
 
   // Internal state values which shouldn't cause re-render
@@ -96,15 +91,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onError,
   });
 
-  const prevParameters = usePrevious(parameters);
-
   const showConsentExperience = useCallback(() => {
-    webViewRef.current?.injectJavaScript('ketch("showConsent")');
+    webViewRef.current?.injectJavaScript('ketch("showConsent"); true;');
   }, []);
 
   const showPreferenceExperience = useCallback(
     (preferencesOptions: Partial<PreferenceExperienceOptions> = {}) => {
-      let expression = 'ketch("showPreferences")';
+      let expression = 'ketch("showPreferences"); true;';
 
       // Merge the preference options passed as a component property with those passed in this function call
       const mergedOptions = {
@@ -114,7 +107,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       if (mergedOptions) {
         const preferencesOptionsSerialized = createOptionsString(mergedOptions);
-        expression = `ketch("showPreferences", ${preferencesOptionsSerialized})`;
+        expression = `ketch("showPreferences", ${preferencesOptionsSerialized}); true;`;
       }
 
       webViewRef.current?.injectJavaScript(expression);
@@ -148,14 +141,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     showPreferenceExperience,
   ]);
 
-  useEffect(() => {
-    if (isLoadEnd && prevParameters !== parameters) {
-      webViewRef.current?.reload();
-
-      setIsLoadEnd(false);
-    }
-  }, [isLoadEnd, parameters, prevParameters]);
-
   const dismissExperience = useCallback(() => {
     setIsVisible(false);
   }, []);
@@ -171,9 +156,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
   const handleMessageReceive = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
-
     setIsServiceReady(true);
-
     console.log(`Message: ${data.event}`);
 
     switch (data.event) {
@@ -238,19 +221,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     }
   };
 
-  const onLoadEnd = () => {
-    if (!isLoadEnd) {
-      const urlParams = createUrlParamsObject(parameters);
-
-      const parametersStringified = JSON.stringify(urlParams);
-
-      webViewRef.current?.injectJavaScript(
-        `initKetchTag(${parametersStringified})`
-      );
-      setIsLoadEnd(true);
-    }
-  };
-
   // Simply render children if no identities passed as SDK cannot be used
   return (
     <KetchServiceContext.Provider
@@ -263,13 +233,15 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       }}
     >
       {children}
-
       <View
         style={[styles.container, isVisible ? styles.shown : styles.hidden]}
       >
         <WebView
           ref={webViewRef}
-          source={{ html: content, baseUrl: 'http://localhost' }}
+          source={{
+            html: getIndexHtml(parameters),
+            baseUrl: 'http://localhost',
+          }}
           originWhitelist={['*']}
           javaScriptEnabled
           allowFileAccess
@@ -279,7 +251,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           allowFileAccessFromFileURLs
           allowUniversalAccessFromFileURLs
           onMessage={handleMessageReceive}
-          onLoadEnd={onLoadEnd}
           style={styles.webView}
         />
       </View>
