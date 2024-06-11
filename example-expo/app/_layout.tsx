@@ -1,3 +1,4 @@
+import { KetchServiceProvider, LogLevel } from '@ketch-com/ketch-react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -16,6 +17,38 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
+  const onEnvironmentUpdated = (data: string) => {
+    console.log('onEnvironmentUpdated', JSON.stringify(data));
+  };
+
+  const onRegionUpdated = (data: string) => {
+    console.log('onRegionUpdated', JSON.stringify(data));
+  };
+
+  const onJurisdictionUpdated = (data: string) => {
+    console.log('onJurisdictionUpdated', JSON.stringify(data));
+  };
+
+  const onIdentitiesUpdated = (data: Record<string, string>) => {
+    console.log('onIdentitiesUpdated', JSON.stringify(data));
+  };
+
+  const onConsentUpdated = (data: Record<string, any>) => {
+    console.log('onConsentUpdated', JSON.stringify(data));
+  };
+
+  const onPrivacyProtocolUpdated = (
+    key: string,
+    array: (string | Record<string, string>)[],
+  ) => {
+    console.log('onPrivacyProtocolUpdated:key', key);
+    console.log('onPrivacyProtocolUpdated:array', array);
+  };
+
+  const onError = (errorMsg: string) => {
+    console.log(errorMsg);
+  };
+
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
@@ -27,11 +60,25 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <KetchServiceProvider
+      organizationCode="ketch_samples"
+      propertyCode="react_native_sample_app"
+      identities={{email: 'test@ketch.com'}}
+      onEnvironmentUpdated={onEnvironmentUpdated}
+      onRegionUpdated={onRegionUpdated}
+      onJurisdictionUpdated={onJurisdictionUpdated}
+      onIdentitiesUpdated={onIdentitiesUpdated}
+      onConsentUpdated={onConsentUpdated}
+      onPrivacyProtocolUpdated={onPrivacyProtocolUpdated}
+      onError={onError}
+      logLevel={LogLevel.TRACE}
+    >
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+      </ThemeProvider>
+    </KetchServiceProvider>
   );
 }

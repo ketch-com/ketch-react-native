@@ -1,4 +1,4 @@
-import DefaultPreference from 'react-native-default-preference';
+import crossPlatformSave from './crossPlatformSave';
 
 /**
  * Save privacy protocol data to local storage
@@ -17,7 +17,7 @@ export const savePrivacyToStorage = async (
         any
       >;
       Object.entries(privacyProtocolObject).forEach(async ([key, value]) => {
-        await DefaultPreference.set(key, String(value));
+        await crossPlatformSave(key, String(value));
       });
     } else {
       console.error('Not enough elements in privacy protocol array');
