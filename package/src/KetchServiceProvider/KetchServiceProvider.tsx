@@ -31,6 +31,7 @@ import { createOptionsString, savePrivacyToStorage } from '../util';
 import { getIndexHtml } from '../assets';
 import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
+import wrapSharedPrefences from '../util/wrapSharedPrefences';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: JSX.Element;
@@ -156,12 +157,26 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [dispatch]
   );
 
+  const storePreference = preferenceStorage
+    ? (() => {
+        if ('setItemAsync' in preferenceStorage) {
+          return wrapSharedPrefences(preferenceStorage);
+        }
+        if (typeof preferenceStorage === 'function') {
+          return preferenceStorage;
+        }
+
+        console.warn(
+          'KetchServiceProvider preferenceStorage should be a function or an expected interface, falling back to cross-platform storage helper'
+        );
+        return crossPlatformSave;
+      })()
+    : crossPlatformSave;
+
   const handleMessageReceive = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
     setIsServiceReady(true);
     console.log(`Message: ${data.event}`);
-
-    const storePreference = preferenceStorage ?? crossPlatformSave;
 
     switch (data.event) {
       case EventName.willShowExperience:

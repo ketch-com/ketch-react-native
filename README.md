@@ -34,15 +34,17 @@ You also have to do a development build at least for Android, you can't use Expo
 After installing, use it like this in your Expo app.
 
 ```tsx
-// it's recommended to place this in a separate .android.ts file
+// it's recommended to place this in a separate .android.ts file so that you only import it on Android
 import * as SharedPreferences from 'expo-shared-preferences';
 
 export default SharedPreferences;
 
 // then when setting up KetchServiceProvider
+import SharedPrefences from './SharedPreferences';
+
 <KetchServiceProvider
   // ...
-  preferenceStorage={Platform.OS === 'android' ? wrapSharedPreferences(SharedPreferences) : undefined}
+  preferenceStorage={SharedPreferences}
 >
 ```
 

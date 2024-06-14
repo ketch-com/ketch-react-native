@@ -20,6 +20,10 @@ export interface Consent {
 
 export type PreferenceBackend = (key: string, value: string) => Promise<void>;
 
+export interface SharedPrefencesInterface extends Record<string, unknown> {
+  setItemAsync: (key: string, value: string) => Promise<void>;
+}
+
 export type CommonExperienceOptions = Pick<
   KetchMobile,
   | 'organizationCode'
@@ -121,7 +125,7 @@ export interface KetchMobile {
   /**
    * Pass alternative preference backend. E.g. allows to integrate expo-shared-preferences for Android Expo apps.
    */
-  preferenceStorage?: PreferenceBackend;
+  preferenceStorage?: PreferenceBackend | SharedPrefencesInterface;
 
   /**
    * Environment update listener
