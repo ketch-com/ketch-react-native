@@ -2041,13 +2041,17 @@ __metadata:
 
 "@ketch-com/ketch-react-native@file:../package::locator=exampleexpo%40workspace%3A.":
   version: 0.4.7
-  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=aa8da3&locator=exampleexpo%40workspace%3A."
+  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=dfaf49&locator=exampleexpo%40workspace%3A."
   peerDependencies:
+    expo-shared-preferences: 0.4.0
     react: ^18.2.0
     react-native: ^0.73.6
     react-native-default-preference: ^1.4.4
     react-native-webview: ~13.8.4
-  checksum: 10c0/72b97a37e9501194ef469c2749646f1357bf156f4c90989f5092f89e0aec8718d7ddee1c9751051d26769fc6b8299db441b8b24506f6b5b7c5228ec06feef414
+  peerDependenciesMeta:
+    expo-shared-preferences:
+      optional: true
+  checksum: 10c0/e56a9014b853e7b77c9f77c8d424570fb0125def0b189f1309126524e90545ced36704c64245e75e6dcead66aec669bc8a3ef430ec3d60e72e4295e3a97657fb
   languageName: node
   linkType: hard
 
@@ -4951,6 +4955,7 @@ __metadata:
     expo-font: "npm:~12.0.7"
     expo-linking: "npm:~6.3.1"
     expo-router: "npm:~3.5.15"
+    expo-shared-preferences: "npm:0.4.0"
     expo-splash-screen: "npm:~0.27.5"
     expo-status-bar: "npm:~1.12.1"
     expo-system-ui: "npm:~3.0.6"
@@ -5149,6 +5154,17 @@ __metadata:
     react-native-reanimated:
       optional: true
   checksum: 10c0/0dfce1b49639d635efedebf117f2e0f89632bbbb4c2fa73d937387f2906add26de9a46a543f3edd026f3caf63089cf4eddd61da22e378491dfc7b83c4ae58140
+  languageName: node
+  linkType: hard
+
+"expo-shared-preferences@npm:0.4.0":
+  version: 0.4.0
+  resolution: "expo-shared-preferences@npm:0.4.0"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/b4f53072f7c1fc3cefd7a5a1ef674bfb4d6630b81565959410432a554ad2f5328efd803926b98a90636af5e8969b648d7fed2312d38fe37b66f4f8cf72eb7100
   languageName: node
   linkType: hard
 

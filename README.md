@@ -23,6 +23,34 @@ When running the above command, you may see a `401 Unauthorized` response. This 
 npm install react-native-default-preference react-native-webview
 ```
 
+If you're using Expo, you might not install `react-native-default-preference`, but you need to install `expo-shared-preferences` for Android.
+
+```
+npx expo install expo-shared-preferences
+```
+
+You also have to do a development build at least for Android, you can't use Expo Go because it's a native module. For iOS you can still use Expo Go technically.
+
+After installing, use it like this in your Expo app.
+
+```tsx
+// it's recommended to place this in a separate .android.ts file
+import * as SharedPreferences from 'expo-shared-preferences';
+
+export default SharedPreferences;
+
+// then when setting up KetchServiceProvider
+<KetchServiceProvider
+  // ...
+  preferenceStorage={Platform.OS === 'android' ? wrapSharedPreferences(SharedPreferences) : undefined}
+>
+```
+
+For a working example, see [example-expo](./example-expo/).
+
+> [!NOTE]
+> We provide wrapSharedPreferences function that wraps SharedPreferences in a compatible interface that Ketch can write to. You have to import `expo-shared-preferences` on your side, because on our side we weren't able to import it without having to make everyone install Expo runtime.
+
 3. Install Pods **(IOS)**
 
 ```sh

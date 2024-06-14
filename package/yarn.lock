@@ -2386,6 +2386,7 @@ __metadata:
     eslint: "npm:^8.51.0"
     eslint-config-prettier: "npm:^9.0.0"
     eslint-plugin-prettier: "npm:^5.0.1"
+    expo-shared-preferences: "npm:0.4.0"
     jest: "npm:^29.7.0"
     prettier: "npm:^3.0.3"
     react-native: "npm:^0.73.6"
@@ -2395,10 +2396,14 @@ __metadata:
     release-it: "npm:^17.1.1"
     typescript: "npm:^5.4.3"
   peerDependencies:
+    expo-shared-preferences: 0.4.0
     react: ^18.2.0
     react-native: ^0.73.6
     react-native-default-preference: ^1.4.4
     react-native-webview: ~13.8.4
+  peerDependenciesMeta:
+    expo-shared-preferences:
+      optional: true
   languageName: unknown
   linkType: soft
 
@@ -6221,6 +6226,17 @@ __metadata:
     jest-message-util: "npm:^29.7.0"
     jest-util: "npm:^29.7.0"
   checksum: 10c0/2eddeace66e68b8d8ee5f7be57f3014b19770caaf6815c7a08d131821da527fb8c8cb7b3dcd7c883d2d3d8d184206a4268984618032d1e4b16dc8d6596475d41
+  languageName: node
+  linkType: hard
+
+"expo-shared-preferences@npm:0.4.0":
+  version: 0.4.0
+  resolution: "expo-shared-preferences@npm:0.4.0"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/b4f53072f7c1fc3cefd7a5a1ef674bfb4d6630b81565959410432a554ad2f5328efd803926b98a90636af5e8969b648d7fed2312d38fe37b66f4f8cf72eb7100
   languageName: node
   linkType: hard
 

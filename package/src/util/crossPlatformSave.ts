@@ -1,14 +1,14 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules } from 'react-native';
 
 /**
- * Handles different preference backends
+ * Does the best job it can to save to available preference backend.
+ * For Expo Android apps you have to do a few extra steps, see README.
  */
 const crossPlatformSave = async (key: string, value: string) => {
-  // TODO: figure out a better name to detect Expo vs RN runtime
   // N.B. you have to use !!, because NativeModules is a special proxy object
   // eslint-disable-next-line no-extra-boolean-cast
   if (!!NativeModules.RNDefaultPreference) {
-    // N.B. you have to use try catch otherwise you'll get an error on parsing stage IIUC
+    // N.B. you have to use try catch otherwise you'll get an error on parsing stage in Expo app
     try {
       const defaultPreference =
         require('react-native-default-preference').default;
@@ -17,14 +17,10 @@ const crossPlatformSave = async (key: string, value: string) => {
     } catch (e) {}
   }
 
-  if (Platform.OS === 'ios') {
-    const rnSettings = require('react-native').Settings;
+  // ios expo
+  const rnSettings = require('react-native').Settings;
 
-    return rnSettings.set({ [key]: value });
-  } else if (Platform.OS === 'android') {
-    // expo-shared-preferences
-    // const sharedPreferences;
-  }
+  return rnSettings.set({ [key]: value });
 };
 
 export default crossPlatformSave;
