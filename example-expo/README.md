@@ -16,27 +16,30 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    yarn start
    ```
 
-In the output, you'll find options to open the app in a
+> If running your app on Android, you must hit S to switch to a development build
 
-- [development build][development-build] - we're going to need this, because for Android you must use it
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [Development build][development-build] - **For Android you must use this** - See [this page](https://docs.expo.dev/develop/development-builds/create-a-build/) to setup a development build
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/) - Must be using a development build first per the above step
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## How to run this app on iOS and Android
+## Using a Development Build
 
 If you look at this example app, you'll see two things:
 
 1. A native package `expo-shared-preferences` is installed
-2. That package is only imported in the file prefixed with `android` platform
 
-Why this native package is installed? Because iOS can use React Native's [Settings][rn-settings] module, so it doesn't need an additional external native package. So this package only allows Android app to access Android's native APIs.
+2. That package is only imported in the [SharedPreferences.android.ts](utils/SharedPreferences.android.ts) file, which has the `android` platform extension
 
-For Android app, when you start the app, you have to switch to development build - press s in the terminal. When you run Android app on emulator for the first time (press a in the terminal to start this process), it'll create the android/ app in your project directory, and then it'll build a standalone native Android app with Gradle, and install it on your emulator.
+The iOS platform doesn't need a separate package as it can use React Native's [Settings][rn-settings] module.
 
-For iOS though, technically you're free to use Expo Go, as long as you import Android native packages only for Android, as we do in this example app. Also if you don't have any additional iOS native modules installed. If you do, you probably already have an Xcode project in your root directory, and you don't need any changes made on your end. To use Expo Go, simply scan the QR code with your iPhone's camera app, and it'll open the app in Expo Go on your iPhone, even if you already switched to development build in the terminal, so no need to switch back to Expo Go.
+When running the app on Android, you have to switch to [development build](https://docs.expo.dev/develop/development-builds/create-a-build/) by pressing S in the terminal after running `yarn start`.
+
+When you run the Android app on an emulator for the first time (by pressing A in the terminal), it will create the `android/app` directory in your project. Next it will build a standalone native Android app with Gradle, and install it on your emulator.
+
+For iOS, you're free to use Expo Go or a development buid.
 
 ## Learn more
 
