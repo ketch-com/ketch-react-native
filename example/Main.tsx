@@ -8,6 +8,7 @@
 import React, {useState} from 'react';
 import {
   Button,
+  Keyboard,
   NativeSyntheticEvent,
   SafeAreaView,
   ScrollView,
@@ -121,7 +122,7 @@ function Main(): React.JSX.Element {
     <SafeAreaView>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <ScrollView testID="appium-test" style={[styles.container]}>
-        <View style={styles.sectionsContainer}>
+        <View style={styles.sectionsContainer} onTouchStart={() => Keyboard.dismiss()}>
           {/* Global options */}
           <Section
             title="Global Options"

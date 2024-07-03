@@ -1,4 +1,4 @@
-import DefaultPreference from 'react-native-default-preference';
+import type { PreferenceBackend } from '../types';
 
 /**
  * Save privacy protocol data to local storage
@@ -6,9 +6,11 @@ import DefaultPreference from 'react-native-default-preference';
  *   We expect the following structure:
  *    - privacyProtocolArray[0]: the privacy string
  *    - privacyProtocolArray[1]: an object with various protocol data key:value pairs
+ * @param saveValue function that saves key and value to a preference storage
  */
 export const savePrivacyToStorage = async (
-  privacyProtocolArray: (string | Record<string, string>)[]
+  privacyProtocolArray: (string | Record<string, string>)[],
+  saveValue: PreferenceBackend
 ) => {
   try {
     if (privacyProtocolArray.length > 1) {
@@ -17,7 +19,7 @@ export const savePrivacyToStorage = async (
         any
       >;
       Object.entries(privacyProtocolObject).forEach(async ([key, value]) => {
-        await DefaultPreference.set(key, String(value));
+        await saveValue(key, String(value));
       });
     } else {
       console.error('Not enough elements in privacy protocol array');

@@ -6,7 +6,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
-    "start": "react-native start",
+    "start": "react-native start --reset-cache",
     "build:apk": "./scripts/build-android.sh",
     "test": "npm run build:apk && node --experimental-vm-modules node_modules/.bin/jest"
   },
@@ -15,7 +15,7 @@
     "react": "18.2.0",
     "react-native": "0.73.6",
     "react-native-default-preference": "^1.4.4",
-    "react-native-webview": "^13.8.4"
+    "react-native-webview": "^13.10.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
@@ -39,5 +39,5 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "yarn@4.1.1"
+  "packageManager": "yarn@4.2.2"
 }
