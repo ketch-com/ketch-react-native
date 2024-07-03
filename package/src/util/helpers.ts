@@ -1,4 +1,4 @@
-import { MobileSdkUrlByDataCenterMap } from '../enums';
+import { LogLevel, MobileSdkUrlByDataCenterMap } from '../enums';
 import type { AllExperienceOptions, CommonExperienceOptions } from '../types';
 
 export const createOptionsString = (options: Partial<AllExperienceOptions>) => {
@@ -45,44 +45,50 @@ export const createOptionsString = (options: Partial<AllExperienceOptions>) => {
   return `{${dataCenter}${language}${region}${jurisdiction}${environment}${tab}${showOverviewTab}${showConsentsTab}${showSubscriptionsTab}${showRightsTab}}`;
 };
 
-export const createUrlParamsString = (
-  parameters: Partial<CommonExperienceOptions>
-) => {
-  const mobileSdkUrl = parameters.dataCenter
-    ? `&ketch_mobilesdk_url=${
-        MobileSdkUrlByDataCenterMap[parameters.dataCenter]
-      }`
-    : '';
+export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
+  let result: {
+    organizationCode: string;
+    propertyCode: string;
+    ketch_mobilesdk_url?: string;
+    ketch_lang?: string;
+    ketch_region?: string;
+    ketch_jurisdiction?: string;
+    ketch_env?: string;
+    ketch_log?: LogLevel;
+  } = {
+    organizationCode: parameters.organizationCode,
+    propertyCode: parameters.propertyCode,
+  };
 
-  const language = parameters.languageCode
-    ? `&ketch_lang=${parameters.languageCode}`
-    : '';
+  for (const key in parameters) {
+    if (key === 'dataCenter' && parameters.dataCenter) {
+      result.ketch_mobilesdk_url =
+        MobileSdkUrlByDataCenterMap[parameters.dataCenter];
+    }
 
-  const region = parameters.regionCode
-    ? `&ketch_region=${parameters.regionCode}`
-    : '';
+    if (key === 'languageCode' && parameters.languageCode) {
+      result.ketch_lang = parameters.languageCode;
+    }
 
-  const jurisdiction = parameters.jurisdictionCode
-    ? `&ketch_jurisdiction=${parameters.jurisdictionCode}`
-    : '';
+    if (key === 'regionCode' && parameters.regionCode) {
+      result.ketch_region = parameters.regionCode;
+    }
 
-  const environment = parameters.environmentName
-    ? `&ketch_env=${parameters.environmentName}`
-    : '';
+    if (key === 'jurisdictionCode' && parameters.jurisdictionCode) {
+      result.ketch_jurisdiction = parameters.jurisdictionCode;
+    }
 
-  const logLevel = parameters.logLevel
-    ? `&ketch_log=${parameters.logLevel}`
-    : '';
+    if (key === 'environmentName' && parameters.environmentName) {
+      result.ketch_env = parameters.environmentName;
+    }
 
-  let result = `${mobileSdkUrl}${language}${region}${jurisdiction}${environment}${logLevel}`;
+    if (key === 'logLevel' && parameters.logLevel) {
+      result.ketch_log = parameters.logLevel;
+    }
 
-  if (parameters.identities) {
-    const entries = Object.entries(parameters.identities).reduce(
-      (acc, [key, value]) => acc + `&${key}=${value}`,
-      ''
-    );
-
-    result = result + entries;
+    if (parameters.identities) {
+      result = { ...result, ...parameters.identities };
+    }
   }
 
   return result;

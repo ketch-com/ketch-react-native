@@ -1,4 +1,3 @@
-import { Platform, NativeModules, Image } from 'react-native';
 import React, {
   useContext,
   useRef,
@@ -7,10 +6,10 @@ import React, {
   useCallback,
   useEffect,
 } from 'react';
-import { View } from 'react-native';
+
+import { Platform, NativeModules, View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
-import { KetchServiceContext } from '../context';
 import type {
   PreferenceExperienceOptions,
   KetchMobile,
@@ -18,16 +17,21 @@ import type {
   OnMessageEventData,
   Consent,
 } from '../types';
-import { Action, reducer } from './reducer';
+
 import {
   EventName,
   KetchDataCenter,
   LogLevel,
   PrivacyProtocol,
 } from '../enums';
+
+import { KetchServiceContext } from '../context';
+import { Action, reducer } from './reducer';
+import { createOptionsString, savePrivacyToStorage } from '../util';
+import { getIndexHtml } from '../assets';
 import styles from './styles';
-import { createOptionsString, createUrlParamsString } from '../util';
-import { savePrivacyToStorage } from '../util';
+import crossPlatformSave from '../util/crossPlatformSave';
+import wrapSharedPrefences from '../util/wrapSharedPrefences';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: JSX.Element;
@@ -38,13 +42,6 @@ const deviceLanguage: string =
     ? NativeModules.SettingsManager.settings.AppleLocale ||
       NativeModules.SettingsManager.settings.AppleLanguages[0] //iOS 13
     : NativeModules.I18nManager.localeIdentifier;
-
-const indexHtml = require('../assets/local-index.html');
-
-const BASE_URL =
-  Platform.OS === 'ios'
-    ? Image.resolveAssetSource(indexHtml).uri
-    : 'file:///android_asset/custom/local-index.html';
 
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
@@ -59,6 +56,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   forceConsentExperience = false,
   forcePreferenceExperience = false,
   preferenceExperienceOptions = {},
+  preferenceStorage,
   children,
   onEnvironmentUpdated,
   onRegionUpdated,
@@ -69,10 +67,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onError,
 }) => {
   const webViewRef = useRef<WebView>(null);
-
-  const [source, setSource] = useState(BASE_URL);
   const [isVisible, setIsVisible] = useState(false);
-  const [isInitialLoadEnd, setIsInitialLoadEnd] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
 
   // Internal state values which shouldn't cause re-render
@@ -99,26 +94,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onError,
   });
 
-  useEffect(() => {
-    if (isInitialLoadEnd) {
-      const urlParams = createUrlParamsString(parameters);
-
-      const sourceUri =
-        BASE_URL +
-        `?a=a&orgCode=${parameters.organizationCode}&propertyName=${parameters.propertyCode}` +
-        urlParams;
-
-      setSource(sourceUri);
-    }
-  }, [parameters, isInitialLoadEnd]);
-
   const showConsentExperience = useCallback(() => {
-    webViewRef.current?.injectJavaScript('ketch("showConsent")');
+    webViewRef.current?.injectJavaScript('ketch("showConsent"); true;');
   }, []);
 
   const showPreferenceExperience = useCallback(
     (preferencesOptions: Partial<PreferenceExperienceOptions> = {}) => {
-      let expression = 'ketch("showPreferences")';
+      let expression = 'ketch("showPreferences"); true;';
 
       // Merge the preference options passed as a component property with those passed in this function call
       const mergedOptions = {
@@ -128,8 +110,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       if (mergedOptions) {
         const preferencesOptionsSerialized = createOptionsString(mergedOptions);
-
-        expression = `ketch("showPreferences", ${preferencesOptionsSerialized})`;
+        expression = `ketch("showPreferences", ${preferencesOptionsSerialized}); true;`;
       }
 
       webViewRef.current?.injectJavaScript(expression);
@@ -176,10 +157,26 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [dispatch]
   );
 
-  const handleMessageRecieve = (e: WebViewMessageEvent) => {
-    const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
+  const storePreference = preferenceStorage
+    ? (() => {
+        if ('setItemAsync' in preferenceStorage) {
+          return wrapSharedPrefences(preferenceStorage);
+        }
+        if (typeof preferenceStorage === 'function') {
+          return preferenceStorage;
+        }
 
+        console.warn(
+          'KetchServiceProvider preferenceStorage should be a function or an expected interface, falling back to cross-platform storage helper'
+        );
+        return crossPlatformSave;
+      })()
+    : crossPlatformSave;
+
+  const handleMessageReceive = (e: WebViewMessageEvent) => {
+    const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
     setIsServiceReady(true);
+    console.log(`Message: ${data.event}`);
 
     switch (data.event) {
       case EventName.willShowExperience:
@@ -214,7 +211,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       case EventName.updateUSPrivacy:
         const usPrivacyArray = JSON.parse(data.data);
-        savePrivacyToStorage(usPrivacyArray);
+        savePrivacyToStorage(usPrivacyArray, storePreference);
         parameters.onPrivacyProtocolUpdated?.(
           PrivacyProtocol.USPrivacy,
           usPrivacyArray
@@ -223,13 +220,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       case EventName.updateGPP:
         const gppArray = JSON.parse(data.data);
-        savePrivacyToStorage(gppArray);
+        savePrivacyToStorage(gppArray, storePreference);
         parameters.onPrivacyProtocolUpdated?.(PrivacyProtocol.GPP, gppArray);
         break;
 
       case EventName.updateTCF:
         const tcfArray = JSON.parse(data.data);
-        savePrivacyToStorage(tcfArray);
+        savePrivacyToStorage(tcfArray, storePreference);
         parameters.onPrivacyProtocolUpdated?.(PrivacyProtocol.TCF, tcfArray);
         break;
 
@@ -241,10 +238,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       default:
         break;
     }
-  };
-
-  const onLoadEnd = () => {
-    setIsInitialLoadEnd(true);
   };
 
   // Simply render children if no identities passed as SDK cannot be used
@@ -259,14 +252,15 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       }}
     >
       {children}
-
       <View
         style={[styles.container, isVisible ? styles.shown : styles.hidden]}
       >
         <WebView
           ref={webViewRef}
-          source={{ uri: source }}
-          allowingReadAccessToURL={source}
+          source={{
+            html: getIndexHtml(parameters),
+            baseUrl: 'http://localhost',
+          }}
           originWhitelist={['*']}
           javaScriptEnabled
           allowFileAccess
@@ -275,8 +269,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           mixedContentMode="always"
           allowFileAccessFromFileURLs
           allowUniversalAccessFromFileURLs
-          onMessage={handleMessageRecieve}
-          onLoadEnd={onLoadEnd}
+          onMessage={handleMessageReceive}
           style={styles.webView}
         />
       </View>
@@ -286,6 +279,5 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
 export const useKetchService = () => {
   const context = useContext(KetchServiceContext);
-
   return context ? context : ({} as KetchService);
 };
