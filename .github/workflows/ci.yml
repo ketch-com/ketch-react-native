@@ -30,7 +30,7 @@ jobs:
         run: npm run all
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           always-auth: true
           registry-url: https://npm.pkg.github.com/
