@@ -33,8 +33,7 @@
     "jest": "^29.6.3",
     "prettier": "2.8.8",
     "react-test-renderer": "18.2.0",
-    "typescript": "5.0.4",
-    "webdriverio": "^8.35.1"
+    "typescript": "5.0.4"
   },
   "engines": {
     "node": ">=18"
