@@ -1,11 +1,3 @@
-/**
- * Sample React Native Main
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React, {useState} from 'react';
 import {
   Button,
   Keyboard,
@@ -19,17 +11,14 @@ import {
   View,
 } from 'react-native';
 
-import {RadioList} from './UI';
-
-import {LabeledTextInput} from './src/components/LabeledTextInput/LabeledTextInput';
-import {Section} from './src/components/Section/Section';
-import {dataCenterLabels, preferenceTabLabels} from './src/labels';
-import {
-  useKetchService,
-  KetchDataCenter,
-  PreferenceTab,
-} from '@ketch-com/ketch-react-native';
-import DefaultPreference from 'react-native-default-preference';
+import { LabeledTextInput } from '@/components/LabeledTextInput/LabeledTextInput';
+import { Section } from '@/components/Section/Section';
+import { RadioList } from '@/components/UI';
+import { dataCenterLabels, preferenceTabLabels } from '@/utils/labels';
+import { KetchDataCenter, PreferenceTab, useKetchService } from '@ketch-com/ketch-react-native';
+import { useState } from 'react';
+// @ts-expect-error we got .ios and .android files and TS complains
+import crossPlatfromRead from '@/utils/crossPlatformRead';
 
 // Compute list options
 const API_REGIONS = Object.values(KetchDataCenter).map(region => ({
@@ -42,7 +31,7 @@ const PREFERENCE_TABS = Object.values(PreferenceTab).map(preferenceTab => ({
   label: preferenceTabLabels[preferenceTab],
 }));
 
-function Main(): React.JSX.Element {
+export default function HomeScreen() {
   const isDarkMode = useColorScheme() === 'dark';
   const ketch = useKetchService();
   const [selectedRegion, setSelectedRegion] = useState(KetchDataCenter.US);
@@ -113,24 +102,25 @@ function Main(): React.JSX.Element {
   };
 
   const consoleLogPrivacyDataFromStorage = async () => {
-    const privacyData = await DefaultPreference.getAll();
+    const privacyData = await crossPlatfromRead();
 
-    console.log('privacy data from storage: ', privacyData);
+    console.log('example privacy data from storage: ', privacyData);
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ paddingTop: StatusBar.currentHeight }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView testID="appium-test" style={[styles.container]}>
+      <ScrollView testID='appium-test' style={[styles.container]}>
         <View style={styles.sectionsContainer} onTouchStart={() => Keyboard.dismiss()}>
           {/* Global options */}
           <Section
-            title="Global Options"
-            subtitle="Options that apply to both experiences">
+            title='Global Options'
+            subtitle='Options that apply to both experiences'
+          >
             <View style={styles.sectionVerticalContainer}>
               <View style={styles.sectionHorizontalContainer}>
                 <LabeledTextInput
-                  label="Organization"
+                  label='Organization'
                   value={organization}
                   onChangeText={setOrganization}
                   onEndEditing={(
@@ -142,7 +132,7 @@ function Main(): React.JSX.Element {
                   }}
                 />
                 <LabeledTextInput
-                  label="Property"
+                  label='Property'
                   value={property}
                   onChangeText={setProperty}
                   onEndEditing={(
@@ -154,7 +144,7 @@ function Main(): React.JSX.Element {
                   }}
                 />
                 <LabeledTextInput
-                  label="Environment"
+                  label='Environment'
                   value={environment}
                   onChangeText={setEnvironment}
                   onEndEditing={(
@@ -168,17 +158,17 @@ function Main(): React.JSX.Element {
               </View>
               <View style={styles.sectionHorizontalContainer}>
                 <LabeledTextInput
-                  label="Language"
+                  label='Language'
                   value={language}
                   onChangeText={setLanguage}
                   onEndEditing={(
                     e: NativeSyntheticEvent<TextInputEndEditingEventData>,
                   ) => {
-                    ketch.updateParameters({languageCode: e.nativeEvent.text});
+                    ketch.updateParameters({ languageCode: e.nativeEvent.text });
                   }}
                 />
                 <LabeledTextInput
-                  label="Jurisdiction"
+                  label='Jurisdiction'
                   value={jurisdiction}
                   onChangeText={setJurisdiction}
                   onEndEditing={(
@@ -190,38 +180,38 @@ function Main(): React.JSX.Element {
                   }}
                 />
                 <LabeledTextInput
-                  label="Region"
+                  label='Region'
                   value={region}
                   onChangeText={setRegion}
                   onEndEditing={(
                     e: NativeSyntheticEvent<TextInputEndEditingEventData>,
                   ) => {
-                    ketch.updateParameters({regionCode: e.nativeEvent.text});
+                    ketch.updateParameters({ regionCode: e.nativeEvent.text });
                   }}
                 />
               </View>
               {/* Identity adder */}
               <View style={styles.sectionHorizontalContainer}>
                 <LabeledTextInput
-                  label="Identities"
-                  placeholder="Name"
+                  label='Identities'
+                  placeholder='Name'
                   value={identityName}
                   onChangeText={setIdentityName}
                 />
                 <LabeledTextInput
                   value={identityValue}
-                  placeholder="Value"
+                  placeholder='Value'
                   onChangeText={setIdentityValue}
                 />
                 <View>
                   <View style={styles.identitiesButtonView}>
                     <Button
-                      title="Reset"
+                      title='Reset'
                       onPress={handleResetIdentityPress}
                       disabled={!Object.values(identities).length}
                     />
                     <Button
-                      title="Add"
+                      title='Add'
                       onPress={handleAddIdentityPress}
                       disabled={!identityName || !identityValue}
                     />
@@ -229,14 +219,14 @@ function Main(): React.JSX.Element {
                 </View>
               </View>
               <RadioList
-                title="API Region"
+                title='API Region'
                 data={API_REGIONS}
                 isCheckbox={false}
                 numColumns={3}
                 columnWidth={100}
                 onPressItem={key => {
                   setSelectedRegion(key as KetchDataCenter);
-                  ketch.updateParameters({dataCenter: key as KetchDataCenter});
+                  ketch.updateParameters({ dataCenter: key as KetchDataCenter });
                 }}
                 getIsChecked={key => selectedRegion === key}
               />
@@ -245,11 +235,12 @@ function Main(): React.JSX.Element {
 
           {/* Preference Options */}
           <Section
-            title="Preference Options"
-            subtitle="Options that only apply to the preference experience">
+            title='Preference Options'
+            subtitle='Options that only apply to the preference experience'
+          >
             <View style={styles.sectionVerticalContainer}>
               <RadioList
-                title="Allowed Tabs"
+                title='Allowed Tabs'
                 data={PREFERENCE_TABS}
                 isCheckbox={true}
                 columnWidth={125}
@@ -261,12 +252,10 @@ function Main(): React.JSX.Element {
                     setDisplayedTabs([...displayedTabs, tab]);
                   }
                 }}
-                getIsChecked={key =>
-                  displayedTabs.includes(key as PreferenceTab)
-                }
+                getIsChecked={key => displayedTabs.includes(key as PreferenceTab)}
               />
               <RadioList
-                title="Initial Tab"
+                title='Initial Tab'
                 data={PREFERENCE_TABS}
                 isCheckbox={false}
                 columnWidth={125}
@@ -277,20 +266,20 @@ function Main(): React.JSX.Element {
           </Section>
 
           {/* SDK Actions */}
-          <Section title="Actions" subtitle="Trigger some SDK functionality">
+          <Section title='Actions' subtitle='Trigger some SDK functionality'>
             <>
               <View style={styles.sectionVerticalContainer}>
                 <View style={styles.sectionHorizontalContainer}>
-                  <Button title="Show Consent" onPress={showConsent} />
-                  <Button title="Show Preferences" onPress={showPreferences} />
+                  <Button title='Show Consent' onPress={showConsent} />
+                  <Button title='Show Preferences' onPress={showPreferences} />
                 </View>
                 <View style={styles.sectionHorizontalContainer}>
                   <Button
-                    title="Log Consent"
+                    title='Log Consent'
                     onPress={() => console.log(ketch.getConsent())}
                   />
                   <Button
-                    title="Log Protocols"
+                    title='Log Protocols'
                     onPress={consoleLogPrivacyDataFromStorage}
                   />
                 </View>
@@ -310,9 +299,9 @@ const styles = StyleSheet.create({
     overflow: 'scroll',
   },
 
-  title: {fontSize: 24, marginBottom: 40, textAlign: 'center'},
+  title: { fontSize: 24, marginBottom: 40, textAlign: 'center' },
 
-  sectionTitle: {fontSize: 20, marginBottom: 8, color: 'black'},
+  sectionTitle: { fontSize: 20, marginBottom: 8, color: 'black' },
 
   sectionVerticalContainer: {
     flexDirection: 'column',
@@ -339,5 +328,3 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
 });
-
-export default Main;
