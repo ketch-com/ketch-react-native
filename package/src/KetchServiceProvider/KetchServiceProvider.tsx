@@ -206,7 +206,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       case EventName.consent:
         consent.current = JSON.parse(data.data || {}) as Consent;
-        parameters.onConsentUpdated?.(data.data);
+        parameters.onConsentUpdated?.(consent.current);
         break;
 
       case EventName.updateUSPrivacy:
