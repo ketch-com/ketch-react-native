@@ -7,8 +7,11 @@ import React, {
   useEffect,
 } from 'react';
 
-import { Platform, NativeModules, View } from 'react-native';
-import WebView, { type WebViewMessageEvent } from 'react-native-webview';
+import { Platform, NativeModules, View, Linking } from 'react-native';
+import WebView, {
+  type WebViewMessageEvent,
+  type WebViewNavigation,
+} from 'react-native-webview';
 
 import type {
   PreferenceExperienceOptions,
@@ -270,6 +273,21 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           allowFileAccessFromFileURLs
           allowUniversalAccessFromFileURLs
           onMessage={handleMessageReceive}
+          onShouldStartLoadWithRequest={(request: WebViewNavigation) => {
+            /**
+             * Below forces links clicked within the webview (e.g. TOS or Privacy Policy links) to
+             * open in an external web browser. This is the default behavior in Android but not iOS,
+             * and is desirable because opening links in the same webview creates identity issues.
+             */
+            if (
+              request.navigationType === 'click' &&
+              request.url.startsWith('http')
+            ) {
+              Linking.openURL(request.url); // Open link in external browser
+              return false; // Prevent WebView from loading the clicked link
+            }
+            return true; // Otherwise load other links as normal (e.g. API requests)
+          }}
           style={styles.webView}
         />
       </View>
