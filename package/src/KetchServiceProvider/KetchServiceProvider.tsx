@@ -67,6 +67,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onIdentitiesUpdated,
   onConsentUpdated,
   onPrivacyProtocolUpdated,
+  onHideExperience,
   onError,
 }) => {
   const webViewRef = useRef<WebView>(null);
@@ -94,6 +95,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onIdentitiesUpdated,
     onConsentUpdated,
     onPrivacyProtocolUpdated,
+    onHideExperience,
     onError,
   });
 
@@ -187,6 +189,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         break;
 
       case EventName.hideExperience:
+        parameters.onHideExperience?.(data.data);
+        setIsVisible(false);
+        break;
+
       case EventName.tapOutside:
         setIsVisible(false);
         break;

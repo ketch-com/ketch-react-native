@@ -46,3 +46,26 @@ export enum EventName {
   updateGPP = 'gpp_updated_data',
   error = 'error',
 }
+
+export enum OnHideExperienceArgument {
+  /**
+   * Experience was closed due to consent being set
+   */
+  setConsent = 'setConsent',
+  /**
+   * Experience was closed due to a right being invoked
+   */
+  invokeRight = 'invokeRight',
+  /**
+   * It was determined an experience would not be shown (e.g. the users consent has already been collected)
+   */
+  willNotShow = 'willNotShow',
+  /**
+   * Experience was closed (consent experience only)
+   */
+  close = 'close',
+  /**
+   * Experience was closed without setting consent (preference experience only)
+   */
+  closeWithoutSettingsConsent = 'closeWithoutSettingsConsent',
+}

@@ -10,6 +10,8 @@ import React from 'react';
 import {KetchServiceProvider, LogLevel} from '@ketch-com/ketch-react-native';
 import Main from './Main';
 
+import {OnHideExperienceArgument} from '../package/src';
+
 function App(): React.JSX.Element {
   const onEnvironmentUpdated = (data: string) => {
     console.log('onEnvironmentUpdated', JSON.stringify(data));
@@ -39,6 +41,10 @@ function App(): React.JSX.Element {
     console.log('onPrivacyProtocolUpdated:array', array);
   };
 
+  const onHideExperience = (data: OnHideExperienceArgument) => {
+    console.log('onHideExperience', JSON.stringify(data));
+  };
+
   const onError = (errorMsg: string) => {
     console.log(errorMsg);
   };
@@ -54,6 +60,7 @@ function App(): React.JSX.Element {
       onIdentitiesUpdated={onIdentitiesUpdated}
       onConsentUpdated={onConsentUpdated}
       onPrivacyProtocolUpdated={onPrivacyProtocolUpdated}
+      onHideExperience={onHideExperience}
       onError={onError}
       logLevel={LogLevel.TRACE}>
       <Main />
