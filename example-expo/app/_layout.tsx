@@ -1,4 +1,8 @@
-import { KetchServiceProvider, LogLevel } from '@ketch-com/ketch-react-native';
+import {
+  KetchServiceProvider,
+  LogLevel,
+  OnHideExperienceArgument,
+} from '@ketch-com/ketch-react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -46,6 +50,10 @@ export default function RootLayout() {
     console.log('onPrivacyProtocolUpdated:array', array);
   };
 
+  const onHideExperience = (data: OnHideExperienceArgument) => {
+    console.log('onHideExperience', JSON.stringify(data));
+  };
+
   const onError = (errorMsg: string) => {
     console.log(errorMsg);
   };
@@ -71,6 +79,7 @@ export default function RootLayout() {
       onIdentitiesUpdated={onIdentitiesUpdated}
       onConsentUpdated={onConsentUpdated}
       onPrivacyProtocolUpdated={onPrivacyProtocolUpdated}
+      onHideExperience={onHideExperience}
       onError={onError}
       logLevel={LogLevel.TRACE}
       preferenceStorage={SharedPreferences}

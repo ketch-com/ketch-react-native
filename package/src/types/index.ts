@@ -1,9 +1,10 @@
-import type {
-  EventName,
-  KetchDataCenter,
-  LogLevel,
-  PreferenceTab,
-  PrivacyProtocol,
+import {
+  type EventName,
+  type KetchDataCenter,
+  type LogLevel,
+  type OnHideExperienceArgument,
+  type PreferenceTab,
+  type PrivacyProtocol,
 } from '../enums';
 
 /**
@@ -172,6 +173,12 @@ export interface KetchMobile {
     privacyProtocolKey: PrivacyProtocol,
     privacyProtocolArray: (string | Record<string, string>)[]
   ) => void;
+
+  /**
+   * Experience hide listener
+   * @param data The event value
+   */
+  onHideExperience?: (data: OnHideExperienceArgument) => void;
 }
 
 export interface KetchService {
