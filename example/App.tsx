@@ -7,10 +7,12 @@
 
 import React from 'react';
 
-import {KetchServiceProvider, LogLevel} from '@ketch-com/ketch-react-native';
+import {
+  KetchServiceProvider,
+  LogLevel,
+  OnHideExperienceArgument,
+} from '@ketch-com/ketch-react-native';
 import Main from './Main';
-
-import {OnHideExperienceArgument} from '../package/src';
 
 function App(): React.JSX.Element {
   const onEnvironmentUpdated = (data: string) => {
