@@ -90,7 +90,13 @@ function Main(): React.JSX.Element {
         [identityName]: identityValue,
       });
 
-      ketch.updateParameters(identities);
+      // Create map with new identities
+      const newIdentities = {[identityName]: identityValue};
+
+      // Pass new identities to Ketch
+      ketch.updateParameters({identities: newIdentities});
+
+      // Reset input fields
       setIdentityName('');
       setIdentityValue('');
     }
@@ -122,7 +128,9 @@ function Main(): React.JSX.Element {
     <SafeAreaView>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <ScrollView testID="appium-test" style={[styles.container]}>
-        <View style={styles.sectionsContainer} onTouchStart={() => Keyboard.dismiss()}>
+        <View
+          style={styles.sectionsContainer}
+          onTouchStart={() => Keyboard.dismiss()}>
           {/* Global options */}
           <Section
             title="Global Options"
