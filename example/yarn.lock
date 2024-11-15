@@ -1161,7 +1161,7 @@
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
 "@ketch-com/ketch-react-native@file:../package":
-  version "0.6.3"
+  version "0.6.5"
   resolved "file:../package"
 
 "@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1":
