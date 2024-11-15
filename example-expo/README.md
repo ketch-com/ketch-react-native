@@ -4,16 +4,16 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## Get started
 
-1. Install dependencies
+1. Install dependencies (use npm >= v10 )
 
    ```bash
-   yarn
+   npm i
    ```
 
 2. Start the app
 
    ```bash
-   yarn start
+   npm run start
    ```
 
 > If running your app on Android, you must hit S to switch to a development build
@@ -35,7 +35,7 @@ If you look at this example app, you'll see two things:
 
 The iOS platform doesn't need a separate package as it can use React Native's [Settings][rn-settings] module.
 
-When running the app on Android, you have to switch to [development build](https://docs.expo.dev/develop/development-builds/create-a-build/) by pressing S in the terminal after running `yarn start`.
+When running the app on Android, you have to switch to [development build](https://docs.expo.dev/develop/development-builds/create-a-build/) by pressing S in the terminal after running `npm start`.
 
 When you run the Android app on an emulator for the first time (by pressing A in the terminal), it will create the `android/app` directory in your project. Next it will build a standalone native Android app with Gradle, and install it on your emulator.
 
