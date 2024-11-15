@@ -4,7 +4,7 @@ Ketch React Native Library
 
 ## Usage
 
-See our [Getting Started](https://developers.ketch.com/v3.0/docs/ketch-react-native-sdk-getting-started) and [Technical Documentation](https://developers.ketch.com/v3.0/docs/ketch-react-native-sdk-reference) documentation for usage instructions.
+See Our [Example](https://github.com/ketch-com/ketch-react-native/tree/main/example#readme) for a full example of how to use this library.
 
 ## License
 
