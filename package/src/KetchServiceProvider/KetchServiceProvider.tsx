@@ -210,7 +210,11 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         break;
 
       case EventName.identities:
-        parameters.onIdentitiesUpdated?.(data.data);
+        const updatedIdentities = JSON.parse(data.data) as Record<
+          string,
+          string
+        >;
+        parameters.onIdentitiesUpdated?.(updatedIdentities);
         break;
 
       case EventName.consent:

@@ -1,6 +1,6 @@
 {
   "name": "@ketch-com/ketch-react-native",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "description": "Ketch React Native Library",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
