@@ -7,7 +7,14 @@ import React, {
   useEffect,
 } from 'react';
 
-import { Platform, NativeModules, View, Linking } from 'react-native';
+import {
+  Platform,
+  NativeModules,
+  View,
+  Linking,
+  StatusBar,
+  Dimensions,
+} from 'react-native';
 import WebView, {
   type WebViewMessageEvent,
   type WebViewNavigation,
@@ -73,6 +80,15 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const webViewRef = useRef<WebView>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
+
+  // Calculate android insets manually
+  const topPadding =
+    Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
+  console.log('topPadding', topPadding);
+  const window = Dimensions.get('window'); // Usable screen area
+  const screen = Dimensions.get('screen'); // Full screen area
+  const bottomPadding =
+    Platform.OS === 'android' ? (screen.height - window.height) / 2 : 0;
 
   // Internal state values which shouldn't cause re-render
   const isForceConsentExperienceShown = useRef(false);
@@ -253,6 +269,12 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     }
   };
 
+  // Set safe area padding for android
+  const injectedJavaScript = `
+  document.documentElement.style.setProperty('--safe-area-inset-top', '${topPadding}px');
+  document.documentElement.style.setProperty('--safe-area-inset-bottom', '${bottomPadding}px');
+  `;
+
   // Simply render children if no identities passed as SDK cannot be used
   return (
     <KetchServiceContext.Provider
@@ -274,6 +296,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             html: getIndexHtml(parameters),
             baseUrl: 'http://localhost',
           }}
+          injectedJavaScript={
+            Platform.OS === 'android' ? injectedJavaScript : undefined
+          }
           originWhitelist={['*']}
           javaScriptEnabled
           allowFileAccess

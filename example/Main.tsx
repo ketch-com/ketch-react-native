@@ -126,7 +126,7 @@ function Main(): React.JSX.Element {
 
   return (
     <SafeAreaView>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <StatusBar translucent />
       <ScrollView testID="appium-test" style={[styles.container]}>
         <View
           style={styles.sectionsContainer}
