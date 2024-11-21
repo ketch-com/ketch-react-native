@@ -84,7 +84,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   // Calculate android insets manually
   const topPadding =
     Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
-  console.log('topPadding', topPadding);
   const window = Dimensions.get('window'); // Usable screen area
   const screen = Dimensions.get('screen'); // Full screen area
   const bottomPadding =
