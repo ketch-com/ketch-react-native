@@ -51,6 +51,8 @@ jobs:
         run: npm run all
 
   release:
+    needs: build
+
     if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
 
     runs-on: ubuntu-latest
@@ -87,7 +89,7 @@ jobs:
       - name: Set package version
         uses: conventional-actions/write-version@v1
         with:
-          output_path: package.json
+          output_path: ./package/package.json
           version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
 
       - name: Install Dependencies
