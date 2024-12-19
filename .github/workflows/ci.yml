@@ -70,7 +70,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: lts/*
           always-auth: true
           registry-url: https://npm.pkg.github.com/
           scope: ketch-com
@@ -85,7 +85,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: lts/*
           always-auth: true
           registry-url: https://registry.npmjs.com/
           scope: ketch-com
