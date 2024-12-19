@@ -71,7 +71,7 @@ jobs:
           cache-dependency-path: '**/package-lock.json'
 
       - name: Publish (pkg.github)
-        run: npm publish --access public
+        run: npm publish --provenance --ignore-scripts --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -86,6 +86,6 @@ jobs:
           cache-dependency-path: '**/package-lock.json'
 
       - name: Publish (npmjs)
-        run: npm publish --access public
+        run: npm publish --provenance --ignore-scripts --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
