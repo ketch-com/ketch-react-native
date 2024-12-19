@@ -1,4 +1,4 @@
-name: CI
+name: Build
 on:
   push:
     branches: [ main ]
@@ -23,27 +23,13 @@ jobs:
           - 22.x
           - 23.x
 
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      version-major: ${{ steps.version.outputs.version-major-only }}
-      version-minor: ${{ format('{0}.{1}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only) }}
-      version-patch: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
-
     name: Node ${{ matrix.node-version }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Generate next version
-        id: version
-        uses: conventional-actions/next-version@v1
-
-      - name: Set next version
-        uses: conventional-actions/write-version@v1
         with:
-          output_path: ./package/package.json
-          version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
+          fetch-depth: 0
 
       - name: Setup Node ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -65,8 +51,6 @@ jobs:
         run: npm run all
 
   release:
-    needs: build
-
     if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
 
     runs-on: ubuntu-latest
@@ -83,6 +67,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate next version
+        id: version
+        uses: conventional-actions/next-version@v1
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -93,6 +83,12 @@ jobs:
           scope: ketch-com
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
+
+      - name: Set package version
+        uses: conventional-actions/write-version@v1
+        with:
+          output_path: package.json
+          version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
 
       - name: Install Dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
@@ -120,5 +116,5 @@ jobs:
       - name: Create Release
         uses: conventional-actions/create-release@v1
         with:
-          tag_name: ${{ needs.build.outputs.version }}
+          tag_name: ${{ steps.version.outputs.version }}
           artifacts: "*"
