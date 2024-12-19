@@ -59,4 +59,4 @@ jobs:
         # if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
