@@ -146,7 +146,7 @@ export const getIndexHtml = (parameters: KetchMobile) => {
           e.src = \`\${url}/config/\${orgCode}/\${propertyName}/boot.js\`;
           e.defer = e.async = !0;
           e.onerror = (error) => {
-            const errorMessage = \`Failed to load Ketch: \${JSON.stringify(error)}\`;
+            const errorMessage = 'Failed to load Ketch';
             console.log("NETWORK ERROR HERE - ", error);
             emitEvent('error', [errorMessage]);
           };
