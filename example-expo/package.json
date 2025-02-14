@@ -18,7 +18,7 @@
     "@expo/vector-icons": "^14.0.0",
     "@ketch-com/ketch-react-native": "file:../package",
     "@react-navigation/native": "^6.0.2",
-    "expo": "~51.0.11",
+    "expo": "^52.0.33",
     "expo-constants": "~16.0.2",
     "expo-font": "~12.0.7",
     "expo-linking": "~6.3.1",
