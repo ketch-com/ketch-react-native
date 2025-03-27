@@ -80,6 +80,7 @@ function Main(): React.JSX.Element {
     setIdentities({});
     setIdentityName('');
     setIdentityValue('');
+    ketch.updateParameters({identities: {}});
   };
 
   // Update identities
@@ -223,11 +224,7 @@ function Main(): React.JSX.Element {
                 />
                 <View>
                   <View style={styles.identitiesButtonView}>
-                    <Button
-                      title="Reset"
-                      onPress={handleResetIdentityPress}
-                      disabled={!Object.values(identities).length}
-                    />
+                    <Button title="Reset" onPress={handleResetIdentityPress} />
                     <Button
                       title="Add"
                       onPress={handleAddIdentityPress}
@@ -301,6 +298,7 @@ function Main(): React.JSX.Element {
                     title="Log Protocols"
                     onPress={consoleLogPrivacyDataFromStorage}
                   />
+                  <Button title="Load" onPress={ketch.load} />
                 </View>
               </View>
             </>

@@ -12,13 +12,16 @@
   },
   "dependencies": {
     "@ketch-com/ketch-react-native": "file:../package",
+    "@react-native-async-storage/async-storage": "^2.1.1",
     "react": "18.2.0",
     "react-native": "0.73.6",
     "react-native-default-preference": "^1.4.4",
+    "react-native-device-info": "^14.0.4",
     "react-native-webview": "^13.10.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@babel/helper-simple-access": "^7.25.9",
     "@babel/preset-env": "^7.20.0",
     "@babel/runtime": "^7.24.1",
     "@react-native/babel-preset": "0.73.21",
