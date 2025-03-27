@@ -55,6 +55,7 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
     ketch_jurisdiction?: string;
     ketch_env?: string;
     ketch_log?: LogLevel;
+    ketch_show?: string;
   } = {
     organizationCode: parameters.organizationCode,
     propertyCode: parameters.propertyCode,
@@ -84,6 +85,10 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
 
     if (key === 'logLevel' && parameters.logLevel) {
       result.ketch_log = parameters.logLevel;
+    }
+
+    if (key === 'ketch_show' && parameters.ketch_show) {
+      result.ketch_show = parameters.ketch_show;
     }
 
     if (parameters.identities) {

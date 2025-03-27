@@ -36,7 +36,11 @@ export type CommonExperienceOptions = Pick<
   | 'environmentName'
   | 'dataCenter'
   | 'logLevel'
->;
+> & {
+  // This is separate because we don't want to add ketch_show to the KetchMobile type
+  // which is used for the KetchServiceProvider parameters
+  ketch_show?: string;
+};
 
 /**
  * Preference experience options
@@ -72,6 +76,13 @@ export interface KetchMobile {
    * Ketch property code
    */
   propertyCode: string;
+
+  /**
+   * Whether to automatically load the Ketch SDK on mount. Once loaded, Ketch will determine
+   * if the banner or modal experience should be shown. Defaults to true. If false, the load()
+   * method must be called to trigger Ketch's auto display logic.
+   */
+  autoLoad?: boolean;
 
   /**
    * Ketch identity map of identity space names to values
@@ -208,4 +219,9 @@ export interface KetchService {
    * Update service parameters
    */
   updateParameters: (parameters: Partial<KetchMobile>) => void;
+
+  /**
+   * Load or reload the Ketch SDK.
+   */
+  load: () => void;
 }
