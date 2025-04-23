@@ -49,9 +49,10 @@ interface KetchServiceProviderParams extends KetchMobile {
 
 const deviceLanguage: string =
   Platform.OS === 'ios'
-    ? NativeModules.SettingsManager.settings.AppleLocale ||
-      NativeModules.SettingsManager.settings.AppleLanguages[0] //iOS 13
-    : NativeModules.I18nManager.localeIdentifier;
+    ? NativeModules.SettingsManager?.settings?.AppleLocale ||
+      NativeModules.SettingsManager?.settings?.AppleLanguages?.[0] ||
+      'en'
+    : NativeModules.I18nManager?.localeIdentifier || 'en';
 
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
