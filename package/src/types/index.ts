@@ -190,6 +190,11 @@ export interface KetchMobile {
    * @param data The event value
    */
   onHideExperience?: (data: OnHideExperienceArgument) => void;
+
+  /**
+   * Experience has shown listener
+   */
+  onHasShownExperience?: () => void;
 }
 
 export interface KetchService {
