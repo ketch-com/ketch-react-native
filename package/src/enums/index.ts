@@ -39,6 +39,7 @@ export enum EventName {
   jurisdiction = 'jurisdiction',
   regionInfo = 'regionInfo',
   willShowExperience = 'willShowExperience',
+  hasShownExperience = 'hasShownExperience',
   hideExperience = 'hideExperience',
   tapOutside = 'tapOutside',
   updateUSPrivacy = 'usprivacy_updated_data',
