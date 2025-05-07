@@ -5,6 +5,7 @@ import React, {
   useReducer,
   useCallback,
   useEffect,
+  type ReactElement,
 } from 'react';
 
 import {
@@ -44,7 +45,7 @@ import crossPlatformSave from '../util/crossPlatformSave';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
 
 interface KetchServiceProviderParams extends KetchMobile {
-  children: JSX.Element;
+  children: ReactElement;
 }
 
 const deviceLanguage: string =
