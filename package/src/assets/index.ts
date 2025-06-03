@@ -167,3 +167,15 @@ export const getIndexHtml = (parameters: KetchMobile) => {
 </html>
 `;
 };
+
+/**
+ * Injects the given CSS as a <style> tag before </head> in provided html.
+ * Used for runtime cssOverride support.
+ */
+export const injectCssIntoHtml = (html: string, css?: string) => {
+  if (css && css.trim()) {
+    const cssTag = `<style>${css}</style>`;
+    return html.replace('</head>', `${cssTag}\n</head>`);
+  }
+  return html;
+};

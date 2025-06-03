@@ -38,7 +38,7 @@ import {
 import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
 import { createOptionsString, savePrivacyToStorage } from '../util';
-import { getIndexHtml } from '../assets';
+import { getIndexHtml, injectCssIntoHtml } from '../assets';
 import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
@@ -287,17 +287,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     setWebViewKey((prev) => prev + 1);
   }, []);
 
-  // INTERNAL: add cssOverrideState in getIndexHtml parameters
-  const getHtmlWithCss = () => {
-    const htmlRaw = getIndexHtml(parameters);
-    const cssTag =
-      cssOverrideState && cssOverrideState.trim()
-        ? `<style>${cssOverrideState}</style>`
-        : '';
-    // Inject CSS before </head>
-    return htmlRaw.replace('</head>', `${cssTag}\n</head>`);
-  };
-
   const storePreference = preferenceStorage
     ? (() => {
         if ('setItemAsync' in preferenceStorage) {
@@ -449,7 +438,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             key={webViewKey}
             ref={webViewRef}
             source={{
-              html: getHtmlWithCss(),
+              html: injectCssIntoHtml(
+                getIndexHtml(parameters),
+                cssOverrideState
+              ),
               baseUrl: 'http://localhost',
             }}
             injectedJavaScript={
@@ -489,7 +481,5 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
 export const useKetchService = () => {
   const context = useContext(KetchServiceContext);
-  return context
-    ? context
-    : ({} as KetchService & { setCssOverride?: (css: string) => void });
+  return context ? context : ({} as KetchService);
 };
