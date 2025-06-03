@@ -52,7 +52,7 @@ interface KetchServiceProviderParams extends KetchMobile {
   cssOverride?: string;
 }
 
-const containsHTMLTags = (css: string): boolean => /<[^>]+>/.test(css);
+const containsHTMLTags = (css: string): boolean => /<[a-zA-Z]/.test(css);
 const isWithin1kb = (css: string): boolean =>
   typeof TextEncoder !== 'undefined'
     ? new TextEncoder().encode(css).length <= 1024
