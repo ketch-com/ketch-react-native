@@ -38,14 +38,25 @@ import {
 import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
 import { createOptionsString, savePrivacyToStorage } from '../util';
-import { getIndexHtml } from '../assets';
+import { getIndexHtml, injectCssIntoHtml } from '../assets';
 import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: JSX.Element;
+  /**
+   * Initial CSS override string to inject into the WebView.
+   * Must be pure CSS (no HTML tags).
+   */
+  cssOverride?: string;
 }
+
+const containsHTMLTags = (css: string): boolean => /<[a-zA-Z]/.test(css);
+const isWithin1kb = (css: string): boolean =>
+  typeof TextEncoder !== 'undefined'
+    ? new TextEncoder().encode(css).length <= 1024
+    : css.length <= 1024;
 
 const deviceLanguage: string =
   Platform.OS === 'ios'
@@ -78,12 +89,35 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onHideExperience,
   onHasShownExperience,
   onError,
+  cssOverride: initialCssOverride,
 }) => {
   const webViewRef = useRef<WebView>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
   const [shouldLoadWebView, setShouldLoadWebView] = useState(autoLoad);
   const [webViewKey, setWebViewKey] = useState(0);
+
+  // CSS override state
+  const [cssOverrideState, setCssOverrideState] = useState<string | undefined>(
+    () => {
+      if (typeof initialCssOverride === 'string') {
+        if (containsHTMLTags(initialCssOverride)) {
+          console.warn(
+            '[Ketch] CSS override rejected: must not contain HTML tags!'
+          );
+          return undefined;
+        }
+        if (!isWithin1kb(initialCssOverride)) {
+          console.warn(
+            '[Ketch] CSS override rejected: CSS too long (>1kb limit)!'
+          );
+          return undefined;
+        }
+        return initialCssOverride;
+      }
+      return undefined;
+    }
+  );
 
   // Calculate android insets manually
   const topPadding =
@@ -228,6 +262,31 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     showPreferenceExperience,
   ]);
 
+  /**
+   * Method for SDK clients to update CSS at runtime.
+   * - Filters out any HTML tags
+   * - Limits to 1kb
+   * - Triggers WebView remount if updated
+   */
+  const setCssOverride = useCallback((css: string) => {
+    if (containsHTMLTags(css)) {
+      console.warn(
+        '[Ketch] CSS override rejected: must not contain HTML tags!'
+      );
+      setCssOverrideState(undefined);
+      setWebViewKey((prev) => prev + 1);
+      return;
+    }
+    if (!isWithin1kb(css)) {
+      console.warn('[Ketch] CSS override rejected: CSS too long (>1kb limit)!');
+      setCssOverrideState(undefined);
+      setWebViewKey((prev) => prev + 1);
+      return;
+    }
+    setCssOverrideState(css);
+    setWebViewKey((prev) => prev + 1);
+  }, []);
+
   const storePreference = preferenceStorage
     ? (() => {
         if ('setItemAsync' in preferenceStorage) {
@@ -367,6 +426,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         getConsent,
         updateParameters,
         load,
+        setCssOverride,
       }}
     >
       {children}
@@ -378,7 +438,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             key={webViewKey}
             ref={webViewRef}
             source={{
-              html: getIndexHtml(parameters),
+              html: injectCssIntoHtml(
+                getIndexHtml(parameters),
+                cssOverrideState
+              ),
               baseUrl: 'http://localhost',
             }}
             injectedJavaScript={

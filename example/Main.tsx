@@ -299,6 +299,14 @@ function Main(): React.JSX.Element {
                     onPress={consoleLogPrivacyDataFromStorage}
                   />
                   <Button title="Load" onPress={ketch.load} />
+                  <Button
+                    title="Apply CSS"
+                    onPress={() =>
+                      ketch.setCssOverride?.(
+                        '#ketch-banner-button-primary { display: none !important; }',
+                      )
+                    }
+                  />
                 </View>
               </View>
             </>

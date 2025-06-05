@@ -10,4 +10,5 @@ export const KetchServiceContext = createContext<KetchService>({
   getConsent: () => ({}) as Consent,
   // @ts-ignore
   updateParameters: (parameters: Partial<KetchMobile>) => {},
+  setCssOverride: (_css: string) => {},
 });
