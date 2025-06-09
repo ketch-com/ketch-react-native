@@ -229,4 +229,10 @@ export interface KetchService {
    * Load or reload the Ketch SDK.
    */
   load: () => void;
+
+  /**
+   * Set a CSS override to be injected into the webview.
+   * Will ignore if string contains any HTML tags or exceeds 1kb.
+   */
+  setCssOverride?: (css: string) => void;
 }
