@@ -1532,12 +1532,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.24.1, @babel/runtime@npm:^7.25.0, @babel/runtime@npm:^7.8.4":
+"@babel/runtime@npm:^7.25.0, @babel/runtime@npm:^7.8.4":
   version: 7.27.0
   resolution: "@babel/runtime@npm:7.27.0"
   dependencies:
     regenerator-runtime: "npm:^0.14.0"
   checksum: 10c0/35091ea9de48bd7fd26fb177693d64f4d195eb58ab2b142b893b7f3fa0f1d7c677604d36499ae0621a3703f35ba0c6a8f6c572cc8f7dc0317213841e493cf663
+  languageName: node
+  linkType: hard
+
+"@babel/runtime@npm:^7.28.2":
+  version: 7.28.2
+  resolution: "@babel/runtime@npm:7.28.2"
+  checksum: 10c0/c20afe253629d53a405a610b12a62ac74d341a2c1e0fb202bbef0c118f6b5c84f94bf16039f58fd0483dd256901259930a43976845bdeb180cab1f882c21b6e0
   languageName: node
   linkType: hard
 
@@ -2023,7 +2030,7 @@ __metadata:
 
 "@ketch-com/ketch-react-native@file:../package::locator=example%40workspace%3A.":
   version: 0.6.9
-  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=350cf5&locator=example%40workspace%3A."
+  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=c52618&locator=example%40workspace%3A."
   peerDependencies:
     expo-shared-preferences: 0.4.0
     react: ^18.2.0
@@ -2033,7 +2040,7 @@ __metadata:
   peerDependenciesMeta:
     expo-shared-preferences:
       optional: true
-  checksum: 10c0/3bcc86154e13c3d711cc1048752e83ed8e77e33fd74598c00ec3bebf56ba265c696246def852d875d0038a0543d291a0e6a2209324aa29d9810bdad557dffecf
+  checksum: 10c0/8d6a472f2014025c9909896ef7732a0a8ff54616509791582c3ffd7701ad62f28b29b5144ba9aed56387ffacaae0e96c164b2a77e617f4e2d5a5612926a3a2e7
   languageName: node
   linkType: hard
 
@@ -4623,7 +4630,7 @@ __metadata:
     "@babel/core": "npm:^7.20.0"
     "@babel/helper-simple-access": "npm:^7.25.9"
     "@babel/preset-env": "npm:^7.20.0"
-    "@babel/runtime": "npm:^7.24.1"
+    "@babel/runtime": "npm:^7.28.2"
     "@ketch-com/ketch-react-native": "file:../package"
     "@react-native-async-storage/async-storage": "npm:^2.1.1"
     "@react-native/babel-preset": "npm:0.73.21"
