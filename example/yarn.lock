@@ -2206,7 +2206,7 @@ __metadata:
 
 "@ketch-com/ketch-react-native@file:../package::locator=example%40workspace%3A.":
   version: 0.6.9
-  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=c4ed34&locator=example%40workspace%3A."
+  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=ece50d&locator=example%40workspace%3A."
   peerDependencies:
     expo-shared-preferences: ">=0.4.0"
     react: ">=18.2.0"
@@ -2216,7 +2216,7 @@ __metadata:
   peerDependenciesMeta:
     expo-shared-preferences:
       optional: true
-  checksum: 10c0/96369740211e6eb0305728924c6bbd95d8e58f67866b7f9bcffdb3abbc4ac6824c40fb15c240a0e682237b5f3c5511ca9eef8912ec96b5c7908093898b0338b1
+  checksum: 10c0/f47e47f655cf14da08f0cc58470cbf26e687c7cfc41ebe664589da3e6fad82d8602040efe8e99e3c79e04c9e83711378f20c83e2923416635030c41b581fd944
   languageName: node
   linkType: hard
 
