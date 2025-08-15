@@ -1,4 +1,5 @@
-import { createUrlParamsObject, type KetchMobile } from '../';
+import { createUrlParamsObject } from '../util/helpers';
+import type { KetchMobile } from '../types';
 
 export const getIndexHtml = (parameters: KetchMobile) => {
   const urlParams = createUrlParamsObject(parameters);
