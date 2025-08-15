@@ -43,7 +43,6 @@ const PREFERENCE_TABS = Object.values(PreferenceTab).map(preferenceTab => ({
 }));
 
 function Main(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
   const ketch = useKetchService();
   const [selectedRegion, setSelectedRegion] = useState(KetchDataCenter.US);
 

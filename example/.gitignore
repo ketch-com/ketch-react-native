@@ -65,3 +65,6 @@ yarn-error.log
 
 # testing
 /coverage
+
+# we use yarn
+package-lock.json

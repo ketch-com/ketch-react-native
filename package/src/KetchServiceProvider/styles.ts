@@ -13,5 +13,5 @@ export default StyleSheet.create({
 
   shown: { display: 'flex' },
 
-  hidden: { display: 'none' },
+  hidden: { opacity: 0, pointerEvents: 'none' },
 });
