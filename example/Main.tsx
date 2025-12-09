@@ -70,7 +70,6 @@ function Main(): React.JSX.Element {
     PreferenceTab.SubscriptionsTab,
     PreferenceTab.RightsTab,
   ]);
-
   const [initialTab, setInitialTab] = useState<PreferenceTab>(
     PreferenceTab.OverviewTab,
   );
