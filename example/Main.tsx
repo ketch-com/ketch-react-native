@@ -120,7 +120,6 @@ function Main(): React.JSX.Element {
 
   const consoleLogPrivacyDataFromStorage = async () => {
     const privacyData = await DefaultPreference.getAll();
-
     console.log('privacy data from storage: ', privacyData);
   };
 
