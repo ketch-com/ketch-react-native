@@ -31,7 +31,7 @@ import {
 } from '@ketch-com/ketch-react-native';
 import DefaultPreference from 'react-native-default-preference';
 
-// Comput list options
+// Compute list options
 const API_REGIONS = Object.values(KetchDataCenter).map(region => ({
   key: region,
   label: dataCenterLabels[region],
@@ -70,6 +70,7 @@ function Main(): React.JSX.Element {
     PreferenceTab.SubscriptionsTab,
     PreferenceTab.RightsTab,
   ]);
+
   const [initialTab, setInitialTab] = useState<PreferenceTab>(
     PreferenceTab.OverviewTab,
   );
