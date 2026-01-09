@@ -36,7 +36,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node ${{ matrix.node-version }}
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f  # v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -84,7 +84,7 @@ jobs:
         uses: conventional-actions/next-version@e48c1275d221bd29e2c08f8856b91695c0a72db1  # v1
 
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f  # v4
         with:
           node-version: lts/*
           always-auth: true
@@ -108,7 +108,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node for npmjs.org
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f  # v4
         with:
           node-version: lts/*
           cache: 'npm'
