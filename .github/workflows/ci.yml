@@ -107,11 +107,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clear npm config for OIDC
-        run: rm -f ~/.npmrc .npmrc
-
       - name: Publish (npmjs) via Trusted Publishing
-        run: npm publish --provenance --ignore-scripts --access public --registry https://registry.npmjs.org/
+        run: |
+          # Unset NPM_CONFIG_USERCONFIG to ignore GitHub Packages .npmrc
+          unset NPM_CONFIG_USERCONFIG
+          npm publish --provenance --ignore-scripts --access public --registry https://registry.npmjs.org/
 
       - name: Create Release
         uses: conventional-actions/create-release@50cd05b8ea9f2f3f32bbb822706b01ebf2ccce62  # v1
