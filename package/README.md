@@ -9,7 +9,3 @@ See our [Getting Started](https://developers.ketch.com/v3.0/docs/ketch-react-nat
 ## License
 
 MIT
-
----
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)

@@ -4,13 +4,15 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 0  # Disable version update PRs, only create security alerts
     commit-message:
       prefix: "chore"
       include: "scope"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    open-pull-requests-limit: 0  # Disable version update PRs, only create security alerts
     commit-message:
       prefix: "chore"
       include: "scope"
