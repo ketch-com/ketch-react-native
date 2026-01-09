@@ -103,6 +103,13 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup Node for npmjs.org
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
       - name: Publish (npmjs) via Trusted Publishing
         run: npm publish --provenance --ignore-scripts --access public --registry https://registry.npmjs.org/
 
