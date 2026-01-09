@@ -117,4 +117,3 @@ jobs:
         uses: conventional-actions/create-release@50cd05b8ea9f2f3f32bbb822706b01ebf2ccce62  # v1
         with:
           tag_name: ${{ steps.version.outputs.version }}
-          artifacts: "*"
