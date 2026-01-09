@@ -5,12 +5,16 @@ on:
   pull_request:
     branches: [ main ]
 
+# Default permissions for all jobs (least privilege)
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: read  # Required to checkout code
 
     defaults:
       run:
@@ -27,19 +31,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
         with:
           fetch-depth: 0
 
       - name: Setup Node ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
 
       - name: Install Dependencies
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Build library
         run: npm run prepare
@@ -61,9 +65,9 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
-      packages: write
-      id-token: write
+      contents: write    # Required to create releases
+      packages: write    # Required to publish to GitHub Packages
+      id-token: write    # Required for npm OIDC Trusted Publishing
 
     defaults:
       run:
@@ -71,16 +75,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
         with:
           fetch-depth: 0
 
       - name: Generate next version
         id: version
-        uses: conventional-actions/next-version@v1
+        uses: conventional-actions/next-version@e48c1275d221bd29e2c08f8856b91695c0a72db1  # v1
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with:
           node-version: lts/*
           always-auth: true
@@ -90,24 +94,31 @@ jobs:
           cache-dependency-path: '**/package-lock.json'
 
       - name: Set package version
-        uses: conventional-actions/write-version@v1
+        uses: conventional-actions/write-version@77c6c9d20094108d23984deb1af56dd730166bd8  # v1
         with:
           output_path: ./package/package.json
           version: ${{ format('{0}.{1}.{2}', steps.version.outputs.version-major-only, steps.version.outputs.version-minor-only, steps.version.outputs.version-patch-only) }}
 
       - name: Install Dependencies
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Publish (pkg.github)
         run: npm publish --provenance --ignore-scripts --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup Node for npmjs.org
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with:
+          node-version: lts/*
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
       - name: Publish (npmjs) via Trusted Publishing
         run: npm publish --provenance --ignore-scripts --access public --registry https://registry.npmjs.org/
 
       - name: Create Release
-        uses: conventional-actions/create-release@v1
+        uses: conventional-actions/create-release@50cd05b8ea9f2f3f32bbb822706b01ebf2ccce62  # v1
         with:
           tag_name: ${{ steps.version.outputs.version }}
           artifacts: "*"
