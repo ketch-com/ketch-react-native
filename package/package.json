@@ -81,7 +81,8 @@
   },
   "resolutions": {
     "@types/react": "^18.2.44",
-    "tmp": "0.2.4"
+    "tmp": "0.2.4",
+    "js-yaml": "^3.14.2"
   },
   "packageManager": "yarn@4.1.1",
   "jest": {
@@ -164,6 +165,7 @@
   "overrides": {
     "form-data": "^4.0.4",
     "brace-expansion": "^2.0.2",
-    "tmp": "0.2.4"
+    "tmp": "0.2.4",
+    "js-yaml": "^3.14.2"
   }
 }
