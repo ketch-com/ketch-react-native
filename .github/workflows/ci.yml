@@ -81,7 +81,7 @@ jobs:
 
       - name: Generate next version
         id: version
-        uses: conventional-actions/next-version@e48c1275d221bd29e2c08f8856b91695c0a72db1  # v1
+        uses: conventional-actions/next-version@1b3e4803a0bdf7435ba7bb5ace077445ed54e82a # v1.1.8
 
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
@@ -114,6 +114,6 @@ jobs:
           npm publish --provenance --ignore-scripts --access public --registry https://registry.npmjs.org/
 
       - name: Create Release
-        uses: conventional-actions/create-release@50cd05b8ea9f2f3f32bbb822706b01ebf2ccce62  # v1
+        uses: conventional-actions/create-release@c025b7306d14a25901b72486f97f3ebe7662a8ed # v1.0.31
         with:
           tag_name: ${{ steps.version.outputs.version }}
