@@ -1893,7 +1893,7 @@ __metadata:
 
 "@ketch-com/ketch-react-native@file:../package::locator=example%40workspace%3A.":
   version: 0.6.9
-  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=c96fe5&locator=example%40workspace%3A."
+  resolution: "@ketch-com/ketch-react-native@file:../package#../package::hash=fb22c8&locator=example%40workspace%3A."
   peerDependencies:
     expo-shared-preferences: ">=0.4.0"
     react: ">=18.2.0"
@@ -1903,7 +1903,7 @@ __metadata:
   peerDependenciesMeta:
     expo-shared-preferences:
       optional: true
-  checksum: 10c0/ad928296e544f21d11a032b40466d299d848ec06f4578309bb811a34460c10eb0c7cacbf46976fcf7126ff04cf0438af9b5b972ed4e53d62b4adc03bbe8118d7
+  checksum: 10c0/1d9e39ad7f32f23d440336fac6072e08e5a63a3b47123e9559fab69ce283d9bb554f424c767ef2407ead438db653e32ce23bd70ad507ee065f16ca91e582fcdb
   languageName: node
   linkType: hard
 
@@ -7364,9 +7364,9 @@ __metadata:
   linkType: hard
 
 "picomatch@npm:^2.0.4, picomatch@npm:^2.2.3, picomatch@npm:^2.3.1":
-  version: 2.3.1
-  resolution: "picomatch@npm:2.3.1"
-  checksum: 10c0/26c02b8d06f03206fc2ab8d16f19960f2ff9e81a658f831ecb656d8f17d9edc799e8364b1f4a7873e89d9702dff96204be0fa26fe4181f6843f040f819dac4be
+  version: 2.3.2
+  resolution: "picomatch@npm:2.3.2"
+  checksum: 10c0/a554d1709e59be97d1acb9eaedbbc700a5c03dbd4579807baed95100b00420bc729335440ef15004ae2378984e2487a7c1cebd743cfdb72b6fa9ab69223c0d61
   languageName: node
   linkType: hard
 
