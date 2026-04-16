@@ -99,15 +99,24 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
     }
 
     if (key === 'age' && parameters.age !== undefined) {
-      result.ketch_age = String(parameters.age);
+      const val = parameters.age;
+      if (Number.isFinite(val) && val >= 0) {
+        result.ketch_age = String(Math.floor(val));
+      }
     }
 
     if (key === 'ageLower' && parameters.ageLower !== undefined) {
-      result.ketch_age_lower = String(parameters.ageLower);
+      const val = parameters.ageLower;
+      if (Number.isFinite(val) && val >= 0) {
+        result.ketch_age_lower = String(Math.floor(val));
+      }
     }
 
     if (key === 'ageUpper' && parameters.ageUpper !== undefined) {
-      result.ketch_age_upper = String(parameters.ageUpper);
+      const val = parameters.ageUpper;
+      if (Number.isFinite(val) && val >= 0) {
+        result.ketch_age_upper = String(Math.floor(val));
+      }
     }
   }
 
