@@ -36,6 +36,9 @@ export type CommonExperienceOptions = Pick<
   | 'environmentName'
   | 'dataCenter'
   | 'logLevel'
+  | 'age'
+  | 'ageLower'
+  | 'ageUpper'
 > & {
   // This is separate because we don't want to add ketch_show to the KetchMobile type
   // which is used for the KetchServiceProvider parameters
@@ -118,6 +121,24 @@ export interface KetchMobile {
    * Log level for SDK log messages
    */
   logLevel?: LogLevel;
+
+  /**
+   * Exact age of the user.
+   * Used for age band resolution to determine the appropriate legal basis for each purpose.
+   */
+  age?: number;
+
+  /**
+   * Lower bound of the user's age range.
+   * Used for age band resolution when an exact age is not known.
+   */
+  ageLower?: number;
+
+  /**
+   * Upper bound of the user's age range.
+   * Used for age band resolution when an exact age is not known.
+   */
+  ageUpper?: number;
 
   /**
    * Force show the consent experience initially

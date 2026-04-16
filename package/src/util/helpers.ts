@@ -56,6 +56,9 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
     ketch_env?: string;
     ketch_log?: LogLevel;
     ketch_show?: string;
+    ketch_age?: string;
+    ketch_age_lower?: string;
+    ketch_age_upper?: string;
   } = {
     organizationCode: parameters.organizationCode,
     propertyCode: parameters.propertyCode,
@@ -93,6 +96,27 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
 
     if (parameters.identities) {
       result = { ...result, ...parameters.identities };
+    }
+
+    if (key === 'age' && parameters.age !== undefined) {
+      const val = parameters.age;
+      if (Number.isFinite(val) && val >= 0) {
+        result.ketch_age = String(Math.floor(val));
+      }
+    }
+
+    if (key === 'ageLower' && parameters.ageLower !== undefined) {
+      const val = parameters.ageLower;
+      if (Number.isFinite(val) && val >= 0) {
+        result.ketch_age_lower = String(Math.floor(val));
+      }
+    }
+
+    if (key === 'ageUpper' && parameters.ageUpper !== undefined) {
+      const val = parameters.ageUpper;
+      if (Number.isFinite(val) && val >= 0) {
+        result.ketch_age_upper = String(Math.floor(val));
+      }
     }
   }
 
