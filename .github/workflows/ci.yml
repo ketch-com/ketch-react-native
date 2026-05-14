@@ -57,6 +57,13 @@ jobs:
       - name: Build library
         run: npm run all
 
+      - name: Verify tarball contains lib/
+        run: |
+          npm pack --dry-run 2>&1 | tee /tmp/pack-contents.txt
+          grep -q "lib/commonjs/index\.js" /tmp/pack-contents.txt
+          grep -q "lib/module/index\.js" /tmp/pack-contents.txt
+          grep -q "lib/typescript/src/index\.d\.ts" /tmp/pack-contents.txt
+
   release:
     needs: build
 
@@ -101,6 +108,9 @@ jobs:
 
       - name: Install Dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Build library
+        run: npm run prepare
 
       - name: Publish (pkg.github)
         run: npm publish --provenance --ignore-scripts --access public
