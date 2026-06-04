@@ -68,7 +68,7 @@ export enum OnHideExperienceArgument {
   /**
    * Experience was closed without setting consent (preference experience only)
    */
-  closeWithoutSettingsConsent = 'closeWithoutSettingsConsent',
+  closeWithoutSettingConsent = 'closeWithoutSettingConsent',
   /**
    * Experience was closed due to subscriptions being set
    */

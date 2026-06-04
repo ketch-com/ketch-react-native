@@ -5,6 +5,7 @@ import React, {
   useReducer,
   useCallback,
   useEffect,
+  useMemo,
   type ReactElement,
 } from 'react';
 
@@ -43,6 +44,8 @@ import { getIndexHtml, injectCssIntoHtml } from '../assets';
 import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
+import { KetchHeadless } from '../headless';
+import type { ConsentConfig, ConsentUpdate, FullConfigurationRequest } from '../headless/headlessTypes';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: ReactElement;
@@ -160,6 +163,46 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onHasShownExperience,
     onError,
   });
+
+  const headlessApi = useMemo(
+    () => new KetchHeadless({ dataCenter: parameters.dataCenter }),
+    [parameters.dataCenter]
+  );
+
+  const fetchLocation = useCallback(
+    () => headlessApi.fetchLocation(),
+    [headlessApi]
+  );
+
+  const fetchBootstrapConfiguration = useCallback(
+    () =>
+      headlessApi.fetchBootstrapConfiguration(
+        parameters.organizationCode,
+        parameters.propertyCode
+      ),
+    [headlessApi, parameters.organizationCode, parameters.propertyCode]
+  );
+
+  const fetchFullConfiguration = useCallback(
+    (request: FullConfigurationRequest) =>
+      headlessApi.fetchFullConfiguration(request),
+    [headlessApi]
+  );
+
+  const fetchConsent = useCallback(
+    (config: ConsentConfig) => headlessApi.fetchConsent(config),
+    [headlessApi]
+  );
+
+  const fetchProtocols = useCallback(
+    (config: ConsentConfig) => headlessApi.fetchProtocols(config),
+    [headlessApi]
+  );
+
+  const setConsentOnServer = useCallback(
+    (update: ConsentUpdate) => headlessApi.setConsentOnServer(update),
+    [headlessApi]
+  );
 
   /**
    * Load or reload the webview
@@ -435,6 +478,12 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         updateParameters,
         load,
         setCssOverride,
+        fetchLocation,
+        fetchBootstrapConfiguration,
+        fetchFullConfiguration,
+        fetchConsent,
+        fetchProtocols,
+        setConsentOnServer,
       }}
     >
       {children}

@@ -6,6 +6,12 @@ import {
   type PreferenceTab,
   type PrivacyProtocol,
 } from '../enums';
+import type {
+  ConsentConfig,
+  ConsentUpdate,
+  FullConfigurationRequest,
+  LocationResponse,
+} from '../headless/headlessTypes';
 
 /**
  * Consent object
@@ -256,4 +262,24 @@ export interface KetchService {
    * Will ignore if string contains any HTML tags or exceeds 1kb.
    */
   setCssOverride?: (css: string) => void;
+
+  /** GeoIP / jurisdiction hint (`GET /ip`). Pre-WebView headless API. */
+  fetchLocation?: () => Promise<LocationResponse>;
+
+  /** Minimal config (`GET .../boot.json`). */
+  fetchBootstrapConfiguration?: () => Promise<Record<string, unknown>>;
+
+  /** Full config with optional env / jurisdiction / language and hash query param. */
+  fetchFullConfiguration?: (
+    request: FullConfigurationRequest
+  ) => Promise<Record<string, unknown>>;
+
+  /** Server consent including `protocols`. Does not read WebView cache — use [getConsent]. */
+  fetchConsent?: (config: ConsentConfig) => Promise<Consent>;
+
+  /** Protocol strings only (same CDN endpoint as fetchConsent). */
+  fetchProtocols?: (config: ConsentConfig) => Promise<Consent>;
+
+  /** Updates consent on the CDN; returns server-computed `protocols`. */
+  setConsentOnServer?: (update: ConsentUpdate) => Promise<Consent>;
 }
