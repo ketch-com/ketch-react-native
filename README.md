@@ -47,6 +47,38 @@ Where `YOUR_ORGANIZATION_CODE`, `YOUR_PROPERTY_CODE`, `YOUR_IDENTIFIER_NAME`, an
 
 See our [Getting Started](https://developers.ketch.com/v3.0/docs/ketch-react-native-sdk-getting-started) and [Technical Documentation](https://developers.ketch.com/v3.0/docs/ketch-react-native-sdk-reference) documentation for further usage instructions.
 
+## Headless API (web/v3, pre-WebView)
+
+Use CDN HTTP for ATT-critical flows **before** the WebView loads—location, config, and consent with `protocols`. Contract: [mobile-headless-api.md](https://github.com/ketch-com/ketch-tag/blob/main/docs/design/mobile-headless-api.md).
+
+Pass `dataCenter` on `KetchServiceProvider`. Methods on `useKetchService()` use TypeScript `fetch` (no native module). `getConsent()` still returns the in-memory cache from the WebView bridge.
+
+```tsx
+const {
+  fetchLocation,
+  fetchBootstrapConfiguration,
+  fetchFullConfiguration,
+  fetchConsent,
+  fetchProtocols,
+  setConsentOnServer,
+} = useKetchService();
+
+await fetchLocation?.();
+await fetchBootstrapConfiguration?.();
+await fetchFullConfiguration?.({
+  organizationCode: 'YOUR_ORG',
+  propertyCode: 'YOUR_PROPERTY',
+  environmentCode: 'production',
+  jurisdictionCode: 'us-ca',
+  languageCode: 'en-US',
+  hash: hashFromBootstrap,
+});
+await fetchConsent?.(consentConfig);
+await setConsentOnServer?.(consentUpdate);
+```
+
+For a standalone client without the provider, use `KetchHeadless` from `@ketch-com/ketch-react-native` (see `package/src/headless/`).
+
 ## Usage (**Expo Apps Only**)
 
 For a working example, see the [example-expo](./example-expo/) directory.
