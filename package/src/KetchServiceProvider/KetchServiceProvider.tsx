@@ -51,8 +51,11 @@ import type {
   FullConfigurationRequest,
   GetProfileRequest,
   InvokeRightRequest,
+  PreferenceQRRequest,
   PutProfileRequest,
+  SubscriptionConfigurationRequest,
   SubscriptionsRequest,
+  WebReportRequest,
 } from '../headless/headlessTypes';
 
 interface KetchServiceProviderParams extends KetchMobile {
@@ -234,6 +237,23 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
   const setSubscriptions = useCallback(
     (request: SubscriptionsRequest) => headlessApi.setSubscriptions(request),
+    [headlessApi]
+  );
+
+  const fetchSubscriptionsConfiguration = useCallback(
+    (request: SubscriptionConfigurationRequest) =>
+      headlessApi.fetchSubscriptionsConfiguration(request),
+    [headlessApi]
+  );
+
+  const preferenceQRUrl = useCallback(
+    (request: PreferenceQRRequest) => headlessApi.preferenceQRUrl(request),
+    [headlessApi]
+  );
+
+  const webReport = useCallback(
+    (channel: string, request: WebReportRequest) =>
+      headlessApi.webReport(channel, request),
     [headlessApi]
   );
 
@@ -522,6 +542,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         putProfile,
         getSubscriptions,
         setSubscriptions,
+        fetchSubscriptionsConfiguration,
+        preferenceQRUrl,
+        webReport,
       }}
     >
       {children}

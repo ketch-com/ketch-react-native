@@ -8,9 +8,12 @@ import type {
   GetProfileResponse,
   InvokeRightRequest,
   LocationResponse,
+  PreferenceQRRequest,
   PutProfileRequest,
+  SubscriptionConfigurationRequest,
   SubscriptionsRequest,
   SubscriptionsResponse,
+  WebReportRequest,
 } from './headlessTypes';
 import type { Consent } from '../types';
 
@@ -83,5 +86,19 @@ export class KetchHeadless {
 
   setSubscriptions(request: SubscriptionsRequest): Promise<void> {
     return this.client.setSubscriptions(request);
+  }
+
+  fetchSubscriptionsConfiguration(
+    request: SubscriptionConfigurationRequest
+  ): Promise<Record<string, unknown>> {
+    return this.client.fetchSubscriptionsConfiguration(request);
+  }
+
+  preferenceQRUrl(request: PreferenceQRRequest): string {
+    return this.client.preferenceQRUrl(request);
+  }
+
+  webReport(channel: string, request: WebReportRequest): Promise<void> {
+    return this.client.webReport(channel, request);
   }
 }

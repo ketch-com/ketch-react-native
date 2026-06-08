@@ -77,6 +77,35 @@ describe('Headless consent payloads', () => {
     );
   });
 
+  it('preferenceQRUrl matches contract fixture', () => {
+    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
+    expect(
+      client.preferenceQRUrl({
+        organizationCode: 'switchbitcorp',
+        propertyCode: 'switchbit',
+        environmentCode: 'production',
+        imageSize: 1024,
+        path: '/policy.html',
+        backgroundColor: 'white',
+        foregroundColor: 'black',
+        parameters: { foo: 'bar' },
+      })
+    ).toBe(
+      'https://global.ketchcdn.com/web/v3/qr/switchbitcorp/switchbit/preferences.png?env=production&size=1024&path=%2Fpolicy.html&bgcolor=white&fgcolor=black&foo=bar'
+    );
+  });
+
+  it('buildUrl subscriptions configuration', () => {
+    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
+    expect(
+      client.buildUrl(
+        '/config/switchbitcorp/foo/en-US/bar/subscriptions.json'
+      )
+    ).toBe(
+      'https://global.ketchcdn.com/web/v3/config/switchbitcorp/foo/en-US/bar/subscriptions.json'
+    );
+  });
+
   it('buildUrl profile and subscriptions', () => {
     const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
     expect(client.buildUrl('/profile/acme/get')).toBe(

@@ -15,9 +15,12 @@ import {
   type GetProfileResponse,
   type InvokeRightRequest,
   type LocationResponse,
+  type PreferenceQRRequest,
   type PutProfileRequest,
+  type SubscriptionConfigurationRequest,
   type SubscriptionsRequest,
   type SubscriptionsResponse,
+  type WebReportRequest,
 } from './headlessTypes';
 
 export type FetchFn = typeof fetch;
@@ -150,6 +153,50 @@ export class HeadlessApiClient {
   async setSubscriptions(request: SubscriptionsRequest): Promise<void> {
     const path = `/subscriptions/${request.organizationCode}/update`;
     await this.postVoid(path, request as unknown as Record<string, unknown>);
+  }
+
+  /** Subscriptions tab config (`GET .../subscriptions.json`). */
+  async fetchSubscriptionsConfiguration(
+    request: SubscriptionConfigurationRequest
+  ): Promise<Record<string, unknown>> {
+    const path = `/config/${request.organizationCode}/${request.propertyCode}/${request.languageCode}/${request.experienceCode}/subscriptions.json`;
+    const response = await this.get(this.buildUrl(path));
+    return JSON.parse(response) as Record<string, unknown>;
+  }
+
+  /** Builds preferences QR image URL (no HTTP). */
+  preferenceQRUrl(request: PreferenceQRRequest): string {
+    const query: Record<string, string> = {};
+    if (request.environmentCode) {
+      query.env = request.environmentCode;
+    }
+    if (request.imageSize != null) {
+      query.size = String(request.imageSize);
+    }
+    if (request.path) {
+      query.path = request.path;
+    }
+    if (request.backgroundColor) {
+      query.bgcolor = request.backgroundColor;
+    }
+    if (request.foregroundColor) {
+      query.fgcolor = request.foregroundColor;
+    }
+    if (request.parameters) {
+      Object.assign(query, request.parameters);
+    }
+    return this.buildUrl(
+      `/qr/${request.organizationCode}/${request.propertyCode}/preferences.png`,
+      Object.keys(query).length > 0 ? query : undefined
+    );
+  }
+
+  /** Telemetry upload (`POST /report/{channel}`). */
+  async webReport(channel: string, request: WebReportRequest): Promise<void> {
+    await this.postVoid(
+      `/report/${channel}`,
+      request as unknown as Record<string, unknown>
+    );
   }
 
   /** Updates consent; returns server response with computed `protocols`. */

@@ -14,9 +14,12 @@ import type {
   GetProfileResponse,
   InvokeRightRequest,
   LocationResponse,
+  PreferenceQRRequest,
   PutProfileRequest,
+  SubscriptionConfigurationRequest,
   SubscriptionsRequest,
   SubscriptionsResponse,
+  WebReportRequest,
 } from '../headless/headlessTypes';
 
 /**
@@ -305,4 +308,15 @@ export interface KetchService {
 
   /** Updates subscription topics/controls (`POST .../subscriptions/{org}/update`). */
   setSubscriptions?: (request: SubscriptionsRequest) => Promise<void>;
+
+  /** Subscriptions tab config (`GET .../subscriptions.json`). */
+  fetchSubscriptionsConfiguration?: (
+    request: SubscriptionConfigurationRequest
+  ) => Promise<Record<string, unknown>>;
+
+  /** Builds preferences QR image URL (no HTTP). */
+  preferenceQRUrl?: (request: PreferenceQRRequest) => string;
+
+  /** Telemetry upload (`POST /report/{channel}`). */
+  webReport?: (channel: string, request: WebReportRequest) => Promise<void>;
 }

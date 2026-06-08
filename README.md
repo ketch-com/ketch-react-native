@@ -75,6 +75,26 @@ await fetchFullConfiguration?.({
 });
 await fetchConsent?.(consentConfig);
 await setConsentOnServer?.(consentUpdate);
+
+const {
+  invokeRight,
+  getProfile,
+  putProfile,
+  getSubscriptions,
+  setSubscriptions,
+  fetchSubscriptionsConfiguration,
+  preferenceQRUrl,
+  webReport,
+} = useKetchService();
+
+await invokeRight?.(invokeRightRequest);
+await getProfile?.(profileRequest);
+await putProfile?.(putProfileRequest);
+await getSubscriptions?.(subscriptionsRequest);
+await setSubscriptions?.(subscriptionsRequest);
+await fetchSubscriptionsConfiguration?.(subConfigRequest);
+const qrUrl = preferenceQRUrl?.(preferenceQrRequest);
+await webReport?.('mychannel', reportRequest);
 ```
 
 For a standalone client without the provider, use `KetchHeadless` from `@ketch-com/ketch-react-native` (see `package/src/headless/`).

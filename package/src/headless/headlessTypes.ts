@@ -208,3 +208,29 @@ export interface SubscriptionsRequest {
 }
 
 export type SubscriptionsResponse = SubscriptionsRequest;
+
+export interface SubscriptionConfigurationRequest {
+  organizationCode: string;
+  propertyCode: string;
+  languageCode: string;
+  experienceCode: string;
+}
+
+export interface PreferenceQRRequest {
+  organizationCode: string;
+  propertyCode: string;
+  environmentCode?: string;
+  imageSize?: number;
+  path?: string;
+  backgroundColor?: string;
+  foregroundColor?: string;
+  parameters?: Record<string, string>;
+}
+
+export interface WebReportRequest {
+  type: string;
+  age: number;
+  url: string;
+  user_agent: string;
+  body: Record<string, string>;
+}

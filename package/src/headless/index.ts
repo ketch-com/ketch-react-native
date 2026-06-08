@@ -18,9 +18,12 @@ export {
   type ProfilePreferencesAttribute,
   type ProfilePreferencesContext,
   type ProfilePreferencesIdentity,
+  type PreferenceQRRequest,
   type PutProfileRequest,
   type PurposeAllowedLegalBasis,
   type PurposeLegalBasis,
+  type SubscriptionConfigurationRequest,
   type SubscriptionsRequest,
   type SubscriptionsResponse,
+  type WebReportRequest,
 } from './headlessTypes';
