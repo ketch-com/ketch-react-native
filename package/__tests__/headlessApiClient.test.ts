@@ -70,6 +70,26 @@ describe('Headless consent payloads', () => {
     expect(json.organizationCode).toBe('org');
   });
 
+  it('buildUrl invokeRight', () => {
+    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
+    expect(client.buildUrl('/rights/switchbitcorp/invoke')).toBe(
+      'https://global.ketchcdn.com/web/v3/rights/switchbitcorp/invoke'
+    );
+  });
+
+  it('buildUrl profile and subscriptions', () => {
+    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
+    expect(client.buildUrl('/profile/acme/get')).toBe(
+      'https://global.ketchcdn.com/web/v3/profile/acme/get'
+    );
+    expect(client.buildUrl('/subscriptions/acme/get')).toBe(
+      'https://global.ketchcdn.com/web/v3/subscriptions/acme/get'
+    );
+    expect(client.buildUrl('/subscriptions/acme/update')).toBe(
+      'https://global.ketchcdn.com/web/v3/subscriptions/acme/update'
+    );
+  });
+
   it('consentConfig payload omits cachedAt', () => {
     const json = consentConfigToJson({
       organizationCode: 'org',

@@ -45,7 +45,15 @@ import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
 import { KetchHeadless } from '../headless';
-import type { ConsentConfig, ConsentUpdate, FullConfigurationRequest } from '../headless/headlessTypes';
+import type {
+  ConsentConfig,
+  ConsentUpdate,
+  FullConfigurationRequest,
+  GetProfileRequest,
+  InvokeRightRequest,
+  PutProfileRequest,
+  SubscriptionsRequest,
+} from '../headless/headlessTypes';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: ReactElement;
@@ -201,6 +209,31 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
   const setConsentOnServer = useCallback(
     (update: ConsentUpdate) => headlessApi.setConsentOnServer(update),
+    [headlessApi]
+  );
+
+  const invokeRight = useCallback(
+    (request: InvokeRightRequest) => headlessApi.invokeRight(request),
+    [headlessApi]
+  );
+
+  const getProfile = useCallback(
+    (request: GetProfileRequest) => headlessApi.getProfile(request),
+    [headlessApi]
+  );
+
+  const putProfile = useCallback(
+    (request: PutProfileRequest) => headlessApi.putProfile(request),
+    [headlessApi]
+  );
+
+  const getSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.getSubscriptions(request),
+    [headlessApi]
+  );
+
+  const setSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.setSubscriptions(request),
     [headlessApi]
   );
 
@@ -484,6 +517,11 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         fetchConsent,
         fetchProtocols,
         setConsentOnServer,
+        invokeRight,
+        getProfile,
+        putProfile,
+        getSubscriptions,
+        setSubscriptions,
       }}
     >
       {children}

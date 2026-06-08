@@ -106,3 +106,105 @@ export function withoutProtocols(update: ConsentUpdate): ConsentUpdate {
   const { protocols: _protocols, ...rest } = update;
   return rest;
 }
+
+/** ketch-types `DataSubject` */
+export interface DataSubject {
+  email: string;
+  firstName: string;
+  lastName: string;
+  country?: string;
+  stateRegion?: string;
+  city?: string;
+  description?: string;
+  phone?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+}
+
+/** ketch-types `InvokeRightRequest` */
+export interface InvokeRightRequest {
+  organizationCode: string;
+  propertyCode: string;
+  environmentCode: string;
+  identities: Record<string, string>;
+  jurisdictionCode: string;
+  rightCode: string;
+  user: DataSubject;
+  controllerCode?: string;
+  invokedAt?: number;
+  recaptchaToken?: string;
+  regionCode?: string;
+  isAuthenticated?: boolean;
+}
+
+export interface ProfilePreferencesIdentity {
+  identitySpace: string;
+  identityValue: string;
+}
+
+export interface ProfilePreferencesAttribute {
+  attributeCode: string;
+  attributeValue?: string;
+  source: string;
+}
+
+export interface ProfilePreferencesContext {
+  source: string;
+  updatedAt?: number;
+  configId?: string;
+}
+
+/** ketch-types `GetProfileRequest` */
+export interface GetProfileRequest {
+  organizationCode: string;
+  propertyCode: string;
+  jurisdictionCode: string;
+  languageCode: string;
+  identities: ProfilePreferencesIdentity[];
+  controllerCode?: string;
+  environmentCode?: string;
+  accountID?: string;
+  regionCode?: string;
+}
+
+/** ketch-types `GetProfileResponse` */
+export interface GetProfileResponse {
+  controllerCode?: string;
+  propertyCode?: string;
+  environmentCode?: string;
+  jurisdictionCode?: string;
+  regionCode?: string;
+  attributes?: ProfilePreferencesAttribute[];
+}
+
+/** ketch-types `PutProfileRequest` */
+export interface PutProfileRequest {
+  organizationCode: string;
+  propertyCode: string;
+  jurisdictionCode: string;
+  languageCode: string;
+  identities: ProfilePreferencesIdentity[];
+  context: ProfilePreferencesContext;
+  controllerCode?: string;
+  environmentCode?: string;
+  attributes?: ProfilePreferencesAttribute[];
+  accountId?: string;
+  regionCode?: string;
+}
+
+/** ketch-types `GetSubscriptionsRequest` / `SetSubscriptionsRequest` */
+export interface SubscriptionsRequest {
+  organizationCode: string;
+  controllerCode?: string;
+  propertyCode?: string;
+  environmentCode?: string;
+  identities?: Record<string, string>;
+  topics?: Record<string, Record<string, string>>;
+  controls?: Record<string, Record<string, string>>;
+  collectedAt?: number;
+  jurisdictionCode?: string;
+  regionCode?: string;
+}
+
+export type SubscriptionsResponse = SubscriptionsRequest;

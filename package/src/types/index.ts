@@ -10,7 +10,13 @@ import type {
   ConsentConfig,
   ConsentUpdate,
   FullConfigurationRequest,
+  GetProfileRequest,
+  GetProfileResponse,
+  InvokeRightRequest,
   LocationResponse,
+  PutProfileRequest,
+  SubscriptionsRequest,
+  SubscriptionsResponse,
 } from '../headless/headlessTypes';
 
 /**
@@ -282,4 +288,21 @@ export interface KetchService {
 
   /** Updates consent on the CDN; returns server-computed `protocols`. */
   setConsentOnServer?: (update: ConsentUpdate) => Promise<Consent>;
+
+  /** Invokes a data subject right (`POST .../rights/{org}/invoke`). */
+  invokeRight?: (request: InvokeRightRequest) => Promise<void>;
+
+  /** Gets profile preferences (`POST .../profile/{org}/get`). */
+  getProfile?: (request: GetProfileRequest) => Promise<GetProfileResponse>;
+
+  /** Updates profile preferences (`POST .../profile/{org}/put`). */
+  putProfile?: (request: PutProfileRequest) => Promise<void>;
+
+  /** Gets subscription topics/controls (`POST .../subscriptions/{org}/get`). */
+  getSubscriptions?: (
+    request: SubscriptionsRequest
+  ) => Promise<SubscriptionsResponse>;
+
+  /** Updates subscription topics/controls (`POST .../subscriptions/{org}/update`). */
+  setSubscriptions?: (request: SubscriptionsRequest) => Promise<void>;
 }

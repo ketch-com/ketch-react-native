@@ -11,7 +11,13 @@ import {
   type ConsentConfig,
   type ConsentUpdate,
   type FullConfigurationRequest,
+  type GetProfileRequest,
+  type GetProfileResponse,
+  type InvokeRightRequest,
   type LocationResponse,
+  type PutProfileRequest,
+  type SubscriptionsRequest,
+  type SubscriptionsResponse,
 } from './headlessTypes';
 
 export type FetchFn = typeof fetch;
@@ -106,6 +112,46 @@ export class HeadlessApiClient {
     return response;
   }
 
+  /** Invokes a data subject right (`POST .../rights/{org}/invoke`). */
+  async invokeRight(request: InvokeRightRequest): Promise<void> {
+    const path = `/rights/${request.organizationCode}/invoke`;
+    await this.postVoid(path, request as unknown as Record<string, unknown>);
+  }
+
+  /** Gets profile preferences (`POST .../profile/{org}/get`). */
+  async getProfile(request: GetProfileRequest): Promise<GetProfileResponse> {
+    const path = `/profile/${request.organizationCode}/get`;
+    const response = await this.post(
+      path,
+      request as unknown as Record<string, unknown>
+    );
+    return JSON.parse(response) as GetProfileResponse;
+  }
+
+  /** Updates profile preferences (`POST .../profile/{org}/put`). */
+  async putProfile(request: PutProfileRequest): Promise<void> {
+    const path = `/profile/${request.organizationCode}/put`;
+    await this.postVoid(path, request as unknown as Record<string, unknown>);
+  }
+
+  /** Gets subscription topics/controls (`POST .../subscriptions/{org}/get`). */
+  async getSubscriptions(
+    request: SubscriptionsRequest
+  ): Promise<SubscriptionsResponse> {
+    const path = `/subscriptions/${request.organizationCode}/get`;
+    const response = await this.post(
+      path,
+      request as unknown as Record<string, unknown>
+    );
+    return JSON.parse(response) as SubscriptionsResponse;
+  }
+
+  /** Updates subscription topics/controls (`POST .../subscriptions/{org}/update`). */
+  async setSubscriptions(request: SubscriptionsRequest): Promise<void> {
+    const path = `/subscriptions/${request.organizationCode}/update`;
+    await this.postVoid(path, request as unknown as Record<string, unknown>);
+  }
+
   /** Updates consent; returns server response with computed `protocols`. */
   async setConsentOnServer(update: ConsentUpdate): Promise<Consent> {
     const path = `/consent/${update.organizationCode}/update`;
@@ -141,6 +187,24 @@ export class HeadlessApiClient {
       throw new HeadlessException(`HTTP ${response.status} for ${url}`);
     }
     return response.text();
+  }
+
+  private async postVoid(
+    path: string,
+    body: Record<string, unknown>
+  ): Promise<void> {
+    const url = this.buildUrl(path);
+    const response = await this.fetchFn(url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new HeadlessException(`HTTP ${response.status} for ${url}`);
+    }
   }
 
   private async post(

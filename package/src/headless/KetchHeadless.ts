@@ -4,7 +4,13 @@ import type {
   ConsentConfig,
   ConsentUpdate,
   FullConfigurationRequest,
+  GetProfileRequest,
+  GetProfileResponse,
+  InvokeRightRequest,
   LocationResponse,
+  PutProfileRequest,
+  SubscriptionsRequest,
+  SubscriptionsResponse,
 } from './headlessTypes';
 import type { Consent } from '../types';
 
@@ -55,5 +61,27 @@ export class KetchHeadless {
 
   setConsentOnServer(update: ConsentUpdate): Promise<Consent> {
     return this.client.setConsentOnServer(update);
+  }
+
+  invokeRight(request: InvokeRightRequest): Promise<void> {
+    return this.client.invokeRight(request);
+  }
+
+  getProfile(request: GetProfileRequest): Promise<GetProfileResponse> {
+    return this.client.getProfile(request);
+  }
+
+  putProfile(request: PutProfileRequest): Promise<void> {
+    return this.client.putProfile(request);
+  }
+
+  getSubscriptions(
+    request: SubscriptionsRequest
+  ): Promise<SubscriptionsResponse> {
+    return this.client.getSubscriptions(request);
+  }
+
+  setSubscriptions(request: SubscriptionsRequest): Promise<void> {
+    return this.client.setSubscriptions(request);
   }
 }
