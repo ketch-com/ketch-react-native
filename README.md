@@ -51,7 +51,9 @@ See our [Getting Started](https://developers.ketch.com/v3.0/docs/ketch-react-nat
 
 Use CDN HTTP for ATT-critical flows **before** the WebView loads—location, config, and consent with `protocols`. Contract: [mobile-headless-api.md](https://github.com/ketch-com/ketch-tag/blob/main/docs/design/mobile-headless-api.md).
 
-Pass `dataCenter` on `KetchServiceProvider`. Methods on `useKetchService()` use TypeScript `fetch` (no native module). `getConsent()` still returns the in-memory cache from the WebView bridge.
+Pass `dataCenter` on `KetchServiceProvider`. Headless methods use TypeScript `fetch`. `getConsent()` still returns the in-memory cache from the WebView bridge.
+
+On **iOS**, the WebView receives `ketch_att` automatically via native module `KetchAtt` (run `pod install` after upgrading). Override with `ketchAtt` on `KetchServiceProvider`, or read status with `trackingAuthorizationStatusString()` before headless calls.
 
 ```tsx
 const {

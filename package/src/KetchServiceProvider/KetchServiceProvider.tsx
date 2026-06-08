@@ -45,6 +45,7 @@ import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
 import { KetchHeadless } from '../headless';
+import { trackingAuthorizationStatusString } from '../trackingAuthorization';
 import type {
   ConsentConfig,
   ConsentUpdate,
@@ -115,6 +116,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const [isServiceReady, setIsServiceReady] = useState(false);
   const [shouldLoadWebView, setShouldLoadWebView] = useState(autoLoad);
   const [webViewKey, setWebViewKey] = useState(0);
+  const [resolvedKetchAtt, setResolvedKetchAtt] = useState<string | undefined>(
+    undefined
+  );
+  const [isAttReady, setIsAttReady] = useState(Platform.OS !== 'ios');
 
   // CSS override state
   const [cssOverrideState, setCssOverrideState] = useState<string | undefined>(
@@ -174,6 +179,42 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onHasShownExperience,
     onError,
   });
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') {
+      setIsAttReady(true);
+      return;
+    }
+
+    let cancelled = false;
+    setIsAttReady(false);
+
+    const resolveAtt = async () => {
+      if (parameters.ketchAtt) {
+        if (!cancelled) {
+          setResolvedKetchAtt(parameters.ketchAtt);
+          setIsAttReady(true);
+        }
+        return;
+      }
+
+      const att = await trackingAuthorizationStatusString();
+      if (!cancelled) {
+        setResolvedKetchAtt(att ?? undefined);
+        setIsAttReady(true);
+      }
+    };
+
+    void resolveAtt();
+    return () => {
+      cancelled = true;
+    };
+  }, [parameters.ketchAtt, webViewKey]);
+
+  const webViewParameters = useMemo(() => {
+    const att = parameters.ketchAtt ?? resolvedKetchAtt;
+    return att ? { ...parameters, ketchAtt: att } : parameters;
+  }, [parameters, resolvedKetchAtt]);
 
   const headlessApi = useMemo(
     () => new KetchHeadless({ dataCenter: parameters.dataCenter }),
@@ -548,7 +589,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       }}
     >
       {children}
-      {shouldLoadWebView && (
+      {shouldLoadWebView && isAttReady && (
         <View
           style={[styles.container, isVisible ? styles.shown : styles.hidden]}
         >
@@ -557,7 +598,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             ref={webViewRef}
             source={{
               html: injectCssIntoHtml(
-                getIndexHtml(parameters),
+                getIndexHtml(webViewParameters),
                 cssOverrideState
               ),
               baseUrl: 'http://localhost',
