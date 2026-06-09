@@ -16,6 +16,21 @@ class KetchAtt: NSObject {
       resolve("notDetermined")
     }
   }
+
+  @objc func requestTrackingAuthorization(
+    _ resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    if #available(iOS 14, *) {
+      ATTrackingManager.requestTrackingAuthorization { status in
+        DispatchQueue.main.async {
+          resolve(status.ketchAttString)
+        }
+      }
+    } else {
+      resolve("notDetermined")
+    }
+  }
 }
 
 @available(iOS 14, *)

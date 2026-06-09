@@ -49,11 +49,11 @@ See our [Getting Started](https://developers.ketch.com/v3.0/docs/ketch-react-nat
 
 ## Headless API (web/v3, pre-WebView)
 
-Use CDN HTTP for ATT-critical flows **before** the WebView loads—location, config, and consent with `protocols`. Contract: [mobile-headless-api.md](https://github.com/ketch-com/ketch-tag/blob/main/docs/design/mobile-headless-api.md).
+Use CDN HTTP for cold-start flows **before** the WebView loads—location, config, and consent with `protocols`. Contract: [mobile-headless-api.md](https://github.com/ketch-com/ketch-tag/blob/main/docs/design/mobile-headless-api.md).
 
 Pass `dataCenter` on `KetchServiceProvider`. Headless methods use TypeScript `fetch`. `getConsent()` still returns the in-memory cache from the WebView bridge.
 
-On **iOS**, the WebView receives `ketch_att` automatically via native module `KetchAtt` (run `pod install` after upgrading). Override with `ketchAtt` on `KetchServiceProvider`, or read status with `trackingAuthorizationStatusString()` before headless calls.
+Testing: [mobile-headless-api-testing.md](https://github.com/ketch-com/ketch-tag/blob/main/docs/design/mobile-headless-api-testing.md).
 
 ```tsx
 const {
@@ -100,6 +100,14 @@ await webReport?.('mychannel', reportRequest);
 ```
 
 For a standalone client without the provider, use `KetchHeadless` from `@ketch-com/ketch-react-native` (see `package/src/headless/`).
+
+## iOS ATT (`ketch_att`, WebView only)
+
+Separate from headless. On **iOS**, the WebView receives `ketch_att` via native module `KetchAtt` (run `pod install` after upgrading). Headless HTTP does **not** include `ketch_att`.
+
+Docs: [mobile-att-webview.md](https://github.com/ketch-com/ketch-tag/blob/main/docs/design/mobile-att-webview.md) · Testing: [mobile-att-testing.md](https://github.com/ketch-com/ketch-tag/blob/main/docs/design/mobile-att-testing.md)
+
+Override with `ketchAtt` on `KetchServiceProvider`, or read status with `trackingAuthorizationStatusString()`. Reload the WebView after the user answers the ATT prompt.
 
 ## Usage (**Expo Apps Only**)
 

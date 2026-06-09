@@ -550,6 +550,14 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         onError?.(data.data);
         break;
 
+      case EventName.openAppSettings:
+        if (Platform.OS === 'ios') {
+          void Linking.openURL('app-settings:').catch(error => {
+            console.warn('Failed to open app settings:', error);
+          });
+        }
+        break;
+
       default:
         break;
     }

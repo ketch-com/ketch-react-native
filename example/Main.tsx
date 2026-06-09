@@ -5,15 +5,17 @@
  * @format
  */
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Button,
   Keyboard,
   NativeSyntheticEvent,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
+  Text,
   TextInputEndEditingEventData,
   useColorScheme,
   View,
@@ -28,6 +30,8 @@ import {
   useKetchService,
   KetchDataCenter,
   PreferenceTab,
+  requestTrackingAuthorization,
+  trackingAuthorizationStatusString,
 } from '@ketch-com/ketch-react-native';
 import DefaultPreference from 'react-native-default-preference';
 
@@ -74,6 +78,21 @@ function Main(): React.JSX.Element {
   const [initialTab, setInitialTab] = useState<PreferenceTab>(
     PreferenceTab.OverviewTab,
   );
+  const [attStatus, setAttStatus] = useState('N/A');
+
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      trackingAuthorizationStatusString().then(status => {
+        setAttStatus(status ?? 'unknown');
+      });
+    }
+  }, []);
+
+  const handleRequestAtt = async () => {
+    const status = await requestTrackingAuthorization();
+    setAttStatus(status ?? 'unknown');
+    ketch.load();
+  };
 
   // Reset identities
   const handleResetIdentityPress = () => {
@@ -281,6 +300,17 @@ function Main(): React.JSX.Element {
             </View>
           </Section>
 
+          {Platform.OS === 'ios' && (
+            <Section
+              title="App Tracking Transparency"
+              subtitle="Separate from headless — reload WebView after answering the system prompt">
+              <View style={styles.sectionVerticalContainer}>
+                <Text style={styles.attStatus}>ATT: {attStatus}</Text>
+                <Button title="Request ATT" onPress={handleRequestAtt} />
+              </View>
+            </Section>
+          )}
+
           {/* SDK Actions */}
           <Section title="Actions" subtitle="Trigger some SDK functionality">
             <>
@@ -327,6 +357,8 @@ const styles = StyleSheet.create({
   title: {fontSize: 24, marginBottom: 40, textAlign: 'center'},
 
   sectionTitle: {fontSize: 20, marginBottom: 8, color: 'black'},
+
+  attStatus: {color: 'black', marginBottom: 8},
 
   sectionVerticalContainer: {
     flexDirection: 'column',

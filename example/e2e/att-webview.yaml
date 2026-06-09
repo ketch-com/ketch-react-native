@@ -1,0 +1,21 @@
+# Maestro skeleton — ATT WebView manual E2E (iOS simulator)
+#
+# Prerequisites:
+#   - Example app built and installed: yarn ios (from package/example)
+#   - NSUserTrackingUsageDescription in Info.plist
+#   - Fresh simulator for ATT prompt (or reset Tracking in Settings)
+#
+# Run: maestro test example/e2e/att-webview.yaml
+#
+# Full golden path (consent opt-out + lanyard UI) requires org with plugins.att —
+# see ketch-tag/docs/design/mobile-att-testing.md
+
+appId: com.ketch.example  # TODO: match example app bundle id
+---
+- launchApp
+- assertVisible: "Ketch"  # TODO: match example home screen
+# - tapOn: "Request ATT"
+# - tapOn: "Ask App Not to Track"   # system dialog — Maestro may need extendedWaitUntil
+# - tapOn: "Reload"                 # or remount WebView
+# Manual verification via Safari Web Inspector:
+#   new URLSearchParams(location.search).get('ketch_att') === 'denied'
