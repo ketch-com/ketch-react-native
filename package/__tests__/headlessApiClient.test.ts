@@ -1,11 +1,60 @@
 import {
   consentConfigToJson,
   consentUpdateToJson,
+  HeadlessException,
   MigrationOption,
   withoutProtocols,
 } from '../src/headless/headlessTypes';
-import { HeadlessApiClient } from '../src/headless/headlessApiClient';
+import {
+  HeadlessApiClient,
+  type FetchFn,
+} from '../src/headless/headlessApiClient';
 import { KetchDataCenter, MobileSdkUrlByDataCenterMap } from '../src/enums';
+
+const consentConfig = {
+  organizationCode: 'org',
+  propertyCode: 'prop',
+  environmentCode: 'production',
+  jurisdictionCode: 'default',
+  identities: { id: '1' },
+  purposes: {},
+};
+
+const consentUpdate = {
+  organizationCode: 'org',
+  propertyCode: 'prop',
+  environmentCode: 'production',
+  identities: { id: '1' },
+  jurisdictionCode: 'default',
+  migrationOption: MigrationOption.MIGRATE_DEFAULT,
+  purposes: {
+    analytics: { allowed: 'true', legalBasisCode: 'consent_optin' },
+  },
+};
+
+function mockFetch(
+  impl: () => Promise<{ ok: boolean; status: number; text: () => Promise<string> }>
+): FetchFn {
+  return jest.fn().mockImplementation(impl) as unknown as FetchFn;
+}
+
+function mockFetchResponse(options: {
+  ok: boolean;
+  status?: number;
+  body?: string;
+}): FetchFn {
+  return mockFetch(async () => ({
+    ok: options.ok,
+    status: options.status ?? (options.ok ? 200 : 500),
+    text: async () => options.body ?? '',
+  }));
+}
+
+function mockFetchNetworkError(error: Error): FetchFn {
+  return mockFetch(async () => {
+    throw error;
+  });
+}
 
 describe('HeadlessApiClient URL building', () => {
   it('buildUrl ip', () => {
@@ -129,5 +178,148 @@ describe('Headless consent payloads', () => {
       purposes: {},
     });
     expect(json).not.toHaveProperty('cachedAt');
+  });
+});
+
+describe('HeadlessApiClient consent', () => {
+  it('fetchConsent propagates HTTP failure', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({ ok: false, status: 500 }),
+    });
+
+    await expect(client.fetchConsent(consentConfig)).rejects.toThrow(
+      HeadlessException
+    );
+    await expect(client.fetchConsent(consentConfig)).rejects.toThrow(
+      'HTTP 500'
+    );
+  });
+
+  it('setConsentOnServer propagates network failure', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchNetworkError(new TypeError('Network request failed')),
+    });
+
+    await expect(client.setConsentOnServer(consentUpdate)).rejects.toThrow(
+      TypeError
+    );
+  });
+
+  it('fetchConsent returns empty consent on 200 null body', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({ ok: true, body: 'null' }),
+    });
+
+    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+      purposes: {},
+    });
+  });
+
+  it('fetchConsent returns empty consent on 200 blank body', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({ ok: true, body: '' }),
+    });
+
+    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+      purposes: {},
+    });
+  });
+
+  it('setConsentOnServer accepts protocols-only response', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({
+        ok: true,
+        body: JSON.stringify({ protocols: { gpp: 'DBABLA~' } }),
+      }),
+    });
+
+    await expect(client.setConsentOnServer(consentUpdate)).resolves.toEqual({
+      purposes: undefined,
+      vendors: undefined,
+      protocols: { gpp: 'DBABLA~' },
+    });
+  });
+});
+
+describe('hasUsableConsentFields (via fetchConsent)', () => {
+  it('returns empty consent when purposes and protocols are empty objects', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({
+        ok: true,
+        body: JSON.stringify({ purposes: {}, protocols: {} }),
+      }),
+    });
+
+    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+      purposes: {},
+    });
+  });
+
+  it('accepts purposes-only response', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({
+        ok: true,
+        body: JSON.stringify({ purposes: { analytics: true } }),
+      }),
+    });
+
+    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+      purposes: { analytics: true },
+      vendors: undefined,
+      protocols: undefined,
+    });
+  });
+
+  it('accepts protocols-only response', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({
+        ok: true,
+        body: JSON.stringify({ protocols: { gpp: 'DBABLA~' } }),
+      }),
+    });
+
+    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+      purposes: undefined,
+      vendors: undefined,
+      protocols: { gpp: 'DBABLA~' },
+    });
+  });
+
+  it('returns empty consent when neither purposes nor protocols are present', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({
+        ok: true,
+        body: JSON.stringify({ vendors: ['1'] }),
+      }),
+    });
+
+    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+      purposes: {},
+    });
+  });
+
+  it('setConsentOnServer falls back when response has empty purposes and protocols', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({
+        ok: true,
+        body: JSON.stringify({ purposes: {}, protocols: {} }),
+      }),
+    });
+
+    await expect(client.setConsentOnServer(consentUpdate)).resolves.toEqual({
+      purposes: { analytics: true },
+      vendors: undefined,
+      protocols: {},
+    });
   });
 });

@@ -91,19 +91,12 @@ export class HeadlessApiClient {
   /** Server consent including `protocols` (`POST .../consent/{org}/get`). */
   async fetchConsent(config: ConsentConfig): Promise<Consent> {
     const path = `/consent/${config.organizationCode}/get`;
-    try {
-      const response = await this.post(path, consentConfigToJson(config));
-      if (!response || response === 'null') {
-        return emptyConsent();
-      }
-      const json = JSON.parse(response) as Record<string, unknown>;
-      if (json.purposes != null || json.protocols != null) {
-        return parseConsent(json);
-      }
-      return emptyConsent();
-    } catch {
+    const response = await this.post(path, consentConfigToJson(config));
+    if (!response || response === 'null') {
       return emptyConsent();
     }
+    const consent = parseConsent(JSON.parse(response) as Record<string, unknown>);
+    return hasUsableConsentFields(consent) ? consent : emptyConsent();
   }
 
   /** Protocol strings only (same endpoint as fetchConsent). */
@@ -202,27 +195,17 @@ export class HeadlessApiClient {
   /** Updates consent; returns server response with computed `protocols`. */
   async setConsentOnServer(update: ConsentUpdate): Promise<Consent> {
     const path = `/consent/${update.organizationCode}/update`;
-    try {
-      const response = await this.post(
-        path,
-        consentUpdateToJson(withoutProtocols(update))
-      );
-      if (!response || response === 'null') {
-        return consentFromUpdate(update);
-      }
-      const json = JSON.parse(response) as Record<string, unknown>;
-      const purposes = json.purposes;
-      if (
-        purposes &&
-        typeof purposes === 'object' &&
-        Object.keys(purposes as object).length > 0
-      ) {
-        return parseConsent(json);
-      }
-      return consentFromUpdate(update);
-    } catch {
+    const response = await this.post(
+      path,
+      consentUpdateToJson(withoutProtocols(update))
+    );
+    if (!response || response === 'null') {
       return consentFromUpdate(update);
     }
+    const consent = parseConsent(JSON.parse(response) as Record<string, unknown>);
+    return hasUsableConsentFields(consent)
+      ? consent
+      : consentFromUpdate(update);
   }
 
   private async get(url: string): Promise<string> {
@@ -276,6 +259,14 @@ export class HeadlessApiClient {
 
 function emptyConsent(): Consent {
   return { purposes: {} };
+}
+
+function hasUsableConsentFields(consent: Consent): boolean {
+  const hasPurposes =
+    consent.purposes != null && Object.keys(consent.purposes).length > 0;
+  const hasProtocols =
+    consent.protocols != null && Object.keys(consent.protocols).length > 0;
+  return hasPurposes || hasProtocols;
 }
 
 function parseConsent(json: Record<string, unknown>): Consent {
