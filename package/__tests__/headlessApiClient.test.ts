@@ -33,7 +33,11 @@ const consentUpdate = {
 };
 
 function mockFetch(
-  impl: () => Promise<{ ok: boolean; status: number; text: () => Promise<string> }>
+  impl: () => Promise<{
+    ok: boolean;
+    status: number;
+    text: () => Promise<string>;
+  }>
 ): FetchFn {
   return jest.fn().mockImplementation(impl) as unknown as FetchFn;
 }
@@ -147,9 +151,7 @@ describe('Headless consent payloads', () => {
   it('buildUrl subscriptions configuration', () => {
     const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
     expect(
-      client.buildUrl(
-        '/config/switchbitcorp/foo/en-US/bar/subscriptions.json'
-      )
+      client.buildUrl('/config/switchbitcorp/foo/en-US/bar/subscriptions.json')
     ).toBe(
       'https://global.ketchcdn.com/web/v3/config/switchbitcorp/foo/en-US/bar/subscriptions.json'
     );

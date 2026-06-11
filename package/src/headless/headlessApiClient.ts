@@ -1,7 +1,4 @@
-import {
-  KetchDataCenter,
-  MobileSdkUrlByDataCenterMap,
-} from '../enums';
+import { KetchDataCenter, MobileSdkUrlByDataCenterMap } from '../enums';
 import type { Consent } from '../types';
 import {
   consentConfigToJson,
@@ -30,14 +27,15 @@ export class HeadlessApiClient {
   private readonly baseUrl: string;
   private readonly fetchFn: FetchFn;
 
-  constructor(options: {
-    dataCenter?: KetchDataCenter;
-    baseUrl?: string;
-    fetchFn?: FetchFn;
-  } = {}) {
+  constructor(
+    options: {
+      dataCenter?: KetchDataCenter;
+      baseUrl?: string;
+      fetchFn?: FetchFn;
+    } = {}
+  ) {
     const dataCenter = options.dataCenter ?? KetchDataCenter.US;
-    this.baseUrl =
-      options.baseUrl ?? MobileSdkUrlByDataCenterMap[dataCenter];
+    this.baseUrl = options.baseUrl ?? MobileSdkUrlByDataCenterMap[dataCenter];
     this.fetchFn = options.fetchFn ?? fetch;
   }
 
@@ -95,7 +93,9 @@ export class HeadlessApiClient {
     if (!response || response === 'null') {
       return emptyConsent();
     }
-    const consent = parseConsent(JSON.parse(response) as Record<string, unknown>);
+    const consent = parseConsent(
+      JSON.parse(response) as Record<string, unknown>
+    );
     return hasUsableConsentFields(consent) ? consent : emptyConsent();
   }
 
@@ -205,7 +205,9 @@ export class HeadlessApiClient {
     if (!response || response === 'null') {
       return consentFromUpdate(update);
     }
-    const consent = parseConsent(JSON.parse(response) as Record<string, unknown>);
+    const consent = parseConsent(
+      JSON.parse(response) as Record<string, unknown>
+    );
     return hasUsableConsentFields(consent)
       ? consent
       : consentFromUpdate(update);
@@ -230,7 +232,7 @@ export class HeadlessApiClient {
     const response = await this.fetchFn(url, {
       method: 'POST',
       headers: {
-        Accept: 'application/json',
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
@@ -248,7 +250,7 @@ export class HeadlessApiClient {
     const response = await this.fetchFn(url, {
       method: 'POST',
       headers: {
-        Accept: 'application/json',
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),

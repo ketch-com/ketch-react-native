@@ -78,7 +78,9 @@ export class HeadlessException extends Error {
   }
 }
 
-export function consentConfigToJson(config: ConsentConfig): Record<string, unknown> {
+export function consentConfigToJson(
+  config: ConsentConfig
+): Record<string, unknown> {
   return {
     organizationCode: config.organizationCode,
     propertyCode: config.propertyCode,
@@ -89,7 +91,9 @@ export function consentConfigToJson(config: ConsentConfig): Record<string, unkno
   };
 }
 
-export function consentUpdateToJson(update: ConsentUpdate): Record<string, unknown> {
+export function consentUpdateToJson(
+  update: ConsentUpdate
+): Record<string, unknown> {
   return {
     organizationCode: update.organizationCode,
     propertyCode: update.propertyCode,
