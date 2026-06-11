@@ -103,7 +103,10 @@ export class HeadlessApiClient {
   async fetchProtocols(config: ConsentConfig): Promise<Consent> {
     const response = await this.fetchConsent(config);
     if (!response.protocols || Object.keys(response.protocols).length === 0) {
-      return {};
+      return {
+        purposes: response.purposes,
+        vendors: response.vendors,
+      };
     }
     return response;
   }

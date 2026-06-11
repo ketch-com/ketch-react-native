@@ -246,6 +246,25 @@ describe('HeadlessApiClient consent', () => {
   });
 });
 
+describe('fetchProtocols', () => {
+  it('preserves purposes when protocols are missing', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({
+        ok: true,
+        body: JSON.stringify({
+          purposes: { analytics: true, marketing: false },
+        }),
+      }),
+    });
+
+    await expect(client.fetchProtocols(consentConfig)).resolves.toEqual({
+      purposes: { analytics: true, marketing: false },
+      vendors: undefined,
+    });
+  });
+});
+
 describe('hasUsableConsentFields (via fetchConsent)', () => {
   it('returns empty consent when purposes and protocols are empty objects', async () => {
     const client = new HeadlessApiClient({
