@@ -73,7 +73,7 @@ const runIntegration = process.env.KETCH_INTEGRATION_TESTS === '1';
       expect(hasProtocols || hasPurposes).toBe(true);
 
       const purposeCode = Object.keys(consentConfig.purposes)[0];
-      const legalBasis = consentConfig.purposes[purposeCode];
+      const legalBasis = consentConfig.purposes[purposeCode || ''];
 
       const update: ConsentUpdate = {
         organizationCode: HeadlessIntegrationSupport.orgCode,
@@ -83,9 +83,9 @@ const runIntegration = process.env.KETCH_INTEGRATION_TESTS === '1';
         jurisdictionCode: consentConfig.jurisdictionCode,
         migrationOption: MigrationOption.MIGRATE_DEFAULT,
         purposes: {
-          [purposeCode]: {
+          [purposeCode || '']: {
             allowed: 'true',
-            legalBasisCode: legalBasis.legalBasisCode,
+            legalBasisCode: legalBasis?.legalBasisCode || '',
           },
         },
       };
@@ -93,7 +93,7 @@ const runIntegration = process.env.KETCH_INTEGRATION_TESTS === '1';
       const updated = await client.setConsentOnServer(
         withoutProtocols(update)
       );
-      expect(updated.purposes?.[purposeCode]).toBeDefined();
+      expect(updated.purposes?.[purposeCode || '']).toBeDefined();
     });
   }
 );
