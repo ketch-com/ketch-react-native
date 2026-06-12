@@ -83,7 +83,7 @@
     }
   },
   "resolutions": {
-    "@types/react": "^18.2.44",
+    "@types/react": "19.0.0",
     "tmp": "0.2.4"
   },
   "packageManager": "yarn@4.1.1",
