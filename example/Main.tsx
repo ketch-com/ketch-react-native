@@ -301,9 +301,7 @@ function Main(): React.JSX.Element {
           </Section>
 
           {Platform.OS === 'ios' && (
-            <Section
-              title="App Tracking Transparency"
-              subtitle="Separate from headless — reload WebView after answering the system prompt">
+            <Section title="App Tracking Transparency">
               <View style={styles.sectionVerticalContainer}>
                 <Text style={styles.attStatus}>ATT: {attStatus}</Text>
                 <Button title="Request ATT" onPress={handleRequestAtt} />
