@@ -55,6 +55,7 @@ export type CommonExperienceOptions = Pick<
   | 'ageLower'
   | 'ageUpper'
   | 'ketchAtt'
+  | 'ketchAttPrev'
 > & {
   // This is separate because we don't want to add ketch_show to the KetchMobile type
   // which is used for the KetchServiceProvider parameters
@@ -160,6 +161,11 @@ export interface KetchMobile {
    * iOS ATT status for WebView (`ketch_att`). When omitted, resolved automatically on iOS.
    */
   ketchAtt?: string;
+
+  /**
+   * Previous iOS ATT status for WebView (`ketch_att_prev`). When omitted, resolved from native storage on iOS.
+   */
+  ketchAttPrev?: string;
 
   /**
    * Force show the consent experience initially

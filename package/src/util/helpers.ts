@@ -60,6 +60,7 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
     ketch_age_lower?: string;
     ketch_age_upper?: string;
     ketch_att?: string;
+    ketch_att_prev?: string;
   } = {
     organizationCode: parameters.organizationCode,
     propertyCode: parameters.propertyCode,
@@ -122,6 +123,10 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
 
     if (key === 'ketchAtt' && parameters.ketchAtt) {
       result.ketch_att = parameters.ketchAtt;
+    }
+
+    if (key === 'ketchAttPrev' && parameters.ketchAttPrev) {
+      result.ketch_att_prev = parameters.ketchAttPrev;
     }
   }
 
