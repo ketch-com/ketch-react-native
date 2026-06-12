@@ -205,7 +205,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       }
     };
 
-    void resolveAtt();
+    resolveAtt().catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -552,7 +552,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       case EventName.openAppSettings:
         if (Platform.OS === 'ios') {
-          void Linking.openSettings().catch(error => {
+          Linking.openSettings().catch((error) => {
             console.warn('Failed to open app settings:', error);
           });
         }

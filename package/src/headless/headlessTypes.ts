@@ -107,7 +107,8 @@ export function consentUpdateToJson(
 }
 
 export function withoutProtocols(update: ConsentUpdate): ConsentUpdate {
-  const { protocols: _protocols, ...rest } = update;
+  const rest = { ...update };
+  delete rest.protocols;
   return rest;
 }
 
