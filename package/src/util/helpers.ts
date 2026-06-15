@@ -61,6 +61,7 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
     ketch_age_upper?: string;
     ketch_att?: string;
     ketch_att_prev?: string;
+    webResourceUrlOverrides?: Record<string, string>;
   } = {
     organizationCode: parameters.organizationCode,
     propertyCode: parameters.propertyCode,
@@ -128,7 +129,19 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
     if (key === 'ketchAttPrev' && parameters.ketchAttPrev) {
       result.ketch_att_prev = parameters.ketchAttPrev;
     }
+
+    if (
+      key === 'webResourceUrlOverrides' &&
+      parameters.webResourceUrlOverrides &&
+      Object.keys(parameters.webResourceUrlOverrides).length > 0
+    ) {
+      result.webResourceUrlOverrides = parameters.webResourceUrlOverrides;
+    }
   }
 
   return result;
 };
+
+/** Stable key for WebView remounts when init HTML would change. */
+export const getWebViewConfigKey = (parameters: CommonExperienceOptions) =>
+  JSON.stringify(createUrlParamsObject(parameters));

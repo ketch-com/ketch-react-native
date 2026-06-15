@@ -39,7 +39,7 @@ import {
 
 import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
-import { createOptionsString, savePrivacyToStorage } from '../util';
+import { createOptionsString, getWebViewConfigKey, savePrivacyToStorage } from '../util';
 import { getIndexHtml, injectCssIntoHtml } from '../assets';
 import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
@@ -118,7 +118,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const [isVisible, setIsVisible] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
   const [shouldLoadWebView, setShouldLoadWebView] = useState(autoLoad);
-  const [webViewKey, setWebViewKey] = useState(0);
+  const [webViewReloadNonce, setWebViewReloadNonce] = useState(0);
   const [resolvedKetchAtt, setResolvedKetchAtt] = useState<string | undefined>(
     undefined
   );
@@ -186,6 +186,19 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onError,
   });
 
+  const webViewParameters = useMemo(() => {
+    const att = parameters.ketchAtt ?? resolvedKetchAtt;
+    const attPrev = parameters.ketchAttPrev ?? resolvedKetchAttPrev;
+    const withAtt = att ? { ...parameters, ketchAtt: att } : parameters;
+    return attPrev ? { ...withAtt, ketchAttPrev: attPrev } : withAtt;
+  }, [parameters, resolvedKetchAtt, resolvedKetchAttPrev]);
+
+  const webViewMountKey = useMemo(
+    () =>
+      `${getWebViewConfigKey(webViewParameters)}|${cssOverrideState ?? ''}|${webViewReloadNonce}`,
+    [webViewParameters, cssOverrideState, webViewReloadNonce]
+  );
+
   useEffect(() => {
     if (Platform.OS !== 'ios') {
       setIsAttReady(true);
@@ -228,14 +241,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     return () => {
       cancelled = true;
     };
-  }, [parameters.ketchAtt, webViewKey]);
-
-  const webViewParameters = useMemo(() => {
-    const att = parameters.ketchAtt ?? resolvedKetchAtt;
-    const attPrev = parameters.ketchAttPrev ?? resolvedKetchAttPrev;
-    const withAtt = att ? { ...parameters, ketchAtt: att } : parameters;
-    return attPrev ? { ...withAtt, ketchAttPrev: attPrev } : withAtt;
-  }, [parameters, resolvedKetchAtt, resolvedKetchAttPrev]);
+  }, [parameters.ketchAtt, webViewMountKey]);
 
   const headlessApi = useMemo(
     () => new KetchHeadless({ dataCenter: parameters.dataCenter }),
@@ -323,13 +329,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
    * Load or reload the webview
    */
   const load = useCallback(() => {
-    if (shouldLoadWebView && webViewRef.current) {
-      // This forces the WebView to remount and reload the page. We cannot use
-      // webViewRef.current.reload() because parameters are lost and there are issues with
-      // this method on android (https://github.com/react-native-webview/react-native-webview/issues/2826).
-      setWebViewKey((prev) => prev + 1);
+    if (shouldLoadWebView) {
+      // Remount — reload() drops parameters on Android (react-native-webview#2826).
+      setWebViewReloadNonce((prev) => prev + 1);
     } else {
-      // Initial load
       setShouldLoadWebView(true);
     }
   }, [shouldLoadWebView]);
@@ -440,17 +443,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         '[Ketch] CSS override rejected: must not contain HTML tags!'
       );
       setCssOverrideState(undefined);
-      setWebViewKey((prev) => prev + 1);
+      setWebViewReloadNonce((prev) => prev + 1);
       return;
     }
     if (!isWithin1kb(css)) {
       console.warn('[Ketch] CSS override rejected: CSS too long (>1kb limit)!');
       setCssOverrideState(undefined);
-      setWebViewKey((prev) => prev + 1);
+      setWebViewReloadNonce((prev) => prev + 1);
       return;
     }
     setCssOverrideState(css);
-    setWebViewKey((prev) => prev + 1);
   }, []);
 
   const storePreference = preferenceStorage
@@ -623,7 +625,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           style={[styles.container, isVisible ? styles.shown : styles.hidden]}
         >
           <WebView
-            key={webViewKey}
+            key={webViewMountKey}
             ref={webViewRef}
             source={{
               html: injectCssIntoHtml(
