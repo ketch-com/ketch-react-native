@@ -1,4 +1,7 @@
-import { createUrlParamsObject, getWebViewConfigKey } from '../src/util/helpers';
+import {
+  createUrlParamsObject,
+  getWebViewConfigKey,
+} from '../src/util/helpers';
 import { KetchDataCenter, LogLevel } from '../src/enums';
 
 describe('createUrlParamsObject', () => {
@@ -33,9 +36,7 @@ describe('createUrlParamsObject', () => {
       dataCenter: KetchDataCenter.UAT,
     });
 
-    expect(params.ketch_mobilesdk_url).toBe(
-      'https://dev.ketchcdn.com/web/v3'
-    );
+    expect(params.ketch_mobilesdk_url).toBe('https://dev.ketchcdn.com/web/v3');
   });
 
   it('changes web view config key when data center changes', () => {

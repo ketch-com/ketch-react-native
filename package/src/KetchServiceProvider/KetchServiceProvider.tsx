@@ -39,14 +39,21 @@ import {
 
 import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
-import { createOptionsString, getWebViewConfigKey, savePrivacyToStorage } from '../util';
+import {
+  createOptionsString,
+  getWebViewConfigKey,
+  savePrivacyToStorage,
+} from '../util';
 import { getIndexHtml, injectCssIntoHtml } from '../assets';
 import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
 import crossPlatformRead from '../util/crossPlatformRead';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
 import { KetchHeadless } from '../headless';
-import { trackingAuthorizationStatusString, ATT_LAST_STORAGE_KEY } from '../trackingAuthorization';
+import {
+  trackingAuthorizationStatusString,
+  ATT_LAST_STORAGE_KEY,
+} from '../trackingAuthorization';
 import type {
   ConsentConfig,
   ConsentUpdate,
