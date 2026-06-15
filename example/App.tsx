@@ -15,6 +15,7 @@ import {
 } from '@ketch-com/ketch-react-native';
 import Main from './Main';
 import {DashboardProvider, useDashboard} from './src/dashboard/DashboardContext';
+import {formatConsent} from './src/dashboard/consentLogging';
 import {
   DEV_URL_OVERRIDES_ENABLED,
   forAndroidEmulator,
@@ -53,8 +54,10 @@ function AppWithCallbacks(): React.JSX.Element {
         appendLog(`onIdentitiesUpdated: ${JSON.stringify(identities)}`);
       }}
       onConsentUpdated={(consent: Consent) => {
-        updateDashboard({consent: JSON.stringify(consent)});
-        appendLog('onConsentUpdated');
+        const summary = formatConsent(consent);
+        updateDashboard({consent: summary});
+        appendLog(`onConsentUpdated: ${summary}`);
+        console.log('[KetchSample] onConsentUpdated:', summary);
       }}
       onPrivacyProtocolUpdated={(protocol, values) => {
         const text = JSON.stringify(values);

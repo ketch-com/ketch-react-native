@@ -30,6 +30,10 @@ import {
   truncate,
 } from './src/dashboard/DashboardContext';
 import {
+  formatAttState,
+  formatConsent,
+} from './src/dashboard/consentLogging';
+import {
   useKetchService,
   KetchDataCenter,
   PreferenceTab,
@@ -149,26 +153,43 @@ function Main(): React.JSX.Element {
   );
   const [attStatus, setAttStatus] = useState('N/A');
 
-  useEffect(() => {
-    if (Platform.OS === 'ios') {
-      trackingAuthorizationStatusString().then(status => {
-        const value = status ?? 'unknown';
-        setAttStatus(value);
-        updateDashboard({attStatus: value, ketchAtt: value});
-      });
+  const ATT_LAST_STATUS_KEY = 'ketch_att_last';
+
+  const refreshAttState = async (logEvent = false) => {
+    if (Platform.OS !== 'ios') {
+      return;
     }
+    const status = (await trackingAuthorizationStatusString()) ?? 'unknown';
+    const prev =
+      (await DefaultPreference.get(ATT_LAST_STATUS_KEY)) ?? 'notDetermined';
+    setAttStatus(status);
+    updateDashboard({attStatus: status, ketchAtt: status, ketchAttPrev: prev});
+    if (logEvent) {
+      const message = formatAttState(status, prev);
+      appendLog(`ATT: ${message}`);
+      console.log('[KetchSample] ATT:', message);
+    }
+  };
+
+  useEffect(() => {
+    refreshAttState().catch(() => {});
   }, [updateDashboard]);
 
   const handleRequestAtt = async () => {
     const status = await requestTrackingAuthorization();
     const value = status ?? 'unknown';
     setAttStatus(value);
-    updateDashboard({attStatus: value, ketchAtt: value});
-    appendLog(`ATT requested: ${value}`);
+    const prev =
+      (await DefaultPreference.get(ATT_LAST_STATUS_KEY)) ?? 'notDetermined';
+    updateDashboard({attStatus: value, ketchAtt: value, ketchAttPrev: prev});
+    const message = formatAttState(value, prev);
+    appendLog(`ATT requested: ${message}`);
+    console.log('[KetchSample] ATT requested:', message);
     ketch.load();
   };
 
-  const handleReloadWebView = () => {
+  const handleReloadWebView = async () => {
+    await refreshAttState(true);
     ketch.load();
     appendLog('WebView reload requested');
   };
@@ -309,7 +330,19 @@ function Main(): React.JSX.Element {
               <DashboardRow label="Dismiss" value={dashboard.dismissReason} />
               <DashboardRow label="WebView" value={dashboard.webViewVisible} />
               {Platform.OS === 'ios' && (
-                <DashboardRow label="ketch_att" value={dashboard.ketchAtt} />
+                <>
+                  <DashboardRow label="ketch_att" value={dashboard.ketchAtt} />
+                  <DashboardRow
+                    label="ketch_att_prev"
+                    value={dashboard.ketchAttPrev}
+                  />
+                </>
+              )}
+              {Platform.OS === 'ios' && (
+                <>
+                  <Text style={styles.dashboardSubtitle}>ATT (iOS)</Text>
+                  <DashboardRow label="Native ATT" value={dashboard.attStatus} />
+                </>
               )}
               <Text style={styles.dashboardSubtitle}>Privacy / Consent State</Text>
               <DashboardRow label="Environment" value={dashboard.environment} />
@@ -509,7 +542,14 @@ function Main(): React.JSX.Element {
                 <View style={styles.sectionHorizontalContainer}>
                   <Button
                     title="Log Consent"
-                    onPress={() => console.log(ketch.getConsent())}
+                    onPress={() => {
+                      const consent = ketch.getConsent();
+                      const summary = consent
+                        ? formatConsent(consent)
+                        : 'no consent cached';
+                      appendLog(`getConsent: ${summary}`);
+                      console.log('[KetchSample] getConsent:', summary);
+                    }}
                   />
                   <Button
                     title="Log Protocols"

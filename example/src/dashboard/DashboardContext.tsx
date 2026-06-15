@@ -16,6 +16,7 @@ export interface DashboardState {
   gpp: string;
   attStatus: string;
   ketchAtt: string;
+  ketchAttPrev: string;
   headlessLocationResult: string;
   headlessBootstrapResult: string;
   headlessConsentResult: string;
@@ -38,6 +39,7 @@ const initialState: DashboardState = {
   gpp: 'Not set',
   attStatus: 'N/A',
   ketchAtt: '—',
+  ketchAttPrev: '—',
   headlessLocationResult: '—',
   headlessBootstrapResult: '—',
   headlessConsentResult: '—',
