@@ -249,6 +249,11 @@ export interface KetchMobile {
    * Experience has shown listener
    */
   onHasShownExperience?: () => void;
+
+  /**
+   * Native storage write from ketch-tag (`nativeStoragePut` event).
+   */
+  onNativeStoragePut?: (key: string, value: string) => void;
 }
 
 export interface KetchService {

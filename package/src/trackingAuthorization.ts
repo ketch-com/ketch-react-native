@@ -11,6 +11,8 @@ const nativeModule = NativeModules.KetchAtt as KetchAttModule | undefined;
  * iOS ATT status as `ketch_att` query value (parity with native iOS SDK).
  * Returns `null` on Android or when the native module is unavailable.
  */
+export const ATT_LAST_STORAGE_KEY = 'ketch_att_last';
+
 export async function trackingAuthorizationStatusString(): Promise<
   string | null
 > {

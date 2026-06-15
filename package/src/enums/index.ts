@@ -47,6 +47,7 @@ export enum EventName {
   updateGPP = 'gpp_updated_data',
   error = 'error',
   openAppSettings = 'openAppSettings',
+  nativeStoragePut = 'nativeStoragePut',
 }
 
 export enum OnHideExperienceArgument {

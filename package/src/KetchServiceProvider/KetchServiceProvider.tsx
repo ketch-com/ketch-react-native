@@ -46,7 +46,7 @@ import crossPlatformSave from '../util/crossPlatformSave';
 import crossPlatformRead from '../util/crossPlatformRead';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
 import { KetchHeadless } from '../headless';
-import { trackingAuthorizationStatusString } from '../trackingAuthorization';
+import { trackingAuthorizationStatusString, ATT_LAST_STORAGE_KEY } from '../trackingAuthorization';
 import type {
   ConsentConfig,
   ConsentUpdate,
@@ -74,8 +74,6 @@ const isWithin1kb = (css: string): boolean =>
   typeof TextEncoder !== 'undefined'
     ? new TextEncoder().encode(css).length <= 1024
     : css.length <= 1024;
-
-const ATT_LAST_STATUS_KEY = 'ketch_att_last';
 
 const deviceLanguage: string =
   Platform.OS === 'ios'
@@ -111,6 +109,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onPrivacyProtocolUpdated,
   onHideExperience,
   onHasShownExperience,
+  onNativeStoragePut,
   onError,
   cssOverride: initialCssOverride,
 }) => {
@@ -183,6 +182,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onPrivacyProtocolUpdated,
     onHideExperience,
     onHasShownExperience,
+    onNativeStoragePut,
     onError,
   });
 
@@ -211,16 +211,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     const resolveAtt = async () => {
       const attPrev =
         Platform.OS === 'ios'
-          ? ((await crossPlatformRead(ATT_LAST_STATUS_KEY)) ?? 'notDetermined')
+          ? ((await crossPlatformRead(ATT_LAST_STORAGE_KEY)) ?? 'notDetermined')
           : undefined;
 
       if (parameters.ketchAtt) {
         if (!cancelled) {
           setResolvedKetchAttPrev(attPrev);
           setResolvedKetchAtt(parameters.ketchAtt);
-          if (Platform.OS === 'ios') {
-            await crossPlatformSave(ATT_LAST_STATUS_KEY, parameters.ketchAtt);
-          }
           setIsAttReady(true);
         }
         return;
@@ -230,9 +227,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       if (!cancelled) {
         setResolvedKetchAttPrev(attPrev);
         setResolvedKetchAtt(att ?? undefined);
-        if (Platform.OS === 'ios' && att) {
-          await crossPlatformSave(ATT_LAST_STATUS_KEY, att);
-        }
         setIsAttReady(true);
       }
     };
@@ -580,6 +574,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           });
         }
         break;
+
+      case EventName.nativeStoragePut: {
+        const payload = JSON.parse(data.data) as { key: string; value: string };
+        if (!payload.key) {
+          break;
+        }
+        crossPlatformSave(payload.key, payload.value).catch(() => {});
+        parameters.onNativeStoragePut?.(payload.key, payload.value);
+        break;
+      }
 
       default:
         break;

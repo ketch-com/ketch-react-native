@@ -92,6 +92,9 @@ function AppWithCallbacks(): React.JSX.Element {
           statusText: `Error: ${errorMessage}`,
         });
         appendLog(`error: ${errorMessage}`);
+      }}
+      onNativeStoragePut={(key, value) => {
+        appendLog(`onNativeStoragePut: ${key}=${value}`);
       }}>
       <Main />
     </KetchServiceProvider>
