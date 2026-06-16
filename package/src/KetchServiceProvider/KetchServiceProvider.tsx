@@ -5,6 +5,7 @@ import React, {
   useReducer,
   useCallback,
   useEffect,
+  useMemo,
   type ReactElement,
 } from 'react';
 
@@ -38,11 +39,33 @@ import {
 
 import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
-import { createOptionsString, savePrivacyToStorage } from '../util';
-import { getIndexHtml, injectCssIntoHtml } from '../assets';
+import {
+  createOptionsString,
+  getWebViewConfigKey,
+  savePrivacyToStorage,
+} from '../util';
+import { getIndexHtml, injectCssIntoHtml, injectWebResourceUrlOverridesIntoHtml, getWebResourceUrlOverridesInjectionScript } from '../assets';
 import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
+import crossPlatformRead from '../util/crossPlatformRead';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
+import { KetchHeadless } from '../headless';
+import {
+  trackingAuthorizationStatusString,
+  ATT_LAST_STORAGE_KEY,
+} from '../trackingAuthorization';
+import type {
+  ConsentConfig,
+  ConsentUpdate,
+  FullConfigurationRequest,
+  GetProfileRequest,
+  InvokeRightRequest,
+  PreferenceQRRequest,
+  PutProfileRequest,
+  SubscriptionConfigurationRequest,
+  SubscriptionsRequest,
+  WebReportRequest,
+} from '../headless/headlessTypes';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: ReactElement;
@@ -83,6 +106,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   forcePreferenceExperience = false,
   preferenceExperienceOptions = {},
   preferenceStorage,
+  webResourceUrlOverrides,
   autoLoad = true,
   children,
   onEnvironmentUpdated,
@@ -93,6 +117,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onPrivacyProtocolUpdated,
   onHideExperience,
   onHasShownExperience,
+  onNativeStoragePut,
   onError,
   cssOverride: initialCssOverride,
 }) => {
@@ -100,7 +125,14 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const [isVisible, setIsVisible] = useState(false);
   const [isServiceReady, setIsServiceReady] = useState(false);
   const [shouldLoadWebView, setShouldLoadWebView] = useState(autoLoad);
-  const [webViewKey, setWebViewKey] = useState(0);
+  const [webViewReloadNonce, setWebViewReloadNonce] = useState(0);
+  const [resolvedKetchAtt, setResolvedKetchAtt] = useState<string | undefined>(
+    undefined
+  );
+  const [resolvedKetchAttPrev, setResolvedKetchAttPrev] = useState<
+    string | undefined
+  >(undefined);
+  const [isAttReady, setIsAttReady] = useState(Platform.OS !== 'ios');
 
   // CSS override state
   const [cssOverrideState, setCssOverrideState] = useState<string | undefined>(
@@ -150,6 +182,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     age,
     ageLower,
     ageUpper,
+    webResourceUrlOverrides,
     onEnvironmentUpdated,
     onRegionUpdated,
     onJurisdictionUpdated,
@@ -158,20 +191,156 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onPrivacyProtocolUpdated,
     onHideExperience,
     onHasShownExperience,
+    onNativeStoragePut,
     onError,
   });
+
+  const webViewParameters = useMemo(() => {
+    const att = parameters.ketchAtt ?? resolvedKetchAtt;
+    const attPrev = parameters.ketchAttPrev ?? resolvedKetchAttPrev;
+    const withAtt = att ? { ...parameters, ketchAtt: att } : parameters;
+    return attPrev ? { ...withAtt, ketchAttPrev: attPrev } : withAtt;
+  }, [parameters, resolvedKetchAtt, resolvedKetchAttPrev]);
+
+  const webViewMountKey = useMemo(
+    () =>
+      `${getWebViewConfigKey(webViewParameters)}|${cssOverrideState ?? ''}|${webViewReloadNonce}`,
+    [webViewParameters, cssOverrideState, webViewReloadNonce]
+  );
+
+  const webResourceUrlOverrideScript = useMemo(
+    () => getWebResourceUrlOverridesInjectionScript(webViewParameters.webResourceUrlOverrides),
+    [webViewParameters.webResourceUrlOverrides]
+  );
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') {
+      setIsAttReady(true);
+      return;
+    }
+
+    let cancelled = false;
+    setIsAttReady(false);
+
+    const resolveAtt = async () => {
+      const attPrev =
+        Platform.OS === 'ios'
+          ? ((await crossPlatformRead(ATT_LAST_STORAGE_KEY)) ?? 'notDetermined')
+          : undefined;
+
+      if (parameters.ketchAtt) {
+        if (!cancelled) {
+          setResolvedKetchAttPrev(attPrev);
+          setResolvedKetchAtt(parameters.ketchAtt);
+          setIsAttReady(true);
+        }
+        return;
+      }
+
+      const att = await trackingAuthorizationStatusString();
+      if (!cancelled) {
+        setResolvedKetchAttPrev(attPrev);
+        setResolvedKetchAtt(att ?? undefined);
+        setIsAttReady(true);
+      }
+    };
+
+    resolveAtt().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [parameters.ketchAtt, webViewMountKey]);
+
+  const headlessApi = useMemo(
+    () => new KetchHeadless({ dataCenter: parameters.dataCenter }),
+    [parameters.dataCenter]
+  );
+
+  const fetchLocation = useCallback(
+    () => headlessApi.fetchLocation(),
+    [headlessApi]
+  );
+
+  const fetchBootstrapConfiguration = useCallback(
+    () =>
+      headlessApi.fetchBootstrapConfiguration(
+        parameters.organizationCode,
+        parameters.propertyCode
+      ),
+    [headlessApi, parameters.organizationCode, parameters.propertyCode]
+  );
+
+  const fetchFullConfiguration = useCallback(
+    (request: FullConfigurationRequest) =>
+      headlessApi.fetchFullConfiguration(request),
+    [headlessApi]
+  );
+
+  const fetchConsent = useCallback(
+    (config: ConsentConfig) => headlessApi.fetchConsent(config),
+    [headlessApi]
+  );
+
+  const fetchProtocols = useCallback(
+    (config: ConsentConfig) => headlessApi.fetchProtocols(config),
+    [headlessApi]
+  );
+
+  const setConsentOnServer = useCallback(
+    (update: ConsentUpdate) => headlessApi.setConsentOnServer(update),
+    [headlessApi]
+  );
+
+  const invokeRight = useCallback(
+    (request: InvokeRightRequest) => headlessApi.invokeRight(request),
+    [headlessApi]
+  );
+
+  const getProfile = useCallback(
+    (request: GetProfileRequest) => headlessApi.getProfile(request),
+    [headlessApi]
+  );
+
+  const putProfile = useCallback(
+    (request: PutProfileRequest) => headlessApi.putProfile(request),
+    [headlessApi]
+  );
+
+  const getSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.getSubscriptions(request),
+    [headlessApi]
+  );
+
+  const setSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.setSubscriptions(request),
+    [headlessApi]
+  );
+
+  const fetchSubscriptionsConfiguration = useCallback(
+    (request: SubscriptionConfigurationRequest) =>
+      headlessApi.fetchSubscriptionsConfiguration(request),
+    [headlessApi]
+  );
+
+  const preferenceQRUrl = useCallback(
+    (request: PreferenceQRRequest) => headlessApi.preferenceQRUrl(request),
+    [headlessApi]
+  );
+
+  const webReport = useCallback(
+    (channel: string, request: WebReportRequest) =>
+      headlessApi.webReport(channel, request),
+    [headlessApi]
+  );
 
   /**
    * Load or reload the webview
    */
   const load = useCallback(() => {
-    if (shouldLoadWebView && webViewRef.current) {
-      // This forces the WebView to remount and reload the page. We cannot use
-      // webViewRef.current.reload() because parameters are lost and there are issues with
-      // this method on android (https://github.com/react-native-webview/react-native-webview/issues/2826).
-      setWebViewKey((prev) => prev + 1);
+    if (shouldLoadWebView) {
+      // Remount — reload() drops parameters on Android (react-native-webview#2826).
+      setWebViewReloadNonce((prev) => prev + 1);
     } else {
-      // Initial load
       setShouldLoadWebView(true);
     }
   }, [shouldLoadWebView]);
@@ -282,17 +451,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         '[Ketch] CSS override rejected: must not contain HTML tags!'
       );
       setCssOverrideState(undefined);
-      setWebViewKey((prev) => prev + 1);
+      setWebViewReloadNonce((prev) => prev + 1);
       return;
     }
     if (!isWithin1kb(css)) {
       console.warn('[Ketch] CSS override rejected: CSS too long (>1kb limit)!');
       setCssOverrideState(undefined);
-      setWebViewKey((prev) => prev + 1);
+      setWebViewReloadNonce((prev) => prev + 1);
       return;
     }
     setCssOverrideState(css);
-    setWebViewKey((prev) => prev + 1);
   }, []);
 
   const storePreference = preferenceStorage
@@ -413,6 +581,24 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         onError?.(data.data);
         break;
 
+      case EventName.openAppSettings:
+        if (Platform.OS === 'ios') {
+          Linking.openSettings().catch((error) => {
+            console.warn('Failed to open app settings:', error);
+          });
+        }
+        break;
+
+      case EventName.nativeStoragePut: {
+        const payload = JSON.parse(data.data) as { key: string; value: string };
+        if (!payload.key) {
+          break;
+        }
+        crossPlatformSave(payload.key, payload.value).catch(() => {});
+        parameters.onNativeStoragePut?.(payload.key, payload.value);
+        break;
+      }
+
       default:
         break;
     }
@@ -435,23 +621,41 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         updateParameters,
         load,
         setCssOverride,
+        fetchLocation,
+        fetchBootstrapConfiguration,
+        fetchFullConfiguration,
+        fetchConsent,
+        fetchProtocols,
+        setConsentOnServer,
+        invokeRight,
+        getProfile,
+        putProfile,
+        getSubscriptions,
+        setSubscriptions,
+        fetchSubscriptionsConfiguration,
+        preferenceQRUrl,
+        webReport,
       }}
     >
       {children}
-      {shouldLoadWebView && (
+      {shouldLoadWebView && isAttReady && (
         <View
           style={[styles.container, isVisible ? styles.shown : styles.hidden]}
         >
           <WebView
-            key={webViewKey}
+            key={webViewMountKey}
             ref={webViewRef}
             source={{
               html: injectCssIntoHtml(
-                getIndexHtml(parameters),
+                injectWebResourceUrlOverridesIntoHtml(
+                  getIndexHtml(webViewParameters),
+                  webViewParameters.webResourceUrlOverrides
+                ),
                 cssOverrideState
               ),
               baseUrl: 'http://localhost',
             }}
+            injectedJavaScriptBeforeContentLoaded={webResourceUrlOverrideScript}
             injectedJavaScript={
               Platform.OS === 'android' ? injectedJavaScript : undefined
             }
