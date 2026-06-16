@@ -215,7 +215,9 @@ export const getIndexHtml = (parameters: KetchMobile) => {
 };
 
 /** JS hook body that redirects script/fetch URLs (used in HTML head and beforeContentLoaded). */
-const buildWebResourceUrlOverridesHook = (overridesJson: string) => `(function () {
+const buildWebResourceUrlOverridesHook = (
+  overridesJson: string
+) => `(function () {
   var overrides = ${overridesJson};
   if (!overrides || !Object.keys(overrides).length) return;
   function resolveUrl(url) {

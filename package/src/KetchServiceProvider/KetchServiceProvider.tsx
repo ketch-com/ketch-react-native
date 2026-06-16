@@ -44,7 +44,12 @@ import {
   getWebViewConfigKey,
   savePrivacyToStorage,
 } from '../util';
-import { getIndexHtml, injectCssIntoHtml, injectWebResourceUrlOverridesIntoHtml, getWebResourceUrlOverridesInjectionScript } from '../assets';
+import {
+  getIndexHtml,
+  injectCssIntoHtml,
+  injectWebResourceUrlOverridesIntoHtml,
+  getWebResourceUrlOverridesInjectionScript
+} from '../assets';
 import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
 import crossPlatformRead from '../util/crossPlatformRead';
@@ -209,7 +214,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   );
 
   const webResourceUrlOverrideScript = useMemo(
-    () => getWebResourceUrlOverridesInjectionScript(webViewParameters.webResourceUrlOverrides),
+    () =>
+      getWebResourceUrlOverridesInjectionScript(
+        webViewParameters.webResourceUrlOverrides
+      ),
     [webViewParameters.webResourceUrlOverrides]
   );
 
