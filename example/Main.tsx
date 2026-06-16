@@ -5,17 +5,164 @@
  * @format
  */
 
-import React, {useState} from 'react';
+import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
+import type {Consent} from '@ketch-com/ketch-react-native';
+
+export interface DashboardState {
+  initState: string;
+  statusText: string;
+  loadState: string;
+  experienceVisibility: string;
+  dismissReason: string;
+  webViewVisible: string;
+  environment: string;
+  jurisdiction: string;
+  region: string;
+  consent: string;
+  usPrivacy: string;
+  tcf: string;
+  gpp: string;
+  attStatus: string;
+  ketchAtt: string;
+  ketchAttPrev: string;
+  headlessLocationResult: string;
+  headlessBootstrapResult: string;
+  headlessConsentResult: string;
+  eventLog: string[];
+}
+
+const initialState: DashboardState = {
+  initState: 'Initialized',
+  statusText: 'Ketch initialized',
+  loadState: 'idle',
+  experienceVisibility: 'hidden',
+  dismissReason: '—',
+  webViewVisible: 'unknown',
+  environment: 'Not set',
+  jurisdiction: 'Not set',
+  region: 'Not set',
+  consent: 'Not set',
+  usPrivacy: 'Not set',
+  tcf: 'Not set',
+  gpp: 'Not set',
+  attStatus: 'N/A',
+  ketchAtt: '—',
+  ketchAttPrev: '—',
+  headlessLocationResult: '—',
+  headlessBootstrapResult: '—',
+  headlessConsentResult: '—',
+  eventLog: [],
+};
+
+interface DashboardContextValue {
+  dashboard: DashboardState;
+  appendLog: (message: string) => void;
+  setStatus: (message: string) => void;
+  updateDashboard: (patch: Partial<DashboardState>) => void;
+}
+
+const DashboardContext = createContext<DashboardContextValue | null>(null);
+
+function timestamp(): string {
+  const now = new Date();
+  return now.toLocaleTimeString('en-US', {hour12: false});
+}
+
+export function DashboardProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.JSX.Element {
+  const [dashboard, setDashboard] = useState<DashboardState>(initialState);
+
+  const appendLog = useCallback((message: string) => {
+    setDashboard(prev => {
+      const line = `[${timestamp()}] ${message}`;
+      const eventLog = [...prev.eventLog, line].slice(-50);
+      return {...prev, eventLog};
+    });
+  }, []);
+
+  const setStatus = useCallback(
+    (message: string) => {
+      appendLog(message);
+      setDashboard(prev => ({...prev, statusText: message}));
+    },
+    [appendLog],
+  );
+
+  const updateDashboard = useCallback((patch: Partial<DashboardState>) => {
+    setDashboard(prev => ({...prev, ...patch}));
+  }, []);
+
+  const value = useMemo(
+    () => ({dashboard, appendLog, setStatus, updateDashboard}),
+    [dashboard, appendLog, setStatus, updateDashboard],
+  );
+
+  return (
+    <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>
+  );
+}
+
+export function useDashboard(): DashboardContextValue {
+  const ctx = useContext(DashboardContext);
+  if (!ctx) {
+    throw new Error('useDashboard must be used within DashboardProvider');
+  }
+  return ctx;
+}
+
+export function truncate(value: string, max = 80): string {
+  return value.length <= max ? value : `${value.slice(0, max)}…`;
+}
+
+
+export function formatConsent(consent: Consent): string {
+  const parts: string[] = [];
+
+  if (consent.purposes) {
+    const entries = Object.entries(consent.purposes);
+    const allowed = entries.filter(([, value]) => value).map(([key]) => key).sort();
+    const denied = entries.filter(([, value]) => !value).map(([key]) => key).sort();
+    parts.push(
+      `purposes(${entries.length}) allowed=[${allowed.join(',')}] denied=[${denied.join(',')}]`,
+    );
+  } else {
+    parts.push('purposes=undefined');
+  }
+
+  if (consent.vendors?.length) {
+    parts.push(`vendors(${consent.vendors.length})=[${[...consent.vendors].sort().join(',')}]`);
+  }
+
+  if (consent.protocols && Object.keys(consent.protocols).length > 0) {
+    const protocolSummary = Object.entries(consent.protocols)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => `${key}=${value}`)
+      .join(', ');
+    parts.push(`protocols={${protocolSummary}}`);
+  }
+
+  return parts.join('; ');
+}
+
+export function formatAttState(current: string, previous: string): string {
+  return `ketch_att=${current} ketch_att_prev=${previous}`;
+}
+
+import React, {useEffect, useState} from 'react';
 import {
   Button,
   Keyboard,
   NativeSyntheticEvent,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
+  Text,
   TextInputEndEditingEventData,
-  useColorScheme,
   View,
 } from 'react-native';
 
@@ -28,6 +175,9 @@ import {
   useKetchService,
   KetchDataCenter,
   PreferenceTab,
+  requestTrackingAuthorization,
+  trackingAuthorizationStatusString,
+  type ConsentConfig,
 } from '@ketch-com/ketch-react-native';
 import DefaultPreference from 'react-native-default-preference';
 
@@ -42,23 +192,88 @@ const PREFERENCE_TABS = Object.values(PreferenceTab).map(preferenceTab => ({
   label: preferenceTabLabels[preferenceTab],
 }));
 
+function consentConfigFromConfiguration(options: {
+  configuration: Record<string, unknown>;
+  identities: Record<string, string>;
+  organizationCode: string;
+  propertyCode: string;
+  environmentCode: string;
+}): ConsentConfig {
+  const {
+    configuration,
+    identities,
+    organizationCode,
+    propertyCode,
+    environmentCode,
+  } = options;
+  const jurisdictionMap = configuration.jurisdiction;
+  let jurisdiction = 'us';
+  if (jurisdictionMap && typeof jurisdictionMap === 'object') {
+    const map = jurisdictionMap as Record<string, unknown>;
+    jurisdiction = String(
+      map.code ?? map.defaultJurisdictionCode ?? jurisdiction,
+    );
+  }
+  const purposesList = configuration.purposes;
+  const purposes: ConsentConfig['purposes'] = {};
+  if (Array.isArray(purposesList)) {
+    for (const entry of purposesList) {
+      if (entry && typeof entry === 'object') {
+        const purpose = entry as Record<string, unknown>;
+        const code = purpose.code?.toString();
+        const legalBasis = purpose.legalBasisCode?.toString();
+        if (code && legalBasis) {
+          purposes[code] = {legalBasisCode: legalBasis};
+        }
+      }
+    }
+  }
+  if (Object.keys(purposes).length === 0) {
+    throw new Error('Configuration returned no purposes');
+  }
+  return {
+    organizationCode,
+    propertyCode,
+    environmentCode,
+    jurisdictionCode: jurisdiction,
+    identities,
+    purposes,
+  };
+}
+
+function DashboardRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}): React.JSX.Element {
+  return (
+    <View style={styles.dashboardRow}>
+      <Text style={styles.dashboardLabel}>{label}:</Text>
+      <Text style={styles.dashboardValue}>{value}</Text>
+    </View>
+  );
+}
+
 function Main(): React.JSX.Element {
   const ketch = useKetchService();
-  const [selectedRegion, setSelectedRegion] = useState(KetchDataCenter.US);
+  const {dashboard, appendLog, setStatus, updateDashboard} = useDashboard();
+  const [selectedRegion, setSelectedRegion] = useState(KetchDataCenter.UAT);
 
   // Global options
   const [organization, setOrganization] = useState<string | undefined>(
-    'ketch_samples',
+    'ethansch061226',
   );
   const [property, setProperty] = useState<string | undefined>(
-    'react_native_sample_app',
+    'website_smart_tag',
   );
-  const [language, setLanguage] = useState<string | undefined>(undefined);
+  const [language, setLanguage] = useState<string | undefined>('en');
   const [jurisdiction, setJurisdiction] = useState<string | undefined>(
     undefined,
   );
   const [region, setRegion] = useState<string | undefined>(undefined);
-  const [environment, setEnvironment] = useState<string | undefined>(undefined);
+  const [environment, setEnvironment] = useState<string | undefined>('production');
   const [identityName, setIdentityName] = useState('');
   const [identityValue, setIdentityValue] = useState('');
   const [identities, setIdentities] = useState({}); // TODO:JB - Default identities
@@ -74,6 +289,108 @@ function Main(): React.JSX.Element {
   const [initialTab, setInitialTab] = useState<PreferenceTab>(
     PreferenceTab.OverviewTab,
   );
+  const [attStatus, setAttStatus] = useState('N/A');
+
+  const ATT_LAST_STATUS_KEY = 'ketch_att_last';
+
+  const refreshAttState = async (logEvent = false) => {
+    if (Platform.OS !== 'ios') {
+      return;
+    }
+    const status = (await trackingAuthorizationStatusString()) ?? 'unknown';
+    const prev =
+      (await DefaultPreference.get(ATT_LAST_STATUS_KEY)) ?? 'notDetermined';
+    setAttStatus(status);
+    updateDashboard({attStatus: status, ketchAtt: status, ketchAttPrev: prev});
+    if (logEvent) {
+      const message = formatAttState(status, prev);
+      appendLog(`ATT: ${message}`);
+      console.log('[KetchSample] ATT:', message);
+    }
+  };
+
+  useEffect(() => {
+    refreshAttState().catch(() => {});
+  }, [updateDashboard]);
+
+  const handleRequestAtt = async () => {
+    const status = await requestTrackingAuthorization();
+    const value = status ?? 'unknown';
+    setAttStatus(value);
+    const prev =
+      (await DefaultPreference.get(ATT_LAST_STATUS_KEY)) ?? 'notDetermined';
+    updateDashboard({attStatus: value, ketchAtt: value, ketchAttPrev: prev});
+    const message = formatAttState(value, prev);
+    appendLog(`ATT requested: ${message}`);
+    console.log('[KetchSample] ATT requested:', message);
+    ketch.load();
+  };
+
+  const handleReloadWebView = async () => {
+    await refreshAttState(true);
+    ketch.load();
+    appendLog('WebView reload requested');
+  };
+
+  const runHeadlessLocation = async () => {
+    updateDashboard({headlessLocationResult: 'Loading...'});
+    try {
+      const response = await ketch.fetchLocation?.();
+      const code = response?.location?.countryCode ?? '?';
+      updateDashboard({headlessLocationResult: `OK: ${code}`});
+      appendLog(`headless location: ${code}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      updateDashboard({headlessLocationResult: `Error: ${message}`});
+    }
+  };
+
+  const runHeadlessBootstrap = async () => {
+    updateDashboard({headlessBootstrapResult: 'Loading...'});
+    try {
+      const boot = await ketch.fetchBootstrapConfiguration?.();
+      const count = Array.isArray(boot?.purposes) ? boot.purposes.length : 0;
+      updateDashboard({headlessBootstrapResult: `OK: ${count} purpose(s)`});
+      appendLog('headless bootstrap OK');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      updateDashboard({headlessBootstrapResult: `Error: ${message}`});
+    }
+  };
+
+  const runHeadlessConsent = async () => {
+    updateDashboard({headlessConsentResult: 'Loading...'});
+    try {
+      const identities = {
+        email: `headless-${Date.now()}@integration.ketch.test`,
+      };
+      await ketch.fetchLocation?.();
+      await ketch.fetchBootstrapConfiguration?.();
+      const env = environment?.trim() || 'production';
+      const full = await ketch.fetchFullConfiguration?.({
+        organizationCode: organization ?? 'ethansch061226',
+        propertyCode: property ?? 'website_smart_tag',
+        environmentCode: env,
+      });
+      const config = consentConfigFromConfiguration({
+        configuration: full ?? {},
+        identities,
+        organizationCode: organization ?? 'ethansch061226',
+        propertyCode: property ?? 'website_smart_tag',
+        environmentCode: env,
+      });
+      const consent = await ketch.fetchConsent?.(config);
+      const count =
+        consent?.purposes && Object.keys(consent.purposes).length > 0
+          ? Object.keys(consent.purposes).length
+          : Object.keys(consent?.protocols ?? {}).length;
+      updateDashboard({headlessConsentResult: `OK: ${count} item(s)`});
+      appendLog('headless consent OK');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      updateDashboard({headlessConsentResult: `Error: ${message}`});
+    }
+  };
 
   // Reset identities
   const handleResetIdentityPress = () => {
@@ -132,6 +449,65 @@ function Main(): React.JSX.Element {
         <View
           style={styles.sectionsContainer}
           onTouchStart={() => Keyboard.dismiss()}>
+          <Section title="SDK Health Dashboard">
+            <View style={styles.sectionVerticalContainer}>
+              <Text style={styles.dashboardSubtitle}>Connection</Text>
+              <DashboardRow label="Init" value={dashboard.initState} />
+              <DashboardRow label="Status" value={dashboard.statusText} />
+              <DashboardRow
+                label="Org / Property / Env"
+                value={`${organization ?? ''} / ${property ?? ''} / ${environment ?? 'production'}`}
+              />
+              <DashboardRow
+                label="Data center"
+                value={dataCenterLabels[selectedRegion]}
+              />
+              <Text style={styles.dashboardSubtitle}>WebView / Experience</Text>
+              <DashboardRow label="Load" value={dashboard.loadState} />
+              <DashboardRow label="Visibility" value={dashboard.experienceVisibility} />
+              <DashboardRow label="Dismiss" value={dashboard.dismissReason} />
+              <DashboardRow label="WebView" value={dashboard.webViewVisible} />
+              {Platform.OS === 'ios' && (
+                <>
+                  <DashboardRow label="ketch_att" value={dashboard.ketchAtt} />
+                  <DashboardRow
+                    label="ketch_att_prev"
+                    value={dashboard.ketchAttPrev}
+                  />
+                </>
+              )}
+              {Platform.OS === 'ios' && (
+                <>
+                  <Text style={styles.dashboardSubtitle}>ATT (iOS)</Text>
+                  <DashboardRow label="Native ATT" value={dashboard.attStatus} />
+                </>
+              )}
+              <Text style={styles.dashboardSubtitle}>Privacy / Consent State</Text>
+              <DashboardRow label="Environment" value={dashboard.environment} />
+              <DashboardRow label="Jurisdiction" value={dashboard.jurisdiction} />
+              <DashboardRow label="Region" value={dashboard.region} />
+              <DashboardRow label="Consent" value={truncate(dashboard.consent)} />
+              <DashboardRow label="US Privacy" value={truncate(dashboard.usPrivacy)} />
+              <DashboardRow label="TCF" value={truncate(dashboard.tcf)} />
+              <DashboardRow label="GPP" value={truncate(dashboard.gpp)} />
+              <Text style={styles.dashboardSubtitle}>Headless (live CDN)</Text>
+              <DashboardRow label="Location" value={dashboard.headlessLocationResult} />
+              <DashboardRow label="Bootstrap" value={dashboard.headlessBootstrapResult} />
+              <DashboardRow label="Consent" value={dashboard.headlessConsentResult} />
+              <View style={styles.sectionHorizontalContainer}>
+                <Button title="Fetch Location" onPress={runHeadlessLocation} />
+                <Button title="Fetch Bootstrap" onPress={runHeadlessBootstrap} />
+                <Button title="Cold Start" onPress={runHeadlessConsent} />
+              </View>
+              <Text style={styles.dashboardSubtitle}>Event Log</Text>
+              <Text style={styles.eventLog}>
+                {dashboard.eventLog.length === 0
+                  ? 'Waiting for events...'
+                  : dashboard.eventLog.join('\n')}
+              </Text>
+            </View>
+          </Section>
+
           {/* Global options */}
           <Section
             title="Global Options"
@@ -281,6 +657,18 @@ function Main(): React.JSX.Element {
             </View>
           </Section>
 
+          {Platform.OS === 'ios' && (
+            <Section title="App Tracking Transparency">
+              <View style={styles.sectionVerticalContainer}>
+                <Text style={styles.attStatus}>ATT: {attStatus}</Text>
+                <View style={styles.sectionHorizontalContainer}>
+                  <Button title="Request ATT" onPress={handleRequestAtt} />
+                  <Button title="Reload WebView" onPress={handleReloadWebView} />
+                </View>
+              </View>
+            </Section>
+          )}
+
           {/* SDK Actions */}
           <Section title="Actions" subtitle="Trigger some SDK functionality">
             <>
@@ -292,13 +680,27 @@ function Main(): React.JSX.Element {
                 <View style={styles.sectionHorizontalContainer}>
                   <Button
                     title="Log Consent"
-                    onPress={() => console.log(ketch.getConsent())}
+                    onPress={() => {
+                      const consent = ketch.getConsent();
+                      const summary = consent
+                        ? formatConsent(consent)
+                        : 'no consent cached';
+                      appendLog(`getConsent: ${summary}`);
+                      console.log('[KetchSample] getConsent:', summary);
+                    }}
                   />
                   <Button
                     title="Log Protocols"
                     onPress={consoleLogPrivacyDataFromStorage}
                   />
-                  <Button title="Load" onPress={ketch.load} />
+                  <Button
+                    title="Load"
+                    onPress={() => {
+                      updateDashboard({loadState: 'loading'});
+                      setStatus('Load called');
+                      ketch.load();
+                    }}
+                  />
                   <Button
                     title="Apply CSS"
                     onPress={() =>
@@ -328,6 +730,8 @@ const styles = StyleSheet.create({
 
   sectionTitle: {fontSize: 20, marginBottom: 8, color: 'black'},
 
+  attStatus: {color: 'black', marginBottom: 8},
+
   sectionVerticalContainer: {
     flexDirection: 'column',
     gap: 8,
@@ -351,6 +755,43 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 8,
     paddingTop: 20,
+  },
+
+  dashboardSubtitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'black',
+    marginTop: 8,
+  },
+
+  dashboardRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+  },
+
+  dashboardLabel: {
+    width: 120,
+    fontSize: 12,
+    color: 'black',
+  },
+
+  dashboardValue: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: 'black',
+  },
+
+  eventLog: {
+    fontSize: 11,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: 'black',
+    minHeight: 80,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
   },
 });
 
