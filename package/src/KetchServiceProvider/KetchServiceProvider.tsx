@@ -46,8 +46,7 @@ import {
 } from '../util';
 import { getIndexHtml, injectCssIntoHtml, injectWebResourceUrlOverridesIntoHtml, getWebResourceUrlOverridesInjectionScript } from '../assets';
 import styles from './styles';
-import crossPlatformSave from '../util/crossPlatformSave';
-import crossPlatformRead from '../util/crossPlatformRead';
+import crossPlatformSave, { crossPlatformRead } from '../util/crossPlatformSave';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
 import { KetchHeadless } from '../headless';
 import {

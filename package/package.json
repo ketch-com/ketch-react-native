@@ -10,12 +10,16 @@
   "files": [
     "package.json",
     "react-native.config.js",
+    "ketch-react-native.podspec",
+    "ios",
     "tsconfig.json",
     "src",
     "lib"
   ],
   "scripts": {
     "all": "npm run clean && npm run lint && npm run typecheck && npm run prepare",
+    "test": "jest",
+    "test:integration": "KETCH_INTEGRATION_TESTS=1 jest headlessCdnIntegration",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "lint-fix": "eslint \"**/*.{js,ts,tsx}\" --fix",
@@ -80,7 +84,7 @@
     }
   },
   "resolutions": {
-    "@types/react": "^18.2.44",
+    "@types/react": "19.0.0",
     "tmp": "0.2.4"
   },
   "packageManager": "yarn@4.1.1",
@@ -89,6 +93,9 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/__tests__/headlessIntegrationSupport.ts"
     ]
   },
   "commitlint": {
