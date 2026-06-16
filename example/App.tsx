@@ -9,6 +9,7 @@ import React from 'react';
 import {Platform} from 'react-native';
 
 import {
+  KetchDataCenter,
   KetchServiceProvider,
   PrivacyProtocol,
   type Consent,
@@ -29,6 +30,7 @@ function AppWithCallbacks(): React.JSX.Element {
     <KetchServiceProvider
       organizationCode="ethansch061226"
       propertyCode="website_smart_tag"
+      dataCenter={KetchDataCenter.UAT}
       identities={{email: 'test-123-1@gmail.com'}}
       autoLoad={false}
       webResourceUrlOverrides={

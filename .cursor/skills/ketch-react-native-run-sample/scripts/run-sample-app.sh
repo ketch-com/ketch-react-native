@@ -168,9 +168,6 @@ cleanup() {
   if [[ -n "$log_pid" ]] && kill -0 "$log_pid" >/dev/null 2>&1; then
     kill "$log_pid" >/dev/null 2>&1 || true
   fi
-  if [[ -n "${metro_pid:-}" ]] && kill -0 "$metro_pid" >/dev/null 2>&1; then
-    kill "$metro_pid" >/dev/null 2>&1 || true
-  fi
 }
 trap cleanup EXIT INT TERM
 

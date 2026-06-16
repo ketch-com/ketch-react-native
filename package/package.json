@@ -10,6 +10,7 @@
   "files": [
     "package.json",
     "react-native.config.js",
+    "ketch-react-native.podspec",
     "ios",
     "tsconfig.json",
     "src",
