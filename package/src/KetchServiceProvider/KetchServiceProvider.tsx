@@ -48,7 +48,7 @@ import {
   getIndexHtml,
   injectCssIntoHtml,
   injectWebResourceUrlOverridesIntoHtml,
-  getWebResourceUrlOverridesInjectionScript
+  getWebResourceUrlOverridesInjectionScript,
 } from '../assets';
 import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
