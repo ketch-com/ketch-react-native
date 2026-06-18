@@ -1,0 +1,92 @@
+---
+alwaysApply: true
+---
+
+# Development Workflow — Ketch React Native SDK
+
+## Prerequisites
+
+- **Node.js** >= 18
+- **Yarn** 4.x (per `example/package.json` `packageManager`) or npm
+- **Android**: Android SDK, `adb`, emulator or device
+- **iOS** (macOS only): Xcode, CocoaPods (`pod`), iOS Simulator
+
+## Setup
+
+```bash
+git clone git@github.com:ketch-com/ketch-react-native.git
+cd ketch-react-native
+```
+
+To run the **in-repo example** (npm release or local `file:../package` — see skill):
+
+```bash
+bash .cursor/skills/ketch-react-native-run-sample/scripts/run-sample-app.sh android        # remote (default)
+bash .cursor/skills/ketch-react-native-run-sample/scripts/run-sample-app.sh android local # this checkout
+bash .cursor/skills/ketch-react-native-run-sample/scripts/run-sample-app.sh ios local
+```
+
+## Common Commands
+
+| Command | Purpose |
+| --- | --- |
+| `cd package && npm run all` | Lint, typecheck, and build the library |
+| `cd package && npm test` | Run package unit tests |
+| `cd example && npm run start` | Start Metro bundler |
+| `cd example && npm run android` / `npm run ios` | Run example (Metro must be running) |
+| `bash .cursor/skills/ketch-react-native-run-sample/scripts/run-sample-app.sh android local` | Full flow: configure, Metro, build, launch, logs |
+| `cd example/ios && pod install` | Refresh iOS pods after native dependency changes |
+
+## Validation Checklist
+
+Before merging SDK changes:
+
+1. `cd package && npm run lint && npm run typecheck` — **must pass**
+2. `cd package && npm test` — **must pass**
+3. `bash .cursor/skills/ketch-react-native-run-sample/scripts/run-sample-app.sh android local --build-only` — example must build
+4. If iOS native code changed: `bash .cursor/skills/ketch-react-native-run-sample/scripts/run-sample-app.sh ios local --build-only`
+
+## Testing
+
+- **Package tests**: Jest in `package/`
+- **Integration tests**: `KETCH_INTEGRATION_TESTS=1 npm run test:integration` in `package/`
+- **Example app**: manual verification via run-sample script or `npm run android` / `npm run ios`
+
+## Code Quality
+
+- Match existing **TypeScript** style under `package/src/`
+- Keep public API exports intentional in `package/src/index.ts`
+- Prefer **small, focused diffs**; do not reformat unrelated files
+
+## SDK Health Dashboard (manual QA)
+
+`example/` wires `KetchServiceProvider` callbacks in `App.tsx` into `DashboardContext`; `Main.tsx` renders structured panels above the existing controls.
+
+| Section | What to verify |
+| --- | --- |
+| **Connection** | Init, status, org/property/env (editable), data center |
+| **WebView / Experience** | Load, visibility, dismiss, WebView visibility; `ketch_att` on iOS |
+| **ATT (iOS)** | Native ATT; **Request ATT** then **Reload WebView** |
+| **Privacy / Consent** | Environment, jurisdiction, region, consent, US Privacy / TCF / GPP |
+| **Headless** | Fetch Location / Bootstrap / Cold Start (`useKetchService()` headless APIs) |
+| **Event log** | Timestamped callback trace |
+
+Launch: `bash .cursor/skills/ketch-react-native-run-sample/scripts/run-sample-app.sh ios local`
+
+Example org/property: `ethansch061226` / `website_smart_tag`. See `ketch-react-native-run-sample` skill for prerequisites, launch, and smoke flow.
+
+Provider uses `autoLoad={false}` so **Load** is an explicit manual step.
+
+## Local tag URL overrides (non-prod scripts)
+
+Pass `webResourceUrlOverrides` on `KetchServiceProvider` / `KetchMobile` — exact source URL → local replacement. Separate from `dataCenter` (boot.js base).
+
+```tsx
+<KetchServiceProvider
+  webResourceUrlOverrides={{
+    'https://cdn.uat.ketchjs.com/ketchtag/stable/v2.12/ketch-sdk.js': 'http://localhost:9000/ketch-sdk.js',
+  }}
+/>
+```
+
+JS hook in `package/src/assets/index.ts` runs before boot.js. Sample: `DEV_URL_OVERRIDES_ENABLED = true` in `example/devUrlOverrides.ts`.

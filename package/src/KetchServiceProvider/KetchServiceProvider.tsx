@@ -40,7 +40,11 @@ import {
 import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
 import { createOptionsString, getWebViewConfigKey, savePrivacyToStorage } from '../util';
-import { getIndexHtml, injectCssIntoHtml } from '../assets';
+import {
+  getIndexHtml,
+  injectCssIntoHtml,
+  injectWebResourceUrlOverridesIntoHtml,
+} from '../assets';
 import styles from './styles';
 import crossPlatformSave from '../util/crossPlatformSave';
 import crossPlatformRead from '../util/crossPlatformRead';
@@ -49,6 +53,19 @@ import {
   trackingAuthorizationStatusString,
   ATT_LAST_STORAGE_KEY,
 } from '../trackingAuthorization';
+import { KetchHeadless } from '../headless';
+import type {
+  ConsentConfig,
+  ConsentUpdate,
+  FullConfigurationRequest,
+  GetProfileRequest,
+  InvokeRightRequest,
+  PreferenceQRRequest,
+  PutProfileRequest,
+  SubscriptionConfigurationRequest,
+  SubscriptionsRequest,
+  WebReportRequest,
+} from '../headless/headlessTypes';
 
 interface KetchServiceProviderParams extends KetchMobile {
   children: ReactElement;
@@ -91,6 +108,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   forcePreferenceExperience = false,
   preferenceExperienceOptions = {},
   preferenceStorage,
+  webResourceUrlOverrides,
   autoLoad = true,
   children,
   onEnvironmentUpdated,
@@ -168,6 +186,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     ageUpper,
     ketchAtt,
     ketchAttPrev,
+    webResourceUrlOverrides,
     onEnvironmentUpdated,
     onRegionUpdated,
     onJurisdictionUpdated,
@@ -232,6 +251,88 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       cancelled = true;
     };
   }, [parameters.ketchAtt, webViewReloadNonce]);
+
+  const headlessApi = useMemo(
+    () => new KetchHeadless({ dataCenter: parameters.dataCenter }),
+    [parameters.dataCenter]
+  );
+
+  const fetchLocation = useCallback(
+    () => headlessApi.fetchLocation(),
+    [headlessApi]
+  );
+
+  const fetchBootstrapConfiguration = useCallback(
+    () =>
+      headlessApi.fetchBootstrapConfiguration(
+        parameters.organizationCode,
+        parameters.propertyCode
+      ),
+    [headlessApi, parameters.organizationCode, parameters.propertyCode]
+  );
+
+  const fetchFullConfiguration = useCallback(
+    (request: FullConfigurationRequest) =>
+      headlessApi.fetchFullConfiguration(request),
+    [headlessApi]
+  );
+
+  const fetchConsent = useCallback(
+    (config: ConsentConfig) => headlessApi.fetchConsent(config),
+    [headlessApi]
+  );
+
+  const fetchProtocols = useCallback(
+    (config: ConsentConfig) => headlessApi.fetchProtocols(config),
+    [headlessApi]
+  );
+
+  const setConsentOnServer = useCallback(
+    (update: ConsentUpdate) => headlessApi.setConsentOnServer(update),
+    [headlessApi]
+  );
+
+  const invokeRight = useCallback(
+    (request: InvokeRightRequest) => headlessApi.invokeRight(request),
+    [headlessApi]
+  );
+
+  const getProfile = useCallback(
+    (request: GetProfileRequest) => headlessApi.getProfile(request),
+    [headlessApi]
+  );
+
+  const putProfile = useCallback(
+    (request: PutProfileRequest) => headlessApi.putProfile(request),
+    [headlessApi]
+  );
+
+  const getSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.getSubscriptions(request),
+    [headlessApi]
+  );
+
+  const setSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.setSubscriptions(request),
+    [headlessApi]
+  );
+
+  const fetchSubscriptionsConfiguration = useCallback(
+    (request: SubscriptionConfigurationRequest) =>
+      headlessApi.fetchSubscriptionsConfiguration(request),
+    [headlessApi]
+  );
+
+  const preferenceQRUrl = useCallback(
+    (request: PreferenceQRRequest) => headlessApi.preferenceQRUrl(request),
+    [headlessApi]
+  );
+
+  const webReport = useCallback(
+    (channel: string, request: WebReportRequest) =>
+      headlessApi.webReport(channel, request),
+    [headlessApi]
+  );
 
   /**
    * Load or reload the webview
@@ -526,18 +627,57 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   `;
 
   // Simply render children if no identities passed as SDK cannot be used
+  const contextValue = useMemo(
+    () => ({
+      showConsentExperience,
+      showPreferenceExperience,
+      dismissExperience,
+      getConsent,
+      updateParameters,
+      load,
+      setCssOverride,
+      fetchLocation,
+      fetchBootstrapConfiguration,
+      fetchFullConfiguration,
+      fetchConsent,
+      fetchProtocols,
+      setConsentOnServer,
+      invokeRight,
+      getProfile,
+      putProfile,
+      getSubscriptions,
+      setSubscriptions,
+      fetchSubscriptionsConfiguration,
+      preferenceQRUrl,
+      webReport,
+    }),
+    [
+      showConsentExperience,
+      showPreferenceExperience,
+      dismissExperience,
+      getConsent,
+      updateParameters,
+      load,
+      setCssOverride,
+      fetchLocation,
+      fetchBootstrapConfiguration,
+      fetchFullConfiguration,
+      fetchConsent,
+      fetchProtocols,
+      setConsentOnServer,
+      invokeRight,
+      getProfile,
+      putProfile,
+      getSubscriptions,
+      setSubscriptions,
+      fetchSubscriptionsConfiguration,
+      preferenceQRUrl,
+      webReport,
+    ]
+  );
+
   return (
-    <KetchServiceContext.Provider
-      value={{
-        showConsentExperience,
-        showPreferenceExperience,
-        dismissExperience,
-        getConsent,
-        updateParameters,
-        load,
-        setCssOverride,
-      }}
-    >
+    <KetchServiceContext.Provider value={contextValue}>
       {children}
       {shouldLoadWebView && isAttReady && (
         <View
@@ -548,7 +688,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             ref={webViewRef}
             source={{
               html: injectCssIntoHtml(
-                getIndexHtml(webViewParameters),
+                injectWebResourceUrlOverridesIntoHtml(
+                  getIndexHtml(webViewParameters),
+                  webViewParameters.webResourceUrlOverrides
+                ),
                 cssOverrideState
               ),
               baseUrl: 'http://localhost',

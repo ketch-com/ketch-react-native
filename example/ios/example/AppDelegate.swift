@@ -35,7 +35,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
   override func bundleURL() -> URL? {
 #if DEBUG
-    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+    let settings = RCTBundleURLProvider.sharedSettings()
+    let scheme = settings.packagerScheme
+    if !RCTBundleURLProvider.isPackagerRunning("localhost:8081", scheme: scheme),
+       RCTBundleURLProvider.isPackagerRunning("localhost:8082", scheme: scheme) {
+      settings.jsLocation = "localhost:8082"
+    }
+    return settings.jsBundleURL(forBundleRoot: "index")
 #else
     return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif

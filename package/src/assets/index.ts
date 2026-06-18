@@ -120,25 +120,24 @@ export const getIndexHtml = (parameters: KetchMobile) => {
 
       function initKetchTag(parameters) {
         console.log('Ketch Tag is initialization started...');
-        // Use parameters to set SDK query params here
-        const urlParams = new URLSearchParams(parameters);
+
+        // Mirror init params into the URL bar for Ketch Tag; read boot config from
+        // the init object itself (no query-string round-trip).
+        const urlParams = new URLSearchParams();
+        for (const key in parameters) {
+          if (!Object.prototype.hasOwnProperty.call(parameters, key)) continue;
+          const value = parameters[key];
+          if (value !== undefined && value !== null && typeof value !== 'object') {
+            urlParams.set(key, String(value));
+          }
+        }
         window.history.replaceState({}, '', '?' + urlParams.toString());
 
-        console.log('Ketch Parameters BEFORE:', parameters);
-        // Get query parameters
-        let params = new URL(document.location).searchParams;
-
-        console.log('Ketch Parameters AFTER:', params);
-        // Get url override from query parameters
-        let url =
-          params.get('ketch_mobilesdk_url') ||
+        const url =
+          parameters.ketch_mobilesdk_url ||
           'https://global.ketchcdn.com/web/v3';
-
-        // Get property name from query parameters
-        let propertyName = params.get('propertyCode');
-
-        // Get organization code from query parameters
-        let orgCode = params.get('organizationCode');
+        const orgCode = parameters.organizationCode;
+        const propertyName = parameters.propertyCode;
         console.log('Ketch org data:', orgCode, propertyName, url);
 
         if (orgCode && propertyName) {
@@ -162,6 +161,81 @@ export const getIndexHtml = (parameters: KetchMobile) => {
   </body>
 </html>
 `;
+};
+
+/** JS hook body that redirects script/fetch URLs (used in HTML head and beforeContentLoaded). */
+const buildWebResourceUrlOverridesHook = (
+  overridesJson: string
+) => `(function () {
+  var overrides = ${overridesJson};
+  if (!overrides || !Object.keys(overrides).length) return;
+  function resolveUrl(url) {
+    if (!url) return url;
+    if (overrides[url]) return overrides[url];
+    var base = url.split('?')[0].split('#')[0];
+    if (base !== url && overrides[base]) return overrides[base];
+    for (var key in overrides) {
+      if (!Object.prototype.hasOwnProperty.call(overrides, key)) continue;
+      if (key === url || key === base) continue;
+      if (key.charAt(0) === '/' && base.indexOf(key) !== -1) return overrides[key];
+      if (key.indexOf('://') !== -1) continue;
+      if (base.endsWith(key) || base.indexOf('/' + key) !== -1) return overrides[key];
+    }
+    return url;
+  }
+  var srcDesc = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src');
+  if (srcDesc && srcDesc.set) {
+    var nativeSrcSet = srcDesc.set;
+    var nativeSrcGet = srcDesc.get;
+    Object.defineProperty(HTMLScriptElement.prototype, 'src', {
+      set: function (value) { nativeSrcSet.call(this, resolveUrl(value)); },
+      get: nativeSrcGet,
+      configurable: true,
+    });
+  }
+  var origSetAttribute = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (name, value) {
+    if (name === 'src' && this.tagName === 'SCRIPT') {
+      return origSetAttribute.call(this, name, resolveUrl(value));
+    }
+    return origSetAttribute.call(this, name, value);
+  };
+  if (window.fetch) {
+    var origFetch = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+      if (typeof input === 'string') {
+        var mapped = resolveUrl(input);
+        if (mapped !== input) input = mapped;
+      } else if (input && input.url) {
+        var mappedUrl = resolveUrl(input.url);
+        if (mappedUrl !== input.url) input = new Request(mappedUrl, input);
+      }
+      return origFetch(input, init);
+    };
+  }
+})();`;
+
+export const getWebResourceUrlOverridesInjectionScript = (
+  overrides?: Record<string, string>
+): string | undefined => {
+  if (!overrides || !Object.keys(overrides).length) {
+    return undefined;
+  }
+  return `${buildWebResourceUrlOverridesHook(JSON.stringify(overrides))} true;`;
+};
+
+/**
+ * Injects URL override hooks in <head> before any body scripts (iOS WebConfig parity).
+ */
+export const injectWebResourceUrlOverridesIntoHtml = (
+  html: string,
+  overrides?: Record<string, string>
+) => {
+  if (!overrides || !Object.keys(overrides).length) {
+    return html;
+  }
+  const script = `<script>${buildWebResourceUrlOverridesHook(JSON.stringify(overrides))}</script>`;
+  return html.replace('<head>', `<head>\n${script}`);
 };
 
 /**
