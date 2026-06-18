@@ -93,6 +93,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onPrivacyProtocolUpdated,
   onHideExperience,
   onHasShownExperience,
+  onNativeStoragePut,
   onError,
   cssOverride: initialCssOverride,
 }) => {
@@ -158,6 +159,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onPrivacyProtocolUpdated,
     onHideExperience,
     onHasShownExperience,
+    onNativeStoragePut,
     onError,
   });
 
@@ -412,6 +414,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         console.log('Error:', JSON.stringify(data.data));
         onError?.(data.data);
         break;
+
+      case EventName.nativeStoragePut: {
+        const payload = JSON.parse(data.data) as { key: string; value: string };
+        if (!payload.key) {
+          break;
+        }
+        crossPlatformSave(payload.key, payload.value).catch(() => {});
+        parameters.onNativeStoragePut?.(payload.key, payload.value);
+        break;
+      }
 
       default:
         break;
