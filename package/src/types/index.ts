@@ -39,6 +39,8 @@ export type CommonExperienceOptions = Pick<
   | 'age'
   | 'ageLower'
   | 'ageUpper'
+  | 'ketchAtt'
+  | 'ketchAttPrev'
 > & {
   // This is separate because we don't want to add ketch_show to the KetchMobile type
   // which is used for the KetchServiceProvider parameters
@@ -141,6 +143,16 @@ export interface KetchMobile {
   ageUpper?: number;
 
   /**
+   * iOS ATT status for WebView (`ketch_att`). When omitted, resolved automatically on iOS.
+   */
+  ketchAtt?: string;
+
+  /**
+   * Previous iOS ATT status for WebView (`ketch_att_prev`). When omitted, resolved from native storage on iOS.
+   */
+  ketchAttPrev?: string;
+
+  /**
    * Force show the consent experience initially
    */
   forceConsentExperience?: boolean;
@@ -219,6 +231,8 @@ export interface KetchMobile {
 
   /**
    * Native storage write from ketch-tag (`nativeStoragePut` event).
+   * @param key Storage key written by ketch-tag
+   * @param value Storage value written by ketch-tag
    */
   onNativeStoragePut?: (key: string, value: string) => void;
 }
