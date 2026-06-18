@@ -226,11 +226,18 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
     resolveAtt().catch((err) => {
       console.warn('[Ketch] ATT resolution failed', err);
+      if (!cancelled) {
+        setResolvedKetchAttPrev((prev) => prev ?? 'notDetermined');
+        setResolvedKetchAtt(
+          (prev) => prev ?? parameters.ketchAtt ?? 'notDetermined'
+        );
+        setIsAttReady(true);
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [parameters.ketchAtt, webViewReloadNonce]);
+  }, [parameters.ketchAtt]);
 
   /**
    * Load or reload the webview
