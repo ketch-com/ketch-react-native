@@ -429,11 +429,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             break;
           }
           const value = String(payload.value ?? '');
-          void crossPlatformSave(key, value)
+          crossPlatformSave(key, value)
             .then(() => parameters.onNativeStoragePut?.(key, value))
             .catch((err) => {
-              const message =
-                err instanceof Error ? err.message : String(err);
+              const message = err instanceof Error ? err.message : String(err);
               console.warn('[Ketch] nativeStoragePut save failed', err);
               onError?.(`nativeStoragePut save failed: ${message}`);
             });
