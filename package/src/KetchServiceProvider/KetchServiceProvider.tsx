@@ -41,7 +41,7 @@ import { Action, reducer } from './reducer';
 import { createOptionsString, savePrivacyToStorage } from '../util';
 import { getIndexHtml, injectCssIntoHtml } from '../assets';
 import styles from './styles';
-import crossPlatformSave from '../util/crossPlatformSave';
+import nativeStorage from '../util/nativeStorage';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
 
 interface KetchServiceProviderParams extends KetchMobile {
@@ -309,9 +309,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         console.warn(
           'KetchServiceProvider preferenceStorage should be a function or an expected interface, falling back to cross-platform storage helper'
         );
-        return crossPlatformSave;
+        return nativeStorage.write;
       })()
-    : crossPlatformSave;
+    : nativeStorage.write;
 
   const handleMessageReceive = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
@@ -429,7 +429,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             break;
           }
           const value = String(payload.value ?? '');
-          crossPlatformSave(key, value)
+          nativeStorage.write(key, value)
             .then(() => parameters.onNativeStoragePut?.(key, value))
             .catch((err) => {
               const message = err instanceof Error ? err.message : String(err);
