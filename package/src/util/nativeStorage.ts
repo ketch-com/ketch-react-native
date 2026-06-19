@@ -10,7 +10,6 @@ const nativeStorage = {
     crossPlatformSave(key, value),
 
   remove: async (key: string): Promise<void> => {
-    // eslint-disable-next-line no-extra-boolean-cast
     if (!!NativeModules.RNDefaultPreference) {
       try {
         const p = require('react-native-default-preference').default;
@@ -28,7 +27,6 @@ const nativeStorage = {
    * On iOS (Settings module) this is a no-op and returns 0.
    */
   removeValues: async (prefixes: string[]): Promise<number> => {
-    // eslint-disable-next-line no-extra-boolean-cast
     if (!NativeModules.RNDefaultPreference) return 0;
     try {
       const p = require('react-native-default-preference').default;
