@@ -509,7 +509,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             break;
           }
           const value = String(payload.value ?? '');
-          nativeStorage.write(key, value)
+          nativeStorage
+            .write(key, value)
             .then(() => parameters.onNativeStoragePut?.(key, value))
             .catch((err) => {
               const message = err instanceof Error ? err.message : String(err);
