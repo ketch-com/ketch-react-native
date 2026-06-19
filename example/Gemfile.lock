@@ -79,13 +79,16 @@ GEM
       concurrent-ruby (~> 1.0)
     json (2.19.9)
     logger (1.7.0)
-    minitest (5.27.0)
+    minitest (6.0.6)
+      drb (~> 2.0)
+      prism (~> 1.5)
     molinillo (0.8.0)
     mutex_m (0.3.0)
     nanaimo (0.4.0)
     nap (1.1.0)
     netrc (0.11.0)
     nkf (0.3.0)
+    prism (1.9.0)
     public_suffix (4.0.7)
     rexml (3.4.4)
     ruby-macho (2.5.1)
@@ -108,6 +111,7 @@ PLATFORMS
 DEPENDENCIES
   activesupport (~> 7.2)
   cocoapods (~> 1.16)
+  addressable (>= 2.9.0)
   nkf
 
 CHECKSUMS

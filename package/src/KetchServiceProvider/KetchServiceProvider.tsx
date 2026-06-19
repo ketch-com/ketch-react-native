@@ -46,6 +46,7 @@ import {
   injectWebResourceUrlOverridesIntoHtml,
 } from '../assets';
 import styles from './styles';
+import nativeStorage from '../util/nativeStorage';
 import crossPlatformSave from '../util/crossPlatformSave';
 import crossPlatformRead from '../util/crossPlatformRead';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
@@ -246,6 +247,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
     resolveAtt().catch((err) => {
       console.warn('[Ketch] ATT resolution failed', err);
+      if (!cancelled) {
+        setResolvedKetchAttPrev((prev) => prev ?? 'notDetermined');
+        setResolvedKetchAtt(
+          (prev) => prev ?? parameters.ketchAtt ?? 'notDetermined'
+        );
+        setIsAttReady(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -476,9 +484,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         console.warn(
           'KetchServiceProvider preferenceStorage should be a function or an expected interface, falling back to cross-platform storage helper'
         );
-        return crossPlatformSave;
+        return nativeStorage.write;
       })()
-    : crossPlatformSave;
+    : nativeStorage.write;
 
   const handleMessageReceive = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
@@ -604,10 +612,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             break;
           }
           const value = String(payload.value ?? '');
-          void crossPlatformSave(key, value)
+          nativeStorage
+            .write(key, value)
             .then(() => parameters.onNativeStoragePut?.(key, value))
             .catch((err) => {
+              const message = err instanceof Error ? err.message : String(err);
               console.warn('[Ketch] nativeStoragePut save failed', err);
+              onError?.(`nativeStoragePut save failed: ${message}`);
             });
         } catch (err) {
           console.warn('[Ketch] nativeStoragePut parse failed', err);

@@ -5,4 +5,5 @@ ruby ">= 2.6.10"
 
 gem 'cocoapods', '~> 1.16'
 gem 'activesupport', '~> 7.2'
+gem 'addressable', '>= 2.9.0'
 gem 'nkf'
