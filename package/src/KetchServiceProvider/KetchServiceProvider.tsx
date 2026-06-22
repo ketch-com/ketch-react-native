@@ -39,7 +39,11 @@ import {
 
 import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
-import { createOptionsString, getWebViewConfigKey, savePrivacyToStorage } from '../util';
+import {
+  createOptionsString,
+  getWebViewConfigKey,
+  savePrivacyToStorage,
+} from '../util';
 import { getIndexHtml, injectCssIntoHtml } from '../assets';
 import styles from './styles';
 import nativeStorage from '../util/nativeStorage';
@@ -298,7 +302,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     const resolveAtt = async () => {
       const attPrev =
         Platform.OS === 'ios'
-          ? (await nativeStorage.read(ATT_LAST_STORAGE_KEY) || 'notDetermined')
+          ? (await nativeStorage.read(ATT_LAST_STORAGE_KEY)) || 'notDetermined'
           : undefined;
 
       if (parameters.ketchAtt) {
