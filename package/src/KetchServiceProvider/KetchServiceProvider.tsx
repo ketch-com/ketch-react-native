@@ -47,7 +47,6 @@ import {
 } from '../assets';
 import styles from './styles';
 import nativeStorage from '../util/nativeStorage';
-import crossPlatformSave from '../util/crossPlatformSave';
 import crossPlatformRead from '../util/crossPlatformRead';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
 import {
@@ -223,42 +222,45 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     setIsAttReady(false);
 
     const resolveAtt = async () => {
-      const attPrev =
-        Platform.OS === 'ios'
-          ? (await crossPlatformRead(ATT_LAST_STORAGE_KEY)) ?? 'notDetermined'
-          : undefined;
+      try {
+        const attPrev =
+          Platform.OS === 'ios'
+            ? (await crossPlatformRead(ATT_LAST_STORAGE_KEY)) ?? 'notDetermined'
+            : undefined;
 
-      if (parameters.ketchAtt) {
+        if (parameters.ketchAtt) {
+          if (!cancelled) {
+            setResolvedKetchAttPrev(attPrev);
+            setResolvedKetchAtt(parameters.ketchAtt);
+          }
+          return;
+        }
+
+        const att = await trackingAuthorizationStatusString();
         if (!cancelled) {
           setResolvedKetchAttPrev(attPrev);
-          setResolvedKetchAtt(parameters.ketchAtt);
+          setResolvedKetchAtt(att ?? 'notDetermined');
+        }
+      } catch (err) {
+        console.warn('[Ketch] ATT resolution failed', err);
+        if (!cancelled) {
+          setResolvedKetchAttPrev((prev) => prev ?? 'notDetermined');
+          setResolvedKetchAtt(
+            (prev) => prev ?? parameters.ketchAtt ?? 'notDetermined'
+          );
+        }
+      } finally {
+        if (!cancelled) {
           setIsAttReady(true);
         }
-        return;
-      }
-
-      const att = await trackingAuthorizationStatusString();
-      if (!cancelled) {
-        setResolvedKetchAttPrev(attPrev);
-        setResolvedKetchAtt(att ?? 'notDetermined');
-        setIsAttReady(true);
       }
     };
 
-    resolveAtt().catch((err) => {
-      console.warn('[Ketch] ATT resolution failed', err);
-      if (!cancelled) {
-        setResolvedKetchAttPrev((prev) => prev ?? 'notDetermined');
-        setResolvedKetchAtt(
-          (prev) => prev ?? parameters.ketchAtt ?? 'notDetermined'
-        );
-        setIsAttReady(true);
-      }
-    });
+    resolveAtt();
     return () => {
       cancelled = true;
     };
-  }, [parameters.ketchAtt, webViewReloadNonce]);
+  }, [parameters.ketchAtt]);
 
   const headlessApi = useMemo(
     () => new KetchHeadless({ dataCenter: parameters.dataCenter }),
