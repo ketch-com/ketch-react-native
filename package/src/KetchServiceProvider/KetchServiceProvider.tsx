@@ -41,7 +41,7 @@ import { Action, reducer } from './reducer';
 import { createOptionsString, savePrivacyToStorage } from '../util';
 import { getIndexHtml, injectCssIntoHtml } from '../assets';
 import styles from './styles';
-import crossPlatformSave from '../util/crossPlatformSave';
+import nativeStorage from '../util/nativeStorage';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
 
 interface KetchServiceProviderParams extends KetchMobile {
@@ -93,6 +93,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onPrivacyProtocolUpdated,
   onHideExperience,
   onHasShownExperience,
+  onNativeStoragePut,
   onError,
   cssOverride: initialCssOverride,
 }) => {
@@ -158,6 +159,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onPrivacyProtocolUpdated,
     onHideExperience,
     onHasShownExperience,
+    onNativeStoragePut,
     onError,
   });
 
@@ -307,9 +309,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         console.warn(
           'KetchServiceProvider preferenceStorage should be a function or an expected interface, falling back to cross-platform storage helper'
         );
-        return crossPlatformSave;
+        return nativeStorage.write;
       })()
-    : crossPlatformSave;
+    : nativeStorage.write;
 
   const handleMessageReceive = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
@@ -412,6 +414,34 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         console.log('Error:', JSON.stringify(data.data));
         onError?.(data.data);
         break;
+
+      case EventName.nativeStoragePut: {
+        if (!data.data) {
+          break;
+        }
+        try {
+          const payload = JSON.parse(data.data) as {
+            key?: string;
+            value?: unknown;
+          };
+          const key = payload.key?.trim();
+          if (!key) {
+            break;
+          }
+          const value = String(payload.value ?? '');
+          nativeStorage
+            .write(key, value)
+            .then(() => parameters.onNativeStoragePut?.(key, value))
+            .catch((err) => {
+              const message = err instanceof Error ? err.message : String(err);
+              console.warn('[Ketch] nativeStoragePut save failed', err);
+              onError?.(`nativeStoragePut save failed: ${message}`);
+            });
+        } catch (err) {
+          console.warn('[Ketch] nativeStoragePut parse failed', err);
+        }
+        break;
+      }
 
       default:
         break;

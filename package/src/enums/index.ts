@@ -46,6 +46,7 @@ export enum EventName {
   updateTCF = 'tcf_updated_data',
   updateGPP = 'gpp_updated_data',
   error = 'error',
+  nativeStoragePut = 'nativeStoragePut',
 }
 
 export enum OnHideExperienceArgument {
