@@ -39,7 +39,11 @@ import {
 
 import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
-import { createOptionsString, getWebViewConfigKey, savePrivacyToStorage } from '../util';
+import {
+  createOptionsString,
+  getWebViewConfigKey,
+  savePrivacyToStorage,
+} from '../util';
 import {
   getIndexHtml,
   injectCssIntoHtml,
@@ -225,7 +229,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       try {
         const attPrev =
           Platform.OS === 'ios'
-            ? (await crossPlatformRead(ATT_LAST_STORAGE_KEY)) ?? 'notDetermined'
+            ? ((await crossPlatformRead(ATT_LAST_STORAGE_KEY)) ??
+              'notDetermined')
             : undefined;
 
         if (parameters.ketchAtt) {
