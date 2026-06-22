@@ -10,12 +10,15 @@
   "files": [
     "package.json",
     "react-native.config.js",
+    "ketch-react-native.podspec",
+    "ios",
     "tsconfig.json",
     "src",
     "lib"
   ],
   "scripts": {
     "all": "npm run clean && npm run lint && npm run typecheck && npm run prepare",
+    "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "lint-fix": "eslint \"**/*.{js,ts,tsx}\" --fix",

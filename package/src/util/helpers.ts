@@ -59,6 +59,8 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
     ketch_age?: string;
     ketch_age_lower?: string;
     ketch_age_upper?: string;
+    ketch_att?: string;
+    ketch_att_prev?: string;
   } = {
     organizationCode: parameters.organizationCode,
     propertyCode: parameters.propertyCode,
@@ -118,7 +120,19 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
         result.ketch_age_upper = String(Math.floor(val));
       }
     }
+
+    if (key === 'ketchAtt' && parameters.ketchAtt) {
+      result.ketch_att = parameters.ketchAtt;
+    }
+
+    if (key === 'ketchAttPrev' && parameters.ketchAttPrev) {
+      result.ketch_att_prev = parameters.ketchAttPrev;
+    }
   }
 
   return result;
 };
+
+/** Stable key for WebView remounts when init HTML would change. */
+export const getWebViewConfigKey = (parameters: CommonExperienceOptions) =>
+  JSON.stringify(createUrlParamsObject(parameters));
