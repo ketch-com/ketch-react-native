@@ -225,7 +225,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     const resolveAtt = async () => {
       const attPrev =
         Platform.OS === 'ios'
-          ? ((await crossPlatformRead(ATT_LAST_STORAGE_KEY)) ?? 'notDetermined')
+          ? (await crossPlatformRead(ATT_LAST_STORAGE_KEY)) ?? 'notDetermined'
           : undefined;
 
       if (parameters.ketchAtt) {
