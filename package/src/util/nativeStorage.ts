@@ -10,7 +10,7 @@ const nativeStorage = {
     crossPlatformSave(key, value),
 
   remove: async (key: string): Promise<void> => {
-    if (!!NativeModules.RNDefaultPreference) {
+    if (NativeModules.RNDefaultPreference) {
       try {
         const p = require('react-native-default-preference').default;
         await p.clear(key);
