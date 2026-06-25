@@ -241,7 +241,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     return () => {
       cancelled = true;
     };
-  }, [parameters.ketchAtt]);
+  }, [parameters.ketchAtt, webViewReloadNonce]);
 
   /**
    * Load or reload the webview
