@@ -265,7 +265,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     return () => {
       cancelled = true;
     };
-  }, [parameters.ketchAtt]);
+  }, [parameters.ketchAtt, webViewReloadNonce]);
 
   const headlessApi = useMemo(
     () => new KetchHeadless({ dataCenter: parameters.dataCenter }),
