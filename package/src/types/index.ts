@@ -41,6 +41,7 @@ export type CommonExperienceOptions = Pick<
   | 'ageUpper'
   | 'ketchAtt'
   | 'ketchAttPrev'
+  | 'webResourceUrlOverrides'
 > & {
   // This is separate because we don't want to add ketch_show to the KetchMobile type
   // which is used for the KetchServiceProvider parameters
@@ -151,6 +152,11 @@ export interface KetchMobile {
    * Previous iOS ATT status for WebView (`ketch_att_prev`). When omitted, resolved from native storage on iOS.
    */
   ketchAttPrev?: string;
+
+  /**
+   * Exact-match WebView resource URL replacements (e.g. UAT tag scripts → local dev server).
+   */
+  webResourceUrlOverrides?: Record<string, string>;
 
   /**
    * Force show the consent experience initially

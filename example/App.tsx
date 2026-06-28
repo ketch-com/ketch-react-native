@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import {Platform} from 'react-native';
 
 import {
   KetchDataCenter,
@@ -16,6 +17,11 @@ import {
 import Main from './Main';
 import {DashboardProvider, useDashboard} from './src/dashboard/DashboardContext';
 import {formatConsent} from './src/dashboard/consentLogging';
+import {
+  DEV_URL_OVERRIDES_ENABLED,
+  forAndroidEmulator,
+  forSimulator,
+} from './devUrlOverrides';
 
 function AppWithCallbacks(): React.JSX.Element {
   const {appendLog, updateDashboard} = useDashboard();
@@ -27,6 +33,13 @@ function AppWithCallbacks(): React.JSX.Element {
       dataCenter={KetchDataCenter.UAT}
       identities={{email: 'test-123-1@gmail.com'}}
       autoLoad={false}
+      webResourceUrlOverrides={
+        DEV_URL_OVERRIDES_ENABLED
+          ? Platform.OS === 'android'
+            ? forAndroidEmulator
+            : forSimulator
+          : undefined
+      }
       onEnvironmentUpdated={environment => {
         updateDashboard({environment});
         appendLog(`onEnvironmentUpdated: ${environment}`);
