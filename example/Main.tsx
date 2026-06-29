@@ -39,6 +39,8 @@ import {
   PreferenceTab,
   requestTrackingAuthorization,
   trackingAuthorizationStatusString,
+  nativeStorage,
+  ATT_LAST_STORAGE_KEY,
 } from '@ketch-com/ketch-react-native';
 import DefaultPreference from 'react-native-default-preference';
 
@@ -103,15 +105,13 @@ function Main(): React.JSX.Element {
   );
   const [attStatus, setAttStatus] = useState('N/A');
 
-  const ATT_LAST_STATUS_KEY = 'ketch_att_last';
-
   const refreshAttState = async (logEvent = false) => {
     if (Platform.OS !== 'ios') {
       return;
     }
     const status = (await trackingAuthorizationStatusString()) ?? 'unknown';
     const prev =
-      (await DefaultPreference.get(ATT_LAST_STATUS_KEY)) ?? 'notDetermined';
+      (await nativeStorage.read(ATT_LAST_STORAGE_KEY)) || 'notDetermined';
     setAttStatus(status);
     updateDashboard({attStatus: status, ketchAtt: status, ketchAttPrev: prev});
     if (logEvent) {
@@ -130,7 +130,7 @@ function Main(): React.JSX.Element {
     const value = status ?? 'unknown';
     setAttStatus(value);
     const prev =
-      (await DefaultPreference.get(ATT_LAST_STATUS_KEY)) ?? 'notDetermined';
+      (await nativeStorage.read(ATT_LAST_STORAGE_KEY)) || 'notDetermined';
     updateDashboard({attStatus: value, ketchAtt: value, ketchAttPrev: prev});
     const message = formatAttState(value, prev);
     appendLog(`ATT requested: ${message}`);

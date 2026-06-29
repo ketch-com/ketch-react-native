@@ -41,7 +41,7 @@ function AppWithCallbacks(): React.JSX.Element {
           : undefined
       }
       onEnvironmentUpdated={environment => {
-        updateDashboard({environment});
+        updateDashboard({environment, loadState: 'loaded'});
         appendLog(`onEnvironmentUpdated: ${environment}`);
       }}
       onRegionUpdated={region => {
