@@ -8,60 +8,54 @@
 import React, {useState} from 'react';
 import {
   Button,
-  Keyboard,
-  NativeSyntheticEvent,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
-  TextInputEndEditingEventData,
-  useColorScheme,
+  Text,
   View,
 } from 'react-native';
 
 import {RadioList} from './UI';
 
-import {LabeledTextInput} from './src/components/LabeledTextInput/LabeledTextInput';
 import {Section} from './src/components/Section/Section';
-import {dataCenterLabels, preferenceTabLabels} from './src/labels';
+import {preferenceTabLabels} from './src/labels';
+import {useInfo} from './src/dashboard/InfoContext';
+import {formatAttState} from './src/dashboard/consentLogging';
+import {SAMPLE_CONFIG} from './config';
 import {
   useKetchService,
-  KetchDataCenter,
   PreferenceTab,
+  requestTrackingAuthorization,
+  nativeStorage,
+  ATT_LAST_STORAGE_KEY,
 } from '@ketch-com/ketch-react-native';
 import DefaultPreference from 'react-native-default-preference';
-
-// Compute list options
-const API_REGIONS = Object.values(KetchDataCenter).map(region => ({
-  key: region,
-  label: dataCenterLabels[region],
-}));
 
 const PREFERENCE_TABS = Object.values(PreferenceTab).map(preferenceTab => ({
   key: preferenceTab as string,
   label: preferenceTabLabels[preferenceTab],
 }));
 
+function InfoRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}): React.JSX.Element {
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}:</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+}
+
 function Main(): React.JSX.Element {
   const ketch = useKetchService();
-  const [selectedRegion, setSelectedRegion] = useState(KetchDataCenter.US);
-
-  // Global options
-  const [organization, setOrganization] = useState<string | undefined>(
-    'ketch_samples',
-  );
-  const [property, setProperty] = useState<string | undefined>(
-    'react_native_sample_app',
-  );
-  const [language, setLanguage] = useState<string | undefined>(undefined);
-  const [jurisdiction, setJurisdiction] = useState<string | undefined>(
-    undefined,
-  );
-  const [region, setRegion] = useState<string | undefined>(undefined);
-  const [environment, setEnvironment] = useState<string | undefined>(undefined);
-  const [identityName, setIdentityName] = useState('');
-  const [identityValue, setIdentityValue] = useState('');
-  const [identities, setIdentities] = useState({}); // TODO:JB - Default identities
+  const {info} = useInfo();
 
   // Preference options
   const [displayedTabs, setDisplayedTabs] = useState<PreferenceTab[]>([
@@ -74,38 +68,6 @@ function Main(): React.JSX.Element {
   const [initialTab, setInitialTab] = useState<PreferenceTab>(
     PreferenceTab.OverviewTab,
   );
-
-  // Reset identities
-  const handleResetIdentityPress = () => {
-    setIdentities({});
-    setIdentityName('');
-    setIdentityValue('');
-    ketch.updateParameters({identities: {}});
-  };
-
-  // Update identities
-  const handleAddIdentityPress = () => {
-    if (identityName && identityValue) {
-      setIdentities({
-        ...identities,
-        [identityName]: identityValue,
-      });
-
-      // Create map with new identities
-      const newIdentities = {[identityName]: identityValue};
-
-      // Pass new identities to Ketch
-      ketch.updateParameters({identities: newIdentities});
-
-      // Reset input fields
-      setIdentityName('');
-      setIdentityValue('');
-    }
-  };
-
-  const showConsent = () => {
-    ketch.showConsentExperience();
-  };
 
   const showPreferences = () => {
     ketch.showPreferenceExperience({
@@ -121,130 +83,33 @@ function Main(): React.JSX.Element {
 
   const consoleLogPrivacyDataFromStorage = async () => {
     const privacyData = await DefaultPreference.getAll();
-
     console.log('privacy data from storage: ', privacyData);
+  };
+
+  const handleRequestAtt = async () => {
+    const status = (await requestTrackingAuthorization()) ?? 'unknown';
+    const prev =
+      (await nativeStorage.read(ATT_LAST_STORAGE_KEY)) || 'notDetermined';
+    console.log('[KetchSample] ATT requested:', formatAttState(status, prev));
+    ketch.load();
   };
 
   return (
     <SafeAreaView>
       <StatusBar translucent />
       <ScrollView testID="appium-test" style={[styles.container]}>
-        <View
-          style={styles.sectionsContainer}
-          onTouchStart={() => Keyboard.dismiss()}>
-          {/* Global options */}
-          <Section
-            title="Global Options"
-            subtitle="Options that apply to both experiences">
+        <View style={styles.sectionsContainer}>
+          <Section title="Info">
             <View style={styles.sectionVerticalContainer}>
-              <View style={styles.sectionHorizontalContainer}>
-                <LabeledTextInput
-                  label="Organization"
-                  value={organization}
-                  onChangeText={setOrganization}
-                  onEndEditing={(
-                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
-                  ) => {
-                    ketch.updateParameters({
-                      organizationCode: e.nativeEvent.text,
-                    });
-                  }}
-                />
-                <LabeledTextInput
-                  label="Property"
-                  value={property}
-                  onChangeText={setProperty}
-                  onEndEditing={(
-                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
-                  ) => {
-                    ketch.updateParameters({
-                      propertyCode: e.nativeEvent.text,
-                    });
-                  }}
-                />
-                <LabeledTextInput
-                  label="Environment"
-                  value={environment}
-                  onChangeText={setEnvironment}
-                  onEndEditing={(
-                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
-                  ) => {
-                    ketch.updateParameters({
-                      environmentName: e.nativeEvent.text,
-                    });
-                  }}
-                />
-              </View>
-              <View style={styles.sectionHorizontalContainer}>
-                <LabeledTextInput
-                  label="Language"
-                  value={language}
-                  onChangeText={setLanguage}
-                  onEndEditing={(
-                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
-                  ) => {
-                    ketch.updateParameters({languageCode: e.nativeEvent.text});
-                  }}
-                />
-                <LabeledTextInput
-                  label="Jurisdiction"
-                  value={jurisdiction}
-                  onChangeText={setJurisdiction}
-                  onEndEditing={(
-                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
-                  ) => {
-                    ketch.updateParameters({
-                      jurisdictionCode: e.nativeEvent.text,
-                    });
-                  }}
-                />
-                <LabeledTextInput
-                  label="Region"
-                  value={region}
-                  onChangeText={setRegion}
-                  onEndEditing={(
-                    e: NativeSyntheticEvent<TextInputEndEditingEventData>,
-                  ) => {
-                    ketch.updateParameters({regionCode: e.nativeEvent.text});
-                  }}
-                />
-              </View>
-              {/* Identity adder */}
-              <View style={styles.sectionHorizontalContainer}>
-                <LabeledTextInput
-                  label="Identities"
-                  placeholder="Name"
-                  value={identityName}
-                  onChangeText={setIdentityName}
-                />
-                <LabeledTextInput
-                  value={identityValue}
-                  placeholder="Value"
-                  onChangeText={setIdentityValue}
-                />
-                <View>
-                  <View style={styles.identitiesButtonView}>
-                    <Button title="Reset" onPress={handleResetIdentityPress} />
-                    <Button
-                      title="Add"
-                      onPress={handleAddIdentityPress}
-                      disabled={!identityName || !identityValue}
-                    />
-                  </View>
-                </View>
-              </View>
-              <RadioList
-                title="API Region"
-                data={API_REGIONS}
-                isCheckbox={false}
-                numColumns={3}
-                columnWidth={100}
-                onPressItem={key => {
-                  setSelectedRegion(key as KetchDataCenter);
-                  ketch.updateParameters({dataCenter: key as KetchDataCenter});
-                }}
-                getIsChecked={key => selectedRegion === key}
+              <InfoRow label="Org Code" value={SAMPLE_CONFIG.organizationCode} />
+              <InfoRow label="Property" value={SAMPLE_CONFIG.propertyCode} />
+              <InfoRow
+                label="Environment"
+                value={SAMPLE_CONFIG.environmentName}
               />
+              <InfoRow label="Language" value={SAMPLE_CONFIG.languageCode} />
+              <InfoRow label="Jurisdiction" value={info.jurisdiction} />
+              <InfoRow label="Region" value={info.region} />
             </View>
           </Section>
 
@@ -283,33 +148,33 @@ function Main(): React.JSX.Element {
 
           {/* SDK Actions */}
           <Section title="Actions" subtitle="Trigger some SDK functionality">
-            <>
-              <View style={styles.sectionVerticalContainer}>
-                <View style={styles.sectionHorizontalContainer}>
-                  <Button title="Show Consent" onPress={showConsent} />
-                  <Button title="Show Preferences" onPress={showPreferences} />
-                </View>
-                <View style={styles.sectionHorizontalContainer}>
-                  <Button
-                    title="Log Consent"
-                    onPress={() => console.log(ketch.getConsent())}
-                  />
-                  <Button
-                    title="Log Protocols"
-                    onPress={consoleLogPrivacyDataFromStorage}
-                  />
-                  <Button title="Load" onPress={ketch.load} />
-                  <Button
-                    title="Apply CSS"
-                    onPress={() =>
-                      ketch.setCssOverride?.(
-                        '#ketch-banner-button-primary { display: none !important; }',
-                      )
-                    }
-                  />
-                </View>
+            <View style={styles.sectionVerticalContainer}>
+              <View style={styles.sectionHorizontalContainer}>
+                <Button title="Reload" onPress={() => ketch.load()} />
+                <Button
+                  title="Consent"
+                  onPress={() => ketch.showConsentExperience()}
+                />
+                <Button title="Preferences" onPress={showPreferences} />
               </View>
-            </>
+              <View style={styles.sectionHorizontalContainer}>
+                <Button
+                  title="Privacy Strings"
+                  onPress={consoleLogPrivacyDataFromStorage}
+                />
+                <Button
+                  title="Apply CSS"
+                  onPress={() =>
+                    ketch.setCssOverride?.(
+                      '#ketch-banner-button-primary { display: none !important; }',
+                    )
+                  }
+                />
+                {Platform.OS === 'ios' && (
+                  <Button title="Request ATT" onPress={handleRequestAtt} />
+                )}
+              </View>
+            </View>
           </Section>
         </View>
       </ScrollView>
@@ -323,10 +188,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     overflow: 'scroll',
   },
-
-  title: {fontSize: 24, marginBottom: 40, textAlign: 'center'},
-
-  sectionTitle: {fontSize: 20, marginBottom: 8, color: 'black'},
 
   sectionVerticalContainer: {
     flexDirection: 'column',
@@ -345,12 +206,23 @@ const styles = StyleSheet.create({
     gap: 24,
   },
 
-  identitiesButtonView: {
-    display: 'flex',
+  infoRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+  },
+
+  infoLabel: {
+    width: 120,
+    fontSize: 12,
+    color: 'black',
+  },
+
+  infoValue: {
     flex: 1,
-    gap: 8,
-    paddingTop: 20,
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: 'black',
   },
 });
 
