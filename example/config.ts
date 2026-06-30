@@ -7,12 +7,12 @@
 import {KetchDataCenter} from '@ketch-com/ketch-react-native';
 
 export const SAMPLE_CONFIG = {
-  organizationCode: 'ethansch061226',
-  propertyCode: 'website_smart_tag',
+  organizationCode: 'ketch_samples',
+  propertyCode: 'ios',
   environmentName: 'production',
   languageCode: 'en',
   jurisdictionCode: undefined as string | undefined,
   regionCode: undefined as string | undefined,
-  identities: {email: 'test-123-1@gmail.com'} as Record<string, string>,
-  dataCenter: KetchDataCenter.UAT,
+  identities: {email: 'test@example.com'} as Record<string, string>,
+  dataCenter: KetchDataCenter.US,
 };

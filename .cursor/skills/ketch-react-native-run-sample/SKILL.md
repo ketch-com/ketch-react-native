@@ -35,7 +35,7 @@ The script installs dependencies, starts Metro if needed, runs `pod install` on 
 
 **Launch:** `bash .cursor/skills/ketch-react-native-run-sample/scripts/run-sample-app.sh ios local` or `... android local` from the `ketch-react-native` repo root.
 
-**In the app:** **SDK Health Dashboard** is the first section in the example scroll view. Provider defaults: org `ethansch061226`, property `website_smart_tag`. Provider uses `autoLoad={false}` — tap **Load** explicitly.
+**In the app:** **SDK Health Dashboard** is the first section in the example scroll view. Provider defaults: org `ketch_samples`, property `ios`. Provider uses `autoLoad={false}` — tap **Load** explicitly.
 
 **Smoke flow:** **Load** → dashboard rows update → **Show Consent** → WebView/Experience rows change → (iOS) **Request ATT** then **Reload WebView** → Headless **Fetch Bootstrap**.
 
