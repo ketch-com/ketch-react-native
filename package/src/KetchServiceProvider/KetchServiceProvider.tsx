@@ -44,7 +44,12 @@ import {
   getWebViewConfigKey,
   savePrivacyToStorage,
 } from '../util';
-import { getIndexHtml, injectCssIntoHtml } from '../assets';
+import {
+  getIndexHtml,
+  injectCssIntoHtml,
+  injectWebResourceUrlOverridesIntoHtml,
+  getWebResourceUrlOverridesInjectionScript,
+} from '../assets';
 import styles from './styles';
 import nativeStorage from '../util/nativeStorage';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
@@ -94,6 +99,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   forcePreferenceExperience = false,
   preferenceExperienceOptions = {},
   preferenceStorage,
+  webResourceUrlOverrides,
   autoLoad = true,
   children,
   onEnvironmentUpdated,
@@ -171,6 +177,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     ageUpper,
     ketchAtt,
     ketchAttPrev,
+    webResourceUrlOverrides,
     onEnvironmentUpdated,
     onRegionUpdated,
     onJurisdictionUpdated,
@@ -194,6 +201,14 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     () =>
       `${getWebViewConfigKey(webViewParameters)}|${cssOverrideState ?? ''}|${webViewReloadNonce}`,
     [webViewParameters, cssOverrideState, webViewReloadNonce]
+  );
+
+  const webResourceUrlOverrideScript = useMemo(
+    () =>
+      getWebResourceUrlOverridesInjectionScript(
+        webViewParameters.webResourceUrlOverrides
+      ),
+    [webViewParameters.webResourceUrlOverrides]
   );
 
   useEffect(() => {
@@ -561,11 +576,15 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             ref={webViewRef}
             source={{
               html: injectCssIntoHtml(
-                getIndexHtml(webViewParameters),
+                injectWebResourceUrlOverridesIntoHtml(
+                  getIndexHtml(webViewParameters),
+                  webViewParameters.webResourceUrlOverrides
+                ),
                 cssOverrideState
               ),
               baseUrl: 'http://localhost',
             }}
+            injectedJavaScriptBeforeContentLoaded={webResourceUrlOverrideScript}
             injectedJavaScript={
               Platform.OS === 'android' ? injectedJavaScript : undefined
             }
