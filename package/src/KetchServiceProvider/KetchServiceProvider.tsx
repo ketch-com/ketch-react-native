@@ -53,6 +53,19 @@ import {
 import styles from './styles';
 import nativeStorage from '../util/nativeStorage';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
+import { KetchHeadless } from '../headless';
+import type {
+  ConsentConfig,
+  ConsentUpdate,
+  FullConfigurationRequest,
+  GetProfileRequest,
+  InvokeRightRequest,
+  PreferenceQRRequest,
+  PutProfileRequest,
+  SubscriptionConfigurationRequest,
+  SubscriptionsRequest,
+  WebReportRequest,
+} from '../headless/headlessTypes';
 import {
   trackingAuthorizationStatusString,
   ATT_LAST_STORAGE_KEY,
@@ -190,6 +203,87 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onError,
   });
 
+  const headlessApi = useMemo(
+    () => new KetchHeadless({ dataCenter: parameters.dataCenter }),
+    [parameters.dataCenter]
+  );
+
+  const fetchLocation = useCallback(
+    () => headlessApi.fetchLocation(),
+    [headlessApi]
+  );
+
+  const fetchBootstrapConfiguration = useCallback(
+    () =>
+      headlessApi.fetchBootstrapConfiguration(
+        parameters.organizationCode,
+        parameters.propertyCode
+      ),
+    [headlessApi, parameters.organizationCode, parameters.propertyCode]
+  );
+
+  const fetchFullConfiguration = useCallback(
+    (request: FullConfigurationRequest) =>
+      headlessApi.fetchFullConfiguration(request),
+    [headlessApi]
+  );
+
+  const fetchConsent = useCallback(
+    (config: ConsentConfig) => headlessApi.fetchConsent(config),
+    [headlessApi]
+  );
+
+  const fetchProtocols = useCallback(
+    (config: ConsentConfig) => headlessApi.fetchProtocols(config),
+    [headlessApi]
+  );
+
+  const setConsentOnServer = useCallback(
+    (update: ConsentUpdate) => headlessApi.setConsentOnServer(update),
+    [headlessApi]
+  );
+
+  const invokeRight = useCallback(
+    (request: InvokeRightRequest) => headlessApi.invokeRight(request),
+    [headlessApi]
+  );
+
+  const getProfile = useCallback(
+    (request: GetProfileRequest) => headlessApi.getProfile(request),
+    [headlessApi]
+  );
+
+  const putProfile = useCallback(
+    (request: PutProfileRequest) => headlessApi.putProfile(request),
+    [headlessApi]
+  );
+
+  const getSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.getSubscriptions(request),
+    [headlessApi]
+  );
+
+  const setSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.setSubscriptions(request),
+    [headlessApi]
+  );
+
+  const fetchSubscriptionsConfiguration = useCallback(
+    (request: SubscriptionConfigurationRequest) =>
+      headlessApi.fetchSubscriptionsConfiguration(request),
+    [headlessApi]
+  );
+
+  const preferenceQRUrl = useCallback(
+    (request: PreferenceQRRequest) => headlessApi.preferenceQRUrl(request),
+    [headlessApi]
+  );
+
+  const webReport = useCallback(
+    (channel: string, request: WebReportRequest) =>
+      headlessApi.webReport(channel, request),
+    [headlessApi]
+  );
   const webViewParameters = useMemo(() => {
     const att = parameters.ketchAtt ?? resolvedKetchAtt;
     const attPrev = parameters.ketchAttPrev ?? resolvedKetchAttPrev;
@@ -554,18 +648,57 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   `;
 
   // Simply render children if no identities passed as SDK cannot be used
+  const contextValue = useMemo(
+    () => ({
+      showConsentExperience,
+      showPreferenceExperience,
+      dismissExperience,
+      getConsent,
+      updateParameters,
+      load,
+      setCssOverride,
+      fetchLocation,
+      fetchBootstrapConfiguration,
+      fetchFullConfiguration,
+      fetchConsent,
+      fetchProtocols,
+      setConsentOnServer,
+      invokeRight,
+      getProfile,
+      putProfile,
+      getSubscriptions,
+      setSubscriptions,
+      fetchSubscriptionsConfiguration,
+      preferenceQRUrl,
+      webReport,
+    }),
+    [
+      showConsentExperience,
+      showPreferenceExperience,
+      dismissExperience,
+      getConsent,
+      updateParameters,
+      load,
+      setCssOverride,
+      fetchLocation,
+      fetchBootstrapConfiguration,
+      fetchFullConfiguration,
+      fetchConsent,
+      fetchProtocols,
+      setConsentOnServer,
+      invokeRight,
+      getProfile,
+      putProfile,
+      getSubscriptions,
+      setSubscriptions,
+      fetchSubscriptionsConfiguration,
+      preferenceQRUrl,
+      webReport,
+    ]
+  );
+
   return (
-    <KetchServiceContext.Provider
-      value={{
-        showConsentExperience,
-        showPreferenceExperience,
-        dismissExperience,
-        getConsent,
-        updateParameters,
-        load,
-        setCssOverride,
-      }}
-    >
+    <KetchServiceContext.Provider value={contextValue}>
       {children}
       {shouldLoadWebView && isAttReady && (
         <View
