@@ -9,14 +9,13 @@ import React from 'react';
 import {Platform} from 'react-native';
 
 import {
-  KetchDataCenter,
   KetchServiceProvider,
-  PrivacyProtocol,
   type Consent,
 } from '@ketch-com/ketch-react-native';
 import Main from './Main';
-import {DashboardProvider, useDashboard} from './src/dashboard/DashboardContext';
+import {InfoProvider, useInfo} from './src/dashboard/InfoContext';
 import {formatConsent} from './src/dashboard/consentLogging';
+import {SAMPLE_CONFIG} from './config';
 import {
   DEV_URL_OVERRIDES_ENABLED,
   forAndroidEmulator,
@@ -24,14 +23,18 @@ import {
 } from './devUrlOverrides';
 
 function AppWithCallbacks(): React.JSX.Element {
-  const {appendLog, updateDashboard} = useDashboard();
+  const {setJurisdiction, setRegion} = useInfo();
 
   return (
     <KetchServiceProvider
-      organizationCode="ethansch061226"
-      propertyCode="website_smart_tag"
-      dataCenter={KetchDataCenter.UAT}
-      identities={{email: 'test-123-1@gmail.com'}}
+      organizationCode={SAMPLE_CONFIG.organizationCode}
+      propertyCode={SAMPLE_CONFIG.propertyCode}
+      environmentName={SAMPLE_CONFIG.environmentName}
+      languageCode={SAMPLE_CONFIG.languageCode}
+      jurisdictionCode={SAMPLE_CONFIG.jurisdictionCode}
+      regionCode={SAMPLE_CONFIG.regionCode}
+      identities={SAMPLE_CONFIG.identities}
+      dataCenter={SAMPLE_CONFIG.dataCenter}
       autoLoad={false}
       webResourceUrlOverrides={
         DEV_URL_OVERRIDES_ENABLED
@@ -41,62 +44,43 @@ function AppWithCallbacks(): React.JSX.Element {
           : undefined
       }
       onEnvironmentUpdated={environment => {
-        updateDashboard({environment, loadState: 'loaded'});
-        appendLog(`onEnvironmentUpdated: ${environment}`);
+        console.log('[KetchSample] onEnvironmentUpdated:', environment);
       }}
       onRegionUpdated={region => {
-        updateDashboard({region});
-        appendLog(`onRegionUpdated: ${region}`);
+        console.log('[KetchSample] onRegionUpdated:', region);
+        setRegion(region);
       }}
       onJurisdictionUpdated={jurisdiction => {
-        updateDashboard({jurisdiction});
-        appendLog(`onJurisdictionUpdated: ${jurisdiction}`);
+        console.log('[KetchSample] onJurisdictionUpdated:', jurisdiction);
+        setJurisdiction(jurisdiction);
       }}
       onIdentitiesUpdated={identities => {
-        appendLog(`onIdentitiesUpdated: ${JSON.stringify(identities)}`);
+        console.log(
+          '[KetchSample] onIdentitiesUpdated:',
+          JSON.stringify(identities),
+        );
       }}
       onConsentUpdated={(consent: Consent) => {
-        const summary = formatConsent(consent);
-        updateDashboard({consent: summary});
-        appendLog(`onConsentUpdated: ${summary}`);
-        console.log('[KetchSample] onConsentUpdated:', summary);
+        console.log('[KetchSample] onConsentUpdated:', formatConsent(consent));
       }}
       onPrivacyProtocolUpdated={(protocol, values) => {
-        const text = JSON.stringify(values);
-        if (protocol === PrivacyProtocol.USPrivacy) {
-          updateDashboard({usPrivacy: text});
-        } else if (protocol === PrivacyProtocol.TCF) {
-          updateDashboard({tcf: text});
-        } else if (protocol === PrivacyProtocol.GPP) {
-          updateDashboard({gpp: text});
-        }
-        appendLog(`onPrivacyProtocolUpdated: ${protocol}`);
+        console.log(
+          '[KetchSample] onPrivacyProtocolUpdated:',
+          protocol,
+          JSON.stringify(values),
+        );
       }}
       onHasShownExperience={() => {
-        updateDashboard({
-          experienceVisibility: 'shown',
-          webViewVisible: 'visible',
-        });
-        appendLog('onHasShownExperience');
+        console.log('[KetchSample] onHasShownExperience');
       }}
       onHideExperience={reason => {
-        updateDashboard({
-          experienceVisibility: 'dismissed',
-          dismissReason: String(reason),
-          webViewVisible: 'hidden',
-        });
-        appendLog(`onHideExperience: ${reason}`);
+        console.log('[KetchSample] onHideExperience:', reason);
       }}
       onError={errorMessage => {
-        updateDashboard({
-          loadState: 'error',
-          initState: 'Error',
-          statusText: `Error: ${errorMessage}`,
-        });
-        appendLog(`error: ${errorMessage}`);
+        console.log('[KetchSample] onError:', errorMessage);
       }}
       onNativeStoragePut={(key, value) => {
-        appendLog(`onNativeStoragePut: ${key}=${value}`);
+        console.log('[KetchSample] onNativeStoragePut:', key, value);
       }}>
       <Main />
     </KetchServiceProvider>
@@ -105,9 +89,9 @@ function AppWithCallbacks(): React.JSX.Element {
 
 function App(): React.JSX.Element {
   return (
-    <DashboardProvider>
+    <InfoProvider>
       <AppWithCallbacks />
-    </DashboardProvider>
+    </InfoProvider>
   );
 }
 
