@@ -58,13 +58,9 @@ import type {
   ConsentConfig,
   ConsentUpdate,
   FullConfigurationRequest,
-  GetProfileRequest,
   InvokeRightRequest,
   PreferenceQRRequest,
-  PutProfileRequest,
-  SubscriptionConfigurationRequest,
   SubscriptionsRequest,
-  WebReportRequest,
 } from '../headless/headlessTypes';
 import {
   trackingAuthorizationStatusString,
@@ -208,33 +204,28 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [parameters.dataCenter]
   );
 
-  const fetchLocation = useCallback(
-    () => headlessApi.fetchLocation(),
+  const getLocation = useCallback(
+    () => headlessApi.getLocation(),
     [headlessApi]
   );
 
-  const fetchBootstrapConfiguration = useCallback(
+  const getBootstrapConfiguration = useCallback(
     () =>
-      headlessApi.fetchBootstrapConfiguration(
+      headlessApi.getBootstrapConfiguration(
         parameters.organizationCode,
         parameters.propertyCode
       ),
     [headlessApi, parameters.organizationCode, parameters.propertyCode]
   );
 
-  const fetchFullConfiguration = useCallback(
+  const getFullConfiguration = useCallback(
     (request: FullConfigurationRequest) =>
-      headlessApi.fetchFullConfiguration(request),
+      headlessApi.getFullConfiguration(request),
     [headlessApi]
   );
 
   const fetchConsent = useCallback(
-    (config: ConsentConfig) => headlessApi.fetchConsent(config),
-    [headlessApi]
-  );
-
-  const fetchProtocols = useCallback(
-    (config: ConsentConfig) => headlessApi.fetchProtocols(config),
+    (config: ConsentConfig) => headlessApi.getConsent(config),
     [headlessApi]
   );
 
@@ -248,16 +239,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [headlessApi]
   );
 
-  const getProfile = useCallback(
-    (request: GetProfileRequest) => headlessApi.getProfile(request),
-    [headlessApi]
-  );
-
-  const putProfile = useCallback(
-    (request: PutProfileRequest) => headlessApi.putProfile(request),
-    [headlessApi]
-  );
-
   const getSubscriptions = useCallback(
     (request: SubscriptionsRequest) => headlessApi.getSubscriptions(request),
     [headlessApi]
@@ -268,22 +249,11 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [headlessApi]
   );
 
-  const fetchSubscriptionsConfiguration = useCallback(
-    (request: SubscriptionConfigurationRequest) =>
-      headlessApi.fetchSubscriptionsConfiguration(request),
-    [headlessApi]
-  );
-
   const preferenceQRUrl = useCallback(
     (request: PreferenceQRRequest) => headlessApi.preferenceQRUrl(request),
     [headlessApi]
   );
 
-  const webReport = useCallback(
-    (channel: string, request: WebReportRequest) =>
-      headlessApi.webReport(channel, request),
-    [headlessApi]
-  );
   const webViewParameters = useMemo(() => {
     const att = parameters.ketchAtt ?? resolvedKetchAtt;
     const attPrev = parameters.ketchAttPrev ?? resolvedKetchAttPrev;
@@ -657,20 +627,15 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       updateParameters,
       load,
       setCssOverride,
-      fetchLocation,
-      fetchBootstrapConfiguration,
-      fetchFullConfiguration,
+      getLocation,
+      getBootstrapConfiguration,
+      getFullConfiguration,
       fetchConsent,
-      fetchProtocols,
       setConsentOnServer,
       invokeRight,
-      getProfile,
-      putProfile,
       getSubscriptions,
       setSubscriptions,
-      fetchSubscriptionsConfiguration,
       preferenceQRUrl,
-      webReport,
     }),
     [
       showConsentExperience,
@@ -680,20 +645,15 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       updateParameters,
       load,
       setCssOverride,
-      fetchLocation,
-      fetchBootstrapConfiguration,
-      fetchFullConfiguration,
+      getLocation,
+      getBootstrapConfiguration,
+      getFullConfiguration,
       fetchConsent,
-      fetchProtocols,
       setConsentOnServer,
       invokeRight,
-      getProfile,
-      putProfile,
       getSubscriptions,
       setSubscriptions,
-      fetchSubscriptionsConfiguration,
       preferenceQRUrl,
-      webReport,
     ]
   );
 

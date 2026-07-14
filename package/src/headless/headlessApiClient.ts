@@ -8,16 +8,11 @@ import {
   type ConsentConfig,
   type ConsentUpdate,
   type FullConfigurationRequest,
-  type GetProfileRequest,
-  type GetProfileResponse,
   type InvokeRightRequest,
   type LocationResponse,
   type PreferenceQRRequest,
-  type PutProfileRequest,
-  type SubscriptionConfigurationRequest,
   type SubscriptionsRequest,
   type SubscriptionsResponse,
-  type WebReportRequest,
 } from './headlessTypes';
 
 export type FetchFn = typeof fetch;
@@ -52,13 +47,13 @@ export class HeadlessApiClient {
   }
 
   /** GeoIP / jurisdiction hint (`GET /ip`). */
-  async fetchLocation(): Promise<LocationResponse> {
+  async getLocation(): Promise<LocationResponse> {
     const response = await this.get(this.buildUrl('/ip'));
     return this.parseJsonResponse<LocationResponse>(response, '/ip');
   }
 
   /** Minimal config (`GET .../boot.json`). */
-  async fetchBootstrapConfiguration(
+  async getBootstrapConfiguration(
     organization: string,
     property: string
   ): Promise<Record<string, unknown>> {
@@ -72,7 +67,7 @@ export class HeadlessApiClient {
   }
 
   /** Full config with optional env / jurisdiction / language and hash query param. */
-  async fetchFullConfiguration(
+  async getFullConfiguration(
     request: FullConfigurationRequest
   ): Promise<Record<string, unknown>> {
     let path = `/config/${request.organizationCode}/${request.propertyCode}`;
@@ -90,7 +85,7 @@ export class HeadlessApiClient {
   }
 
   /** Server consent including `protocols` (`POST .../consent/{org}/get`). */
-  async fetchConsent(config: ConsentConfig): Promise<Consent> {
+  async getConsent(config: ConsentConfig): Promise<Consent> {
     const path = `/consent/${config.organizationCode}/get`;
     const response = await this.post(path, consentConfigToJson(config));
     if (!response || response === 'null') {
@@ -104,37 +99,9 @@ export class HeadlessApiClient {
     return hasUsableConsentFields(consent) ? consent : emptyConsent();
   }
 
-  /** Protocol strings only (same endpoint as fetchConsent). */
-  async fetchProtocols(config: ConsentConfig): Promise<Consent> {
-    const response = await this.fetchConsent(config);
-    if (!response.protocols || Object.keys(response.protocols).length === 0) {
-      return {
-        purposes: response.purposes,
-        vendors: response.vendors,
-      };
-    }
-    return response;
-  }
-
   /** Invokes a data subject right (`POST .../rights/{org}/invoke`). */
   async invokeRight(request: InvokeRightRequest): Promise<void> {
     const path = `/rights/${request.organizationCode}/invoke`;
-    await this.postVoid(path, request as unknown as Record<string, unknown>);
-  }
-
-  /** Gets profile preferences (`POST .../profile/{org}/get`). */
-  async getProfile(request: GetProfileRequest): Promise<GetProfileResponse> {
-    const path = `/profile/${request.organizationCode}/get`;
-    const response = await this.post(
-      path,
-      request as unknown as Record<string, unknown>
-    );
-    return this.parseJsonResponse<GetProfileResponse>(response, path);
-  }
-
-  /** Updates profile preferences (`POST .../profile/{org}/put`). */
-  async putProfile(request: PutProfileRequest): Promise<void> {
-    const path = `/profile/${request.organizationCode}/put`;
     await this.postVoid(path, request as unknown as Record<string, unknown>);
   }
 
@@ -154,15 +121,6 @@ export class HeadlessApiClient {
   async setSubscriptions(request: SubscriptionsRequest): Promise<void> {
     const path = `/subscriptions/${request.organizationCode}/update`;
     await this.postVoid(path, request as unknown as Record<string, unknown>);
-  }
-
-  /** Subscriptions tab config (`GET .../subscriptions.json`). */
-  async fetchSubscriptionsConfiguration(
-    request: SubscriptionConfigurationRequest
-  ): Promise<Record<string, unknown>> {
-    const path = `/config/${request.organizationCode}/${request.propertyCode}/${request.languageCode}/${request.experienceCode}/subscriptions.json`;
-    const response = await this.get(this.buildUrl(path));
-    return this.parseJsonResponse<Record<string, unknown>>(response, path);
   }
 
   /** Builds preferences QR image URL (no HTTP). */
@@ -189,14 +147,6 @@ export class HeadlessApiClient {
     return this.buildUrl(
       `/qr/${request.organizationCode}/${request.propertyCode}/preferences.png`,
       Object.keys(query).length > 0 ? query : undefined
-    );
-  }
-
-  /** Telemetry upload (`POST /report/{channel}`). */
-  async webReport(channel: string, request: WebReportRequest): Promise<void> {
-    await this.postVoid(
-      `/report/${channel}`,
-      request as unknown as Record<string, unknown>
     );
   }
 

@@ -184,16 +184,16 @@ describe('Headless consent payloads', () => {
 });
 
 describe('HeadlessApiClient consent', () => {
-  it('fetchConsent propagates HTTP failure', async () => {
+  it('getConsent propagates HTTP failure', async () => {
     const client = new HeadlessApiClient({
       dataCenter: KetchDataCenter.US,
       fetchFn: mockFetchResponse({ ok: false, status: 500 }),
     });
 
-    await expect(client.fetchConsent(consentConfig)).rejects.toThrow(
+    await expect(client.getConsent(consentConfig)).rejects.toThrow(
       HeadlessException
     );
-    await expect(client.fetchConsent(consentConfig)).rejects.toThrow(
+    await expect(client.getConsent(consentConfig)).rejects.toThrow(
       'HTTP 500'
     );
   });
@@ -209,35 +209,35 @@ describe('HeadlessApiClient consent', () => {
     );
   });
 
-  it('fetchConsent returns empty consent on malformed JSON', async () => {
+  it('getConsent returns empty consent on malformed JSON', async () => {
     const client = new HeadlessApiClient({
       dataCenter: KetchDataCenter.US,
       fetchFn: mockFetchResponse({ ok: true, body: '{not-json' }),
     });
 
-    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+    await expect(client.getConsent(consentConfig)).resolves.toEqual({
       purposes: {},
     });
   });
 
-  it('fetchConsent returns empty consent on 200 null body', async () => {
+  it('getConsent returns empty consent on 200 null body', async () => {
     const client = new HeadlessApiClient({
       dataCenter: KetchDataCenter.US,
       fetchFn: mockFetchResponse({ ok: true, body: 'null' }),
     });
 
-    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+    await expect(client.getConsent(consentConfig)).resolves.toEqual({
       purposes: {},
     });
   });
 
-  it('fetchConsent returns empty consent on 200 blank body', async () => {
+  it('getConsent returns empty consent on 200 blank body', async () => {
     const client = new HeadlessApiClient({
       dataCenter: KetchDataCenter.US,
       fetchFn: mockFetchResponse({ ok: true, body: '' }),
     });
 
-    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+    await expect(client.getConsent(consentConfig)).resolves.toEqual({
       purposes: {},
     });
   });
@@ -259,26 +259,7 @@ describe('HeadlessApiClient consent', () => {
   });
 });
 
-describe('fetchProtocols', () => {
-  it('preserves purposes when protocols are missing', async () => {
-    const client = new HeadlessApiClient({
-      dataCenter: KetchDataCenter.US,
-      fetchFn: mockFetchResponse({
-        ok: true,
-        body: JSON.stringify({
-          purposes: { analytics: true, marketing: false },
-        }),
-      }),
-    });
-
-    await expect(client.fetchProtocols(consentConfig)).resolves.toEqual({
-      purposes: { analytics: true, marketing: false },
-      vendors: undefined,
-    });
-  });
-});
-
-describe('hasUsableConsentFields (via fetchConsent)', () => {
+describe('hasUsableConsentFields (via getConsent)', () => {
   it('returns empty consent when purposes and protocols are empty objects', async () => {
     const client = new HeadlessApiClient({
       dataCenter: KetchDataCenter.US,
@@ -288,7 +269,7 @@ describe('hasUsableConsentFields (via fetchConsent)', () => {
       }),
     });
 
-    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+    await expect(client.getConsent(consentConfig)).resolves.toEqual({
       purposes: {},
     });
   });
@@ -302,7 +283,7 @@ describe('hasUsableConsentFields (via fetchConsent)', () => {
       }),
     });
 
-    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+    await expect(client.getConsent(consentConfig)).resolves.toEqual({
       purposes: { analytics: true },
       vendors: undefined,
       protocols: undefined,
@@ -318,7 +299,7 @@ describe('hasUsableConsentFields (via fetchConsent)', () => {
       }),
     });
 
-    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+    await expect(client.getConsent(consentConfig)).resolves.toEqual({
       purposes: undefined,
       vendors: undefined,
       protocols: { gpp: 'DBABLA~' },
@@ -334,7 +315,7 @@ describe('hasUsableConsentFields (via fetchConsent)', () => {
       }),
     });
 
-    await expect(client.fetchConsent(consentConfig)).resolves.toEqual({
+    await expect(client.getConsent(consentConfig)).resolves.toEqual({
       purposes: {},
     });
   });

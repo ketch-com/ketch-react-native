@@ -23,13 +23,13 @@ const runIntegration = process.env.KETCH_INTEGRATION_TESTS === '1';
     client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
   });
 
-  it('fetchLocation returns GeoIP from CDN', async () => {
-    const location = await client.fetchLocation();
+  it('getLocation returns GeoIP from CDN', async () => {
+    const location = await client.getLocation();
     expect(location.location?.countryCode).toBeTruthy();
   });
 
-  it('fetchBootstrapConfiguration returns sandbox config', async () => {
-    const boot = await client.fetchBootstrapConfiguration(
+  it('getBootstrapConfiguration returns sandbox config', async () => {
+    const boot = await client.getBootstrapConfiguration(
       HeadlessIntegrationSupport.orgCode,
       HeadlessIntegrationSupport.propertyCode
     );
@@ -41,14 +41,14 @@ const runIntegration = process.env.KETCH_INTEGRATION_TESTS === '1';
   it('headless cold start consent round-trip', async () => {
     const identities = HeadlessIntegrationSupport.uniqueEmailIdentity();
 
-    await client.fetchLocation();
+    await client.getLocation();
 
-    await client.fetchBootstrapConfiguration(
+    await client.getBootstrapConfiguration(
       HeadlessIntegrationSupport.orgCode,
       HeadlessIntegrationSupport.propertyCode
     );
 
-    const fullConfig = await client.fetchFullConfiguration({
+    const fullConfig = await client.getFullConfiguration({
       organizationCode: HeadlessIntegrationSupport.orgCode,
       propertyCode: HeadlessIntegrationSupport.propertyCode,
     });
@@ -59,7 +59,7 @@ const runIntegration = process.env.KETCH_INTEGRATION_TESTS === '1';
         identities,
       });
 
-    const consent = await client.fetchConsent(consentConfig);
+    const consent = await client.getConsent(consentConfig);
     const hasProtocols =
       consent.protocols != null && Object.keys(consent.protocols).length > 0;
     const hasPurposes =

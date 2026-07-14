@@ -13,7 +13,7 @@ export interface IPInfo {
   timezone?: string;
 }
 
-/** Response from headless `fetchLocation()`. */
+/** Response from headless `getLocation()`. */
 export interface LocationResponse {
   location?: IPInfo;
 }
@@ -143,61 +143,6 @@ export interface InvokeRightRequest {
   isAuthenticated?: boolean;
 }
 
-export interface ProfilePreferencesIdentity {
-  identitySpace: string;
-  identityValue: string;
-}
-
-export interface ProfilePreferencesAttribute {
-  attributeCode: string;
-  attributeValue?: string;
-  source: string;
-}
-
-export interface ProfilePreferencesContext {
-  source: string;
-  updatedAt?: number;
-  configId?: string;
-}
-
-/** ketch-types `GetProfileRequest` */
-export interface GetProfileRequest {
-  organizationCode: string;
-  propertyCode: string;
-  jurisdictionCode: string;
-  languageCode: string;
-  identities: ProfilePreferencesIdentity[];
-  controllerCode?: string;
-  environmentCode?: string;
-  accountID?: string;
-  regionCode?: string;
-}
-
-/** ketch-types `GetProfileResponse` */
-export interface GetProfileResponse {
-  controllerCode?: string;
-  propertyCode?: string;
-  environmentCode?: string;
-  jurisdictionCode?: string;
-  regionCode?: string;
-  attributes?: ProfilePreferencesAttribute[];
-}
-
-/** ketch-types `PutProfileRequest` */
-export interface PutProfileRequest {
-  organizationCode: string;
-  propertyCode: string;
-  jurisdictionCode: string;
-  languageCode: string;
-  identities: ProfilePreferencesIdentity[];
-  context: ProfilePreferencesContext;
-  controllerCode?: string;
-  environmentCode?: string;
-  attributes?: ProfilePreferencesAttribute[];
-  accountId?: string;
-  regionCode?: string;
-}
-
 /** ketch-types `GetSubscriptionsRequest` / `SetSubscriptionsRequest` */
 export interface SubscriptionsRequest {
   organizationCode: string;
@@ -214,13 +159,6 @@ export interface SubscriptionsRequest {
 
 export type SubscriptionsResponse = SubscriptionsRequest;
 
-export interface SubscriptionConfigurationRequest {
-  organizationCode: string;
-  propertyCode: string;
-  languageCode: string;
-  experienceCode: string;
-}
-
 export interface PreferenceQRRequest {
   organizationCode: string;
   propertyCode: string;
@@ -230,12 +168,4 @@ export interface PreferenceQRRequest {
   backgroundColor?: string;
   foregroundColor?: string;
   parameters?: Record<string, string>;
-}
-
-export interface WebReportRequest {
-  type: string;
-  age: number;
-  url: string;
-  user_agent: string;
-  body: Record<string, string>;
 }

@@ -10,16 +10,11 @@ import type {
   ConsentConfig,
   ConsentUpdate,
   FullConfigurationRequest,
-  GetProfileRequest,
-  GetProfileResponse,
   InvokeRightRequest,
   LocationResponse,
   PreferenceQRRequest,
-  PutProfileRequest,
-  SubscriptionConfigurationRequest,
   SubscriptionsRequest,
   SubscriptionsResponse,
-  WebReportRequest,
 } from '../headless/headlessTypes';
 
 /**
@@ -298,33 +293,24 @@ export interface KetchService {
   setCssOverride?: (css: string) => void;
 
   /** GeoIP / jurisdiction hint (`GET /ip`). Pre-WebView headless API. */
-  fetchLocation?: () => Promise<LocationResponse>;
+  getLocation?: () => Promise<LocationResponse>;
 
   /** Minimal config (`GET .../boot.json`). */
-  fetchBootstrapConfiguration?: () => Promise<Record<string, unknown>>;
+  getBootstrapConfiguration?: () => Promise<Record<string, unknown>>;
 
   /** Full config with optional env / jurisdiction / language and hash query param. */
-  fetchFullConfiguration?: (
+  getFullConfiguration?: (
     request: FullConfigurationRequest
   ) => Promise<Record<string, unknown>>;
 
   /** Server consent including `protocols`. Does not read WebView cache — use [getConsent]. */
   fetchConsent?: (config: ConsentConfig) => Promise<Consent>;
 
-  /** Protocol strings only (same CDN endpoint as fetchConsent). */
-  fetchProtocols?: (config: ConsentConfig) => Promise<Consent>;
-
   /** Updates consent on the CDN; returns server-computed `protocols`. */
   setConsentOnServer?: (update: ConsentUpdate) => Promise<Consent>;
 
   /** Invokes a data subject right (`POST .../rights/{org}/invoke`). */
   invokeRight?: (request: InvokeRightRequest) => Promise<void>;
-
-  /** Gets profile preferences (`POST .../profile/{org}/get`). */
-  getProfile?: (request: GetProfileRequest) => Promise<GetProfileResponse>;
-
-  /** Updates profile preferences (`POST .../profile/{org}/put`). */
-  putProfile?: (request: PutProfileRequest) => Promise<void>;
 
   /** Gets subscription topics/controls (`POST .../subscriptions/{org}/get`). */
   getSubscriptions?: (
@@ -334,14 +320,6 @@ export interface KetchService {
   /** Updates subscription topics/controls (`POST .../subscriptions/{org}/update`). */
   setSubscriptions?: (request: SubscriptionsRequest) => Promise<void>;
 
-  /** Subscriptions tab config (`GET .../subscriptions.json`). */
-  fetchSubscriptionsConfiguration?: (
-    request: SubscriptionConfigurationRequest
-  ) => Promise<Record<string, unknown>>;
-
   /** Builds preferences QR image URL (no HTTP). */
   preferenceQRUrl?: (request: PreferenceQRRequest) => string;
-
-  /** Telemetry upload (`POST /report/{channel}`). */
-  webReport?: (channel: string, request: WebReportRequest) => Promise<void>;
 }

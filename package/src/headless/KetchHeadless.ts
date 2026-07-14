@@ -4,16 +4,11 @@ import type {
   ConsentConfig,
   ConsentUpdate,
   FullConfigurationRequest,
-  GetProfileRequest,
-  GetProfileResponse,
   InvokeRightRequest,
   LocationResponse,
   PreferenceQRRequest,
-  PutProfileRequest,
-  SubscriptionConfigurationRequest,
   SubscriptionsRequest,
   SubscriptionsResponse,
-  WebReportRequest,
 } from './headlessTypes';
 import type { Consent } from '../types';
 
@@ -37,29 +32,25 @@ export class KetchHeadless {
     return this.client.buildUrl(path, query);
   }
 
-  fetchLocation(): Promise<LocationResponse> {
-    return this.client.fetchLocation();
+  getLocation(): Promise<LocationResponse> {
+    return this.client.getLocation();
   }
 
-  fetchBootstrapConfiguration(
+  getBootstrapConfiguration(
     organization: string,
     property: string
   ): Promise<Record<string, unknown>> {
-    return this.client.fetchBootstrapConfiguration(organization, property);
+    return this.client.getBootstrapConfiguration(organization, property);
   }
 
-  fetchFullConfiguration(
+  getFullConfiguration(
     request: FullConfigurationRequest
   ): Promise<Record<string, unknown>> {
-    return this.client.fetchFullConfiguration(request);
+    return this.client.getFullConfiguration(request);
   }
 
-  fetchConsent(config: ConsentConfig): Promise<Consent> {
-    return this.client.fetchConsent(config);
-  }
-
-  fetchProtocols(config: ConsentConfig): Promise<Consent> {
-    return this.client.fetchProtocols(config);
+  getConsent(config: ConsentConfig): Promise<Consent> {
+    return this.client.getConsent(config);
   }
 
   setConsentOnServer(update: ConsentUpdate): Promise<Consent> {
@@ -68,14 +59,6 @@ export class KetchHeadless {
 
   invokeRight(request: InvokeRightRequest): Promise<void> {
     return this.client.invokeRight(request);
-  }
-
-  getProfile(request: GetProfileRequest): Promise<GetProfileResponse> {
-    return this.client.getProfile(request);
-  }
-
-  putProfile(request: PutProfileRequest): Promise<void> {
-    return this.client.putProfile(request);
   }
 
   getSubscriptions(
@@ -88,17 +71,7 @@ export class KetchHeadless {
     return this.client.setSubscriptions(request);
   }
 
-  fetchSubscriptionsConfiguration(
-    request: SubscriptionConfigurationRequest
-  ): Promise<Record<string, unknown>> {
-    return this.client.fetchSubscriptionsConfiguration(request);
-  }
-
   preferenceQRUrl(request: PreferenceQRRequest): string {
     return this.client.preferenceQRUrl(request);
-  }
-
-  webReport(channel: string, request: WebReportRequest): Promise<void> {
-    return this.client.webReport(channel, request);
   }
 }
