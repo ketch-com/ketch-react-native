@@ -9,14 +9,7 @@ import React, {
   type ReactElement,
 } from 'react';
 
-import {
-  Platform,
-  NativeModules,
-  View,
-  Linking,
-  StatusBar,
-  Dimensions,
-} from 'react-native';
+import { Platform, View, Linking, StatusBar, Dimensions } from 'react-native';
 import WebView, {
   type WebViewMessageEvent,
   type WebViewNavigation,
@@ -43,6 +36,7 @@ import {
   createOptionsString,
   getWebViewConfigKey,
   savePrivacyToStorage,
+  getDeviceLanguage,
 } from '../util';
 import {
   getIndexHtml,
@@ -82,18 +76,11 @@ const isWithin1kb = (css: string): boolean =>
     ? new TextEncoder().encode(css).length <= 1024
     : css.length <= 1024;
 
-const deviceLanguage: string =
-  Platform.OS === 'ios'
-    ? NativeModules.SettingsManager?.settings?.AppleLocale ||
-      NativeModules.SettingsManager?.settings?.AppleLanguages?.[0] ||
-      'en'
-    : NativeModules.I18nManager?.localeIdentifier || 'en';
-
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
   propertyCode,
   identities,
-  languageCode = deviceLanguage,
+  languageCode = getDeviceLanguage(),
   regionCode,
   jurisdictionCode,
   environmentName,

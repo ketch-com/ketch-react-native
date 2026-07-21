@@ -1,4 +1,5 @@
 import { KetchDataCenter, MobileSdkUrlByDataCenterMap } from '../enums';
+import { getDeviceLanguageTag } from '../util/deviceLocale';
 import type { Consent } from '../types';
 import {
   consentConfigToJson,
@@ -21,17 +22,20 @@ export type FetchFn = typeof fetch;
 export class HeadlessApiClient {
   private readonly baseUrl: string;
   private readonly fetchFn: FetchFn;
+  private readonly deviceLanguage: () => string;
 
   constructor(
     options: {
       dataCenter?: KetchDataCenter;
       baseUrl?: string;
       fetchFn?: FetchFn;
+      deviceLanguage?: () => string;
     } = {}
   ) {
     const dataCenter = options.dataCenter ?? KetchDataCenter.US;
     this.baseUrl = options.baseUrl ?? MobileSdkUrlByDataCenterMap[dataCenter];
     this.fetchFn = options.fetchFn ?? fetch;
+    this.deviceLanguage = options.deviceLanguage ?? getDeviceLanguageTag;
   }
 
   /** Builds an absolute CDN URL for unit tests and debugging. */
@@ -71,16 +75,31 @@ export class HeadlessApiClient {
     request: FullConfigurationRequest
   ): Promise<Record<string, unknown>> {
     let path = `/config/${request.organizationCode}/${request.propertyCode}`;
-    if (
+    const isShortPath = !(
       request.environmentCode &&
       request.jurisdictionCode &&
       request.languageCode
-    ) {
+    );
+    if (!isShortPath) {
       path += `/${request.environmentCode}/${request.jurisdictionCode}/${request.languageCode}`;
     }
     path += '/config.json';
-    const query = request.hash ? { hash: request.hash } : undefined;
-    const response = await this.get(this.buildUrl(path, query));
+
+    const query: Record<string, string> = {};
+    if (isShortPath) {
+      query.language = request.languageCode || this.deviceLanguage();
+      if (request.jurisdictionCode)
+        query.jurisdiction = request.jurisdictionCode;
+      if (request.regionCode) query.region = request.regionCode;
+    }
+    if (request.hash) query.hash = request.hash;
+
+    // Belt-and-suspenders: the `language` query param is what the server actually reads.
+    const headers = isShortPath
+      ? { 'Accept-Language': this.deviceLanguage() }
+      : undefined;
+
+    const response = await this.get(this.buildUrl(path, query), headers);
     return this.parseJsonResponse<Record<string, unknown>>(response, path);
   }
 
@@ -182,11 +201,14 @@ export class HeadlessApiClient {
     }
   }
 
-  private async get(url: string): Promise<string> {
+  private async get(
+    url: string,
+    headers?: Record<string, string>
+  ): Promise<string> {
     try {
       const response = await this.fetchFn(url, {
         method: 'GET',
-        headers: { Accept: 'application/json' },
+        headers: { Accept: 'application/json', ...headers },
       });
       if (!response.ok) {
         throw new HeadlessException(`HTTP ${response.status} for ${url}`);

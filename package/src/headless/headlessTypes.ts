@@ -26,6 +26,7 @@ export interface FullConfigurationRequest {
   jurisdictionCode?: string;
   languageCode?: string;
   hash?: string;
+  regionCode?: string;
 }
 
 export interface PurposeLegalBasis {
