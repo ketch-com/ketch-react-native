@@ -19,7 +19,6 @@ describe('KetchServiceProvider styles', () => {
 
   it('still fills the screen when StyleSheet.absoluteFillObject is removed (RN 0.85)', () => {
     const legacySpread = {
-      ...(undefined as typeof StyleSheet.absoluteFillObject),
       backgroundColor: 'transparent',
       zIndex: 99999,
     };
