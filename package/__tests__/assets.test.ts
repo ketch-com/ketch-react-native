@@ -3,7 +3,6 @@ import {
   injectCssIntoHtml,
   injectDirIntoHtml,
 } from '../src/assets';
-import { KETCH_RTL_CSS } from '../src/assets/rtlCss';
 
 const BASE_HTML = '<html>\n  <head>\n  </head>\n  <body></body>\n</html>';
 
@@ -22,23 +21,8 @@ describe('injectCssIntoHtml', () => {
 
 describe('injectDirIntoHtml', () => {
   it('sets the dir attribute on the document root', () => {
+    expect(injectDirIntoHtml(BASE_HTML, 'rtl')).toContain('<html dir="rtl">');
     expect(injectDirIntoHtml(BASE_HTML, 'ltr')).toContain('<html dir="ltr">');
-  });
-
-  it('injects the bundled RTL stylesheet when dir is rtl', () => {
-    const result = injectDirIntoHtml(BASE_HTML, 'rtl');
-
-    expect(result).toContain('<html dir="rtl">');
-    expect(result).toContain(`<style>${KETCH_RTL_CSS}</style>\n</head>`);
-  });
-
-  it('does not inject the RTL stylesheet for other directions', () => {
-    expect(injectDirIntoHtml(BASE_HTML, 'ltr')).not.toContain(
-      "[dir='rtl'] #ketch-banner"
-    );
-    expect(injectDirIntoHtml(BASE_HTML, 'auto')).not.toContain(
-      "[dir='rtl'] #ketch-banner"
-    );
   });
 
   it('returns html unchanged when dir is not provided', () => {
@@ -50,9 +34,7 @@ describe('injectDirIntoHtml', () => {
       organizationCode: 'acme',
       propertyCode: 'prop',
     });
-    const result = injectDirIntoHtml(html, 'rtl');
 
-    expect(result).toContain('<html dir="rtl">');
-    expect(result).toContain("[dir='rtl'] #ketch-banner");
+    expect(injectDirIntoHtml(html, 'rtl')).toContain('<html dir="rtl">');
   });
 });

@@ -1,6 +1,5 @@
 import { createUrlParamsObject } from '../util/helpers';
 import type { KetchMobile } from '../types';
-import { KETCH_RTL_CSS } from './rtlCss';
 
 export const getIndexHtml = (parameters: KetchMobile) => {
   const urlParams = createUrlParamsObject(parameters);
@@ -229,21 +228,19 @@ export const injectCssIntoHtml = (html: string, css?: string) => {
 
 /**
  * Sets the direction attribute on the WebView document root
- * (<html dir="...">). When dir is 'rtl' it also injects the bundled RTL
- * stylesheet so the Ketch experiences render mirrored correctly.
+ * (<html dir="...">). This is what activates direction-sensitive styling in
+ * the experiences, e.g. Tailwind's rtl:/ltr: variants (which compile to
+ * [dir="rtl"]/[dir="ltr"] ancestor selectors) and [dir='rtl'] rules in a
+ * cssOverride.
  */
 export const injectDirIntoHtml = (
   html: string,
   dir?: 'ltr' | 'rtl' | 'auto'
 ) => {
-  if (!dir) {
-    return html;
+  if (dir) {
+    return html.replace('<html>', `<html dir="${dir}">`);
   }
-  const withDir = html.replace('<html>', `<html dir="${dir}">`);
-  if (dir !== 'rtl') {
-    return withDir;
-  }
-  return withDir.replace('</head>', `<style>${KETCH_RTL_CSS}</style>\n</head>`);
+  return html;
 };
 
 const buildWebResourceUrlOverridesHook = (overridesJson: string) =>

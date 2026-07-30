@@ -68,9 +68,10 @@ interface KetchServiceProviderParams extends KetchMobile {
   cssOverride?: string;
   /**
    * Direction (`dir`) attribute applied to the WebView document root
-   * (`<html dir="...">`). Set to 'rtl' for right-to-left locales: this also
-   * injects the SDK's bundled RTL stylesheet so the Ketch experiences render
-   * mirrored, and makes `[dir='rtl']` selectors in a cssOverride take effect.
+   * (`<html dir="...">`). Set to 'rtl' for right-to-left locales so the
+   * experiences can mirror: it activates direction-sensitive styling such as
+   * Tailwind's rtl:/ltr: variants in the Ketch web experiences and
+   * `[dir='rtl']` selectors in a cssOverride.
    */
   htmlDir?: 'ltr' | 'rtl' | 'auto';
   /**
