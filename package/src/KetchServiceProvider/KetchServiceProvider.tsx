@@ -47,6 +47,7 @@ import {
 import {
   getIndexHtml,
   injectCssIntoHtml,
+  injectDirIntoHtml,
   injectWebResourceUrlOverridesIntoHtml,
   getWebResourceUrlOverridesInjectionScript,
 } from '../assets';
@@ -65,6 +66,21 @@ interface KetchServiceProviderParams extends KetchMobile {
    * Must be pure CSS (no HTML tags).
    */
   cssOverride?: string;
+  /**
+   * Direction (`dir`) attribute applied to the WebView document root
+   * (`<html dir="...">`). Set to 'rtl' for right-to-left locales so the
+   * experiences can mirror: it activates direction-sensitive styling such as
+   * Tailwind's rtl:/ltr: variants in the Ketch web experiences and
+   * `[dir='rtl']` selectors in a cssOverride.
+   */
+  htmlDir?: 'ltr' | 'rtl' | 'auto';
+  /**
+   * Android bottom system-bar inset (dp) measured by the host app.
+   * Preferred over the Dimensions-based heuristic below, which returns 0 in
+   * edge-to-edge apps (screen == window) and leaves the WebView content
+   * underneath the gesture/navigation bar.
+   */
+  safeAreaInsetBottom?: number;
 }
 
 const containsHTMLTags = (css: string): boolean => /<[a-zA-Z]/.test(css);
@@ -113,6 +129,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onNativeStoragePut,
   onError,
   cssOverride: initialCssOverride,
+  htmlDir,
+  safeAreaInsetBottom,
 }) => {
   const webViewRef = useRef<WebView>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -155,7 +173,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const window = Dimensions.get('window'); // Usable screen area
   const screen = Dimensions.get('screen'); // Full screen area
   const bottomPadding =
-    Platform.OS === 'android' ? (screen.height - window.height) / 2 : 0;
+    Platform.OS === 'android'
+      ? (safeAreaInsetBottom ?? (screen.height - window.height) / 2)
+      : 0;
 
   // Internal state values which shouldn't cause re-render
   const isForceConsentExperienceShown = useRef(false);
@@ -199,8 +219,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
   const webViewMountKey = useMemo(
     () =>
-      `${getWebViewConfigKey(webViewParameters)}|${cssOverrideState ?? ''}|${webViewReloadNonce}`,
-    [webViewParameters, cssOverrideState, webViewReloadNonce]
+      `${getWebViewConfigKey(webViewParameters)}|${cssOverrideState ?? ''}|${htmlDir ?? ''}|${webViewReloadNonce}`,
+    [webViewParameters, cssOverrideState, htmlDir, webViewReloadNonce]
   );
 
   const webResourceUrlOverrideScript = useMemo(
@@ -576,9 +596,12 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             ref={webViewRef}
             source={{
               html: injectCssIntoHtml(
-                injectWebResourceUrlOverridesIntoHtml(
-                  getIndexHtml(webViewParameters),
-                  webViewParameters.webResourceUrlOverrides
+                injectDirIntoHtml(
+                  injectWebResourceUrlOverridesIntoHtml(
+                    getIndexHtml(webViewParameters),
+                    webViewParameters.webResourceUrlOverrides
+                  ),
+                  htmlDir
                 ),
                 cssOverrideState
               ),
