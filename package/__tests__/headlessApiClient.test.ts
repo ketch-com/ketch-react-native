@@ -60,19 +60,28 @@ function mockFetchNetworkError(error: Error): FetchFn {
   });
 }
 
-function mockFetchCapturing(): { fetchFn: FetchFn; calls: () => [string, RequestInit | undefined][] } {
+function mockFetchCapturing(): {
+  fetchFn: FetchFn;
+  calls: () => [string, RequestInit | undefined][];
+} {
   const calls: [string, RequestInit | undefined][] = [];
-  const fetchFn = jest.fn().mockImplementation(async (url: string, init?: RequestInit) => {
-    calls.push([url, init]);
-    return { ok: true, status: 200, text: async () => '{}' };
-  }) as unknown as FetchFn;
+  const fetchFn = jest
+    .fn()
+    .mockImplementation(async (url: string, init?: RequestInit) => {
+      calls.push([url, init]);
+      return { ok: true, status: 200, text: async () => '{}' };
+    }) as unknown as FetchFn;
   return { fetchFn, calls: () => calls };
 }
 
 describe('getFullConfiguration URL building', () => {
   it('all fields present: full static path, hash-only query', async () => {
     const { fetchFn, calls } = mockFetchCapturing();
-    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US, fetchFn, deviceLanguage: () => 'fr-CA' });
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn,
+      deviceLanguage: () => 'fr-CA',
+    });
     await client.getFullConfiguration({
       organizationCode: 'org',
       propertyCode: 'prop',
@@ -88,8 +97,15 @@ describe('getFullConfiguration URL building', () => {
 
   it('nothing set: short path defaults language from device', async () => {
     const { fetchFn, calls } = mockFetchCapturing();
-    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US, fetchFn, deviceLanguage: () => 'fr-CA' });
-    await client.getFullConfiguration({ organizationCode: 'org', propertyCode: 'prop' });
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn,
+      deviceLanguage: () => 'fr-CA',
+    });
+    await client.getFullConfiguration({
+      organizationCode: 'org',
+      propertyCode: 'prop',
+    });
     expect(calls()[0]![0]).toBe(
       'https://global.ketchcdn.com/web/v3/config/org/prop/config.json?language=fr-CA'
     );
@@ -97,8 +113,16 @@ describe('getFullConfiguration URL building', () => {
 
   it('explicit language wins over device locale', async () => {
     const { fetchFn, calls } = mockFetchCapturing();
-    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US, fetchFn, deviceLanguage: () => 'fr-CA' });
-    await client.getFullConfiguration({ organizationCode: 'org', propertyCode: 'prop', languageCode: 'de-DE' });
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn,
+      deviceLanguage: () => 'fr-CA',
+    });
+    await client.getFullConfiguration({
+      organizationCode: 'org',
+      propertyCode: 'prop',
+      languageCode: 'de-DE',
+    });
     expect(calls()[0]![0]).toBe(
       'https://global.ketchcdn.com/web/v3/config/org/prop/config.json?language=de-DE'
     );
@@ -106,8 +130,16 @@ describe('getFullConfiguration URL building', () => {
 
   it('jurisdiction only: short path includes jurisdiction and defaulted language', async () => {
     const { fetchFn, calls } = mockFetchCapturing();
-    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US, fetchFn, deviceLanguage: () => 'fr-CA' });
-    await client.getFullConfiguration({ organizationCode: 'org', propertyCode: 'prop', jurisdictionCode: 'us-ca' });
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn,
+      deviceLanguage: () => 'fr-CA',
+    });
+    await client.getFullConfiguration({
+      organizationCode: 'org',
+      propertyCode: 'prop',
+      jurisdictionCode: 'us-ca',
+    });
     expect(calls()[0]![0]).toBe(
       'https://global.ketchcdn.com/web/v3/config/org/prop/config.json?language=fr-CA&jurisdiction=us-ca'
     );
@@ -115,8 +147,16 @@ describe('getFullConfiguration URL building', () => {
 
   it('region only: short path includes region and defaulted language', async () => {
     const { fetchFn, calls } = mockFetchCapturing();
-    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US, fetchFn, deviceLanguage: () => 'fr-CA' });
-    await client.getFullConfiguration({ organizationCode: 'org', propertyCode: 'prop', regionCode: 'US-CA' });
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn,
+      deviceLanguage: () => 'fr-CA',
+    });
+    await client.getFullConfiguration({
+      organizationCode: 'org',
+      propertyCode: 'prop',
+      regionCode: 'US-CA',
+    });
     expect(calls()[0]![0]).toBe(
       'https://global.ketchcdn.com/web/v3/config/org/prop/config.json?language=fr-CA&region=US-CA'
     );
@@ -124,7 +164,11 @@ describe('getFullConfiguration URL building', () => {
 
   it('blank environment treated as absent, still includes hash', async () => {
     const { fetchFn, calls } = mockFetchCapturing();
-    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US, fetchFn, deviceLanguage: () => 'fr-CA' });
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn,
+      deviceLanguage: () => 'fr-CA',
+    });
     await client.getFullConfiguration({
       organizationCode: 'org',
       propertyCode: 'prop',
@@ -140,9 +184,18 @@ describe('getFullConfiguration URL building', () => {
 
   it('short path includes Accept-Language header from device locale', async () => {
     const { fetchFn, calls } = mockFetchCapturing();
-    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US, fetchFn, deviceLanguage: () => 'fr-CA' });
-    await client.getFullConfiguration({ organizationCode: 'org', propertyCode: 'prop' });
-    expect(calls()[0]![1]?.headers).toMatchObject({ 'Accept-Language': 'fr-CA' });
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn,
+      deviceLanguage: () => 'fr-CA',
+    });
+    await client.getFullConfiguration({
+      organizationCode: 'org',
+      propertyCode: 'prop',
+    });
+    expect(calls()[0]![1]?.headers).toMatchObject({
+      'Accept-Language': 'fr-CA',
+    });
   });
 });
 
@@ -279,9 +332,7 @@ describe('HeadlessApiClient consent', () => {
     await expect(client.getConsent(consentConfig)).rejects.toThrow(
       HeadlessException
     );
-    await expect(client.getConsent(consentConfig)).rejects.toThrow(
-      'HTTP 500'
-    );
+    await expect(client.getConsent(consentConfig)).rejects.toThrow('HTTP 500');
   });
 
   it('setConsentOnServer propagates network failure', async () => {
@@ -392,12 +443,28 @@ describe('hasUsableConsentFields (via getConsent)', () => {
     });
   });
 
-  it('returns empty consent when neither purposes nor protocols are present', async () => {
+  it('keeps a vendors-only response', async () => {
     const client = new HeadlessApiClient({
       dataCenter: KetchDataCenter.US,
       fetchFn: mockFetchResponse({
         ok: true,
         body: JSON.stringify({ vendors: ['1'] }),
+      }),
+    });
+
+    await expect(client.getConsent(consentConfig)).resolves.toEqual({
+      purposes: undefined,
+      vendors: ['1'],
+      protocols: undefined,
+    });
+  });
+
+  it('returns empty consent when purposes, vendors, and protocols are all absent', async () => {
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({
+        ok: true,
+        body: JSON.stringify({ someOtherField: true }),
       }),
     });
 

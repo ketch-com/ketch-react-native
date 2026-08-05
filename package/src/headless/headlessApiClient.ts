@@ -298,9 +298,10 @@ function emptyConsent(): Consent {
 function hasUsableConsentFields(consent: Consent): boolean {
   const hasPurposes =
     consent.purposes != null && Object.keys(consent.purposes).length > 0;
+  const hasVendors = consent.vendors != null && consent.vendors.length > 0;
   const hasProtocols =
     consent.protocols != null && Object.keys(consent.protocols).length > 0;
-  return hasPurposes || hasProtocols;
+  return hasPurposes || hasVendors || hasProtocols;
 }
 
 function parseConsent(json: Record<string, unknown>): Consent {
