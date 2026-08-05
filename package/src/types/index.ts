@@ -330,6 +330,18 @@ export interface KetchService {
    */
   getJurisdiction?: () => Promise<string | undefined>;
 
+  /** Read a value the tag wrote to native storage. */
+  getSavedString?: (key: string) => Promise<string>;
+
+  /** Retrieve the IABTCF_TCString value written by the tag. */
+  getTCFTCString?: () => Promise<string>;
+
+  /** Retrieve the IABUSPrivacy_String value written by the tag. */
+  getUSPrivacyString?: () => Promise<string>;
+
+  /** Retrieve the IABGPP_HDR_GppString value written by the tag. */
+  getGPPHDRGppString?: () => Promise<string>;
+
   /** Minimal config (`GET .../boot.json`). */
   getBootstrapConfiguration?: () => Promise<Record<string, unknown>>;
 
