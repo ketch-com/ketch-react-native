@@ -58,8 +58,13 @@ import type {
   ConsentUpdate,
   FullConfigurationRequest,
   InvokeRightRequest,
+  LocationResponse,
   PreferenceQRRequest,
   SubscriptionsRequest,
+} from '../headless/headlessTypes';
+import {
+  jurisdictionCodeFromConfig,
+  toRegionCode,
 } from '../headless/headlessTypes';
 import {
   trackingAuthorizationStatusString,
@@ -101,6 +106,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   preferenceExperienceOptions = {},
   preferenceStorage,
   webResourceUrlOverrides,
+  ketchMobileSdkUrl,
   autoLoad = true,
   children,
   onEnvironmentUpdated,
@@ -164,6 +170,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const isForcePreferenceExperienceShown = useRef(false);
   const consent = useRef<Consent>({});
 
+  // GeoIP result, cached for the lifetime of this provider.
+  const locationCacheRef = useRef<LocationResponse | null>(null);
+
   // Deferred trigger() call, fired once the tag reports its config is loaded.
   // Depth is 1: a later trigger supersedes an earlier pending one.
   const pendingTriggerRef = useRef<string | null>(null);
@@ -185,6 +194,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     ketchAtt,
     ketchAttPrev,
     webResourceUrlOverrides,
+    ketchMobileSdkUrl,
     onEnvironmentUpdated,
     onRegionUpdated,
     onJurisdictionUpdated,
@@ -199,14 +209,51 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   });
 
   const headlessApi = useMemo(
-    () => new KetchHeadless({ dataCenter: parameters.dataCenter }),
-    [parameters.dataCenter]
+    () =>
+      new KetchHeadless({
+        dataCenter: parameters.dataCenter,
+        baseUrl: parameters.ketchMobileSdkUrl,
+      }),
+    [parameters.dataCenter, parameters.ketchMobileSdkUrl]
   );
 
-  const getLocation = useCallback(
-    () => headlessApi.getLocation(),
-    [headlessApi]
-  );
+  /**
+   * Region code, preferring a locally set regionCode over a GeoIP lookup.
+   * The lookup is cached for the lifetime of this provider.
+   */
+  const getRegion = useCallback(async (): Promise<string | undefined> => {
+    if (parameters.regionCode) return parameters.regionCode;
+    if (locationCacheRef.current) {
+      return toRegionCode(locationCacheRef.current.location);
+    }
+    const location = await headlessApi.getLocation();
+    locationCacheRef.current = location;
+    return toRegionCode(location.location);
+  }, [headlessApi, parameters.regionCode]);
+
+  /**
+   * Jurisdiction code, preferring a locally set jurisdictionCode over the value
+   * resolved by the CDN configuration.
+   */
+  const getJurisdiction = useCallback(async (): Promise<string | undefined> => {
+    if (parameters.jurisdictionCode) return parameters.jurisdictionCode;
+    const config = await headlessApi.getFullConfiguration({
+      organizationCode: parameters.organizationCode,
+      propertyCode: parameters.propertyCode,
+      environmentCode: parameters.environmentName,
+      languageCode: parameters.languageCode,
+      regionCode: parameters.regionCode,
+    });
+    return jurisdictionCodeFromConfig(config);
+  }, [
+    headlessApi,
+    parameters.jurisdictionCode,
+    parameters.organizationCode,
+    parameters.propertyCode,
+    parameters.environmentName,
+    parameters.languageCode,
+    parameters.regionCode,
+  ]);
 
   const getBootstrapConfiguration = useCallback(
     () =>
@@ -689,7 +736,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       updateParameters,
       load,
       setCssOverride,
-      getLocation,
+      getRegion,
+      getJurisdiction,
       getBootstrapConfiguration,
       getFullConfiguration,
       fetchConsent,
@@ -708,7 +756,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       updateParameters,
       load,
       setCssOverride,
-      getLocation,
+      getRegion,
+      getJurisdiction,
       getBootstrapConfiguration,
       getFullConfiguration,
       fetchConsent,

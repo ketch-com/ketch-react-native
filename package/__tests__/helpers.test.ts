@@ -10,6 +10,10 @@ import {
   OnHideExperienceArgument,
   WillShowExperienceType,
 } from '../src/enums';
+import {
+  jurisdictionCodeFromConfig,
+  toRegionCode,
+} from '../src/headless/headlessTypes';
 
 describe('createUrlParamsObject', () => {
   it('includes ketch_att when ketchAtt is set', () => {
@@ -34,6 +38,17 @@ describe('createUrlParamsObject', () => {
 
     expect(params.ketch_mobilesdk_url).toContain('web/v3');
     expect(params.ketch_log).toBe(LogLevel.ERROR);
+  });
+
+  it('ketchMobileSdkUrl overrides the data center URL', () => {
+    const params = createUrlParamsObject({
+      organizationCode: 'acme',
+      propertyCode: 'prop',
+      dataCenter: KetchDataCenter.US,
+      ketchMobileSdkUrl: 'https://example.test/web/v3',
+    });
+
+    expect(params.ketch_mobilesdk_url).toBe('https://example.test/web/v3');
   });
 
   it('maps UAT data center to dev CDN', () => {
@@ -61,6 +76,48 @@ describe('createUrlParamsObject', () => {
     });
 
     expect(usKey).not.toBe(uatKey);
+  });
+});
+
+describe('toRegionCode', () => {
+  it('combines country and region', () => {
+    expect(toRegionCode({ countryCode: 'US', regionCode: 'CA' })).toBe('US-CA');
+  });
+
+  it('falls back to country alone when there is no subdivision', () => {
+    expect(toRegionCode({ countryCode: 'FR' })).toBe('FR');
+    expect(toRegionCode({ countryCode: 'FR', regionCode: '  ' })).toBe('FR');
+  });
+
+  it('falls back to region alone when there is no country', () => {
+    expect(toRegionCode({ regionCode: 'CA' })).toBe('CA');
+  });
+
+  it('returns undefined when neither is present', () => {
+    expect(toRegionCode({})).toBeUndefined();
+    expect(toRegionCode(undefined)).toBeUndefined();
+  });
+});
+
+describe('jurisdictionCodeFromConfig', () => {
+  it('prefers the specific code over the default', () => {
+    expect(
+      jurisdictionCodeFromConfig({
+        jurisdiction: { code: 'us_ca', defaultJurisdictionCode: 'default' },
+      })
+    ).toBe('us_ca');
+  });
+
+  it('falls back to the default code', () => {
+    expect(
+      jurisdictionCodeFromConfig({
+        jurisdiction: { defaultJurisdictionCode: 'default' },
+      })
+    ).toBe('default');
+  });
+
+  it('returns undefined when jurisdiction is absent', () => {
+    expect(jurisdictionCodeFromConfig({})).toBeUndefined();
   });
 });
 

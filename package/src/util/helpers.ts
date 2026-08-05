@@ -145,6 +145,11 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
     }
   }
 
+  // Applied after the loop so it wins regardless of key iteration order.
+  if (parameters.ketchMobileSdkUrl) {
+    result.ketch_mobilesdk_url = parameters.ketchMobileSdkUrl;
+  }
+
   return result;
 };
 

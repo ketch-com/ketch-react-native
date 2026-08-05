@@ -32,6 +32,10 @@ export class KetchHeadless {
     return this.client.buildUrl(path, query);
   }
 
+  /**
+   * GeoIP lookup (`GET /ip`).
+   * @internal Use getRegion / getJurisdiction from useKetchService() instead.
+   */
   getLocation(): Promise<LocationResponse> {
     return this.client.getLocation();
   }

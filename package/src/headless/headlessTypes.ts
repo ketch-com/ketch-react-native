@@ -170,3 +170,21 @@ export interface PreferenceQRRequest {
   foregroundColor?: string;
   parameters?: Record<string, string>;
 }
+
+/** Combined ISO region code, e.g. "US-CA", or "US" when no subdivision is known. */
+export const toRegionCode = (info?: IPInfo): string | undefined => {
+  const country = info?.countryCode?.trim() || undefined;
+  const region = info?.regionCode?.trim() || undefined;
+  if (!country) return region;
+  return region ? `${country}-${region}` : country;
+};
+
+/** Resolved jurisdiction code: the CDN's specific jurisdiction if set, else its default. */
+export const jurisdictionCodeFromConfig = (
+  config: Record<string, unknown>
+): string | undefined => {
+  const jurisdiction = config.jurisdiction as
+    | { code?: string; defaultJurisdictionCode?: string }
+    | undefined;
+  return jurisdiction?.code ?? jurisdiction?.defaultJurisdictionCode;
+};

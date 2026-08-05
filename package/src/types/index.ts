@@ -13,7 +13,6 @@ import type {
   ConsentUpdate,
   FullConfigurationRequest,
   InvokeRightRequest,
-  LocationResponse,
   PreferenceQRRequest,
   SubscriptionsRequest,
   SubscriptionsResponse,
@@ -54,6 +53,7 @@ export type CommonExperienceOptions = Pick<
   | 'ketchAtt'
   | 'ketchAttPrev'
   | 'webResourceUrlOverrides'
+  | 'ketchMobileSdkUrl'
 > & {
   // This is separate because we don't want to add ketch_show to the KetchMobile type
   // which is used for the KetchServiceProvider parameters
@@ -169,6 +169,12 @@ export interface KetchMobile {
    * Exact-match WebView resource URL replacements (e.g. UAT tag scripts → local dev server).
    */
   webResourceUrlOverrides?: Record<string, string>;
+
+  /**
+   * Override the CDN base URL. Takes precedence over the URL implied by dataCenter,
+   * for both the WebView and the headless API.
+   */
+  ketchMobileSdkUrl?: string;
 
   /**
    * Force show the consent experience initially
@@ -312,8 +318,17 @@ export interface KetchService {
    */
   setCssOverride?: (css: string) => void;
 
-  /** GeoIP / jurisdiction hint (`GET /ip`). Pre-WebView headless API. */
-  getLocation?: () => Promise<LocationResponse>;
+  /**
+   * Region code, preferring a locally set regionCode over a GeoIP lookup.
+   * Pre-WebView headless API.
+   */
+  getRegion?: () => Promise<string | undefined>;
+
+  /**
+   * Jurisdiction code, preferring a locally set jurisdictionCode over the value
+   * resolved by the CDN configuration.
+   */
+  getJurisdiction?: () => Promise<string | undefined>;
 
   /** Minimal config (`GET .../boot.json`). */
   getBootstrapConfiguration?: () => Promise<Record<string, unknown>>;
