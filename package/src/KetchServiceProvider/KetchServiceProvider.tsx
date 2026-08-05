@@ -28,15 +28,20 @@ import {
   KetchDataCenter,
   LogLevel,
   PrivacyProtocol,
+  type TriggerName,
 } from '../enums';
 
 import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
 import {
+  buildTriggerExpression,
   createOptionsString,
   getWebViewConfigKey,
   savePrivacyToStorage,
   getDeviceLanguage,
+  isValidTriggerFunctionName,
+  toHideExperienceArgument,
+  toWillShowExperienceType,
 } from '../util';
 import {
   getIndexHtml,
@@ -104,6 +109,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onIdentitiesUpdated,
   onConsentUpdated,
   onPrivacyProtocolUpdated,
+  onWillShowExperience,
   onHideExperience,
   onHasShownExperience,
   onNativeStoragePut,
@@ -158,6 +164,11 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const isForcePreferenceExperienceShown = useRef(false);
   const consent = useRef<Consent>({});
 
+  // Deferred trigger() call, fired once the tag reports its config is loaded.
+  // Depth is 1: a later trigger supersedes an earlier pending one.
+  const pendingTriggerRef = useRef<string | null>(null);
+  const isConfigLoadedRef = useRef(false);
+
   const [parameters, dispatch] = useReducer(reducer, {
     organizationCode,
     propertyCode,
@@ -180,6 +191,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     onIdentitiesUpdated,
     onConsentUpdated,
     onPrivacyProtocolUpdated,
+    onWillShowExperience,
     onHideExperience,
     onHasShownExperience,
     onNativeStoragePut,
@@ -253,6 +265,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       `${getWebViewConfigKey(webViewParameters)}|${cssOverrideState ?? ''}|${webViewReloadNonce}`,
     [webViewParameters, cssOverrideState, webViewReloadNonce]
   );
+
+  // A remount discards the booted tag, so a trigger queued against the old one is dropped
+  // rather than replayed.
+  useEffect(() => {
+    isConfigLoadedRef.current = false;
+    pendingTriggerRef.current = null;
+  }, [webViewMountKey]);
 
   const webResourceUrlOverrideScript = useMemo(
     () =>
@@ -376,6 +395,48 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   }, []);
 
   /**
+   * Fire an onFunction rule trigger
+   */
+  const trigger = useCallback(
+    (
+      triggerName: TriggerName,
+      functionName: string,
+      options: Record<string, unknown> = {}
+    ): boolean => {
+      if (!isValidTriggerFunctionName(functionName)) {
+        console.warn(
+          "[Ketch] trigger rejected: functionName must be non-blank and contain only letters, digits, '_', '-', or '.'"
+        );
+        return false;
+      }
+
+      if (isVisible) {
+        console.warn(
+          `[Ketch] Not triggering '${functionName}' as an experience is already being shown`
+        );
+        return false;
+      }
+
+      const expression = buildTriggerExpression(
+        triggerName,
+        functionName,
+        options
+      );
+
+      if (shouldLoadWebView && isConfigLoadedRef.current) {
+        pendingTriggerRef.current = null;
+        webViewRef.current?.injectJavaScript(expression);
+      } else {
+        pendingTriggerRef.current = expression;
+        setShouldLoadWebView(true);
+      }
+
+      return true;
+    },
+    [isVisible, shouldLoadWebView]
+  );
+
+  /**
    * Get consent state
    */
   const getConsent = useCallback(() => consent.current, []);
@@ -460,7 +521,20 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     setIsServiceReady(true);
 
     switch (data.event) {
+      // The tag is booted and can accept imperative calls. Drain a deferred trigger here
+      // rather than on isServiceReady, which flips on the first message of any kind.
+      case EventName.onConfigLoaded: {
+        isConfigLoadedRef.current = true;
+        const pendingTrigger = pendingTriggerRef.current;
+        if (pendingTrigger) {
+          pendingTriggerRef.current = null;
+          webViewRef.current?.injectJavaScript(pendingTrigger);
+        }
+        break;
+      }
+
       case EventName.willShowExperience:
+        parameters.onWillShowExperience?.(toWillShowExperienceType(data.data));
         setIsVisible(true);
         break;
 
@@ -469,7 +543,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         break;
 
       case EventName.hideExperience:
-        parameters.onHideExperience?.(data.data);
+        parameters.onHideExperience?.(toHideExperienceArgument(data.data));
         setIsVisible(false);
         break;
 
@@ -610,6 +684,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       showConsentExperience,
       showPreferenceExperience,
       dismissExperience,
+      trigger,
       getConsent,
       updateParameters,
       load,
@@ -628,6 +703,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       showConsentExperience,
       showPreferenceExperience,
       dismissExperience,
+      trigger,
       getConsent,
       updateParameters,
       load,

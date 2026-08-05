@@ -5,6 +5,8 @@ import {
   type OnHideExperienceArgument,
   type PreferenceTab,
   type PrivacyProtocol,
+  type TriggerName,
+  type WillShowExperienceType,
 } from '../enums';
 import type {
   ConsentConfig,
@@ -241,6 +243,13 @@ export interface KetchMobile {
   onHideExperience?: (data: OnHideExperienceArgument) => void;
 
   /**
+   * Experience will show listener. Fires for every experience path, including
+   * those started by a rule trigger rather than an explicit show call.
+   * @param type Which experience is about to be shown
+   */
+  onWillShowExperience?: (type: WillShowExperienceType) => void;
+
+  /**
    * Experience has shown listener
    */
   onHasShownExperience?: () => void;
@@ -270,6 +279,17 @@ export interface KetchService {
    * Hide modal
    */
   dismissExperience: () => void;
+
+  /**
+   * Fire an `onFunction` rule trigger. If a backend rule matches, any experience it
+   * shows is presented automatically. Queues until the tag has loaded its config.
+   * @returns false if functionName is invalid or an experience is already showing
+   */
+  trigger: (
+    triggerName: TriggerName,
+    functionName: string,
+    options?: Record<string, unknown>
+  ) => boolean;
 
   /**
    * Get current consent data

@@ -31,7 +31,12 @@ export enum PrivacyProtocol {
   TCF = 'tcf',
 }
 
+export enum TriggerName {
+  Custom = 'custom',
+}
+
 export enum EventName {
+  onConfigLoaded = 'onConfigLoaded',
   consent = 'consent',
   environment = 'environment',
   geoip = 'geoip',
@@ -75,4 +80,14 @@ export enum OnHideExperienceArgument {
    * Experience was closed due to subscriptions being set
    */
   setSubscriptions = 'setSubscriptions',
+  /**
+   * The reason was absent or not recognized
+   */
+  none = 'none',
+}
+
+export enum WillShowExperienceType {
+  ConsentExperience = 'experiences.consent',
+  PreferenceExperience = 'experiences.preference',
+  None = 'none',
 }
