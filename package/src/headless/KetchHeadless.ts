@@ -1,5 +1,6 @@
 import { KetchDataCenter } from '../enums';
 import { HeadlessApiClient } from './headlessApiClient';
+import { toRegionCode } from './headlessTypes';
 import type {
   ConsentConfig,
   ConsentUpdate,
@@ -23,6 +24,7 @@ export interface KetchHeadlessOptions {
  */
 export class KetchHeadless {
   private readonly client: HeadlessApiClient;
+  private cachedLocation: LocationResponse | undefined;
 
   constructor(options: KetchHeadlessOptions = {}) {
     this.client = new HeadlessApiClient(options);
@@ -33,11 +35,14 @@ export class KetchHeadless {
   }
 
   /**
-   * GeoIP lookup (`GET /ip`).
-   * @internal Use getRegion / getJurisdiction from useKetchService() instead.
+   * Region code derived from a GeoIP lookup (`GET /ip`), cached for the lifetime
+   * of this instance.
    */
-  getLocation(): Promise<LocationResponse> {
-    return this.client.getLocation();
+  async getRegion(): Promise<string | undefined> {
+    if (!this.cachedLocation) {
+      this.cachedLocation = await this.client.getLocation();
+    }
+    return toRegionCode(this.cachedLocation.location);
   }
 
   getBootstrapConfiguration(

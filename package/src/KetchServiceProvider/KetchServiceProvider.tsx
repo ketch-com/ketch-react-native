@@ -62,14 +62,10 @@ import type {
   ConsentUpdate,
   FullConfigurationRequest,
   InvokeRightRequest,
-  LocationResponse,
   PreferenceQRRequest,
   SubscriptionsRequest,
 } from '../headless/headlessTypes';
-import {
-  jurisdictionCodeFromConfig,
-  toRegionCode,
-} from '../headless/headlessTypes';
+import { jurisdictionCodeFromConfig } from '../headless/headlessTypes';
 import {
   trackingAuthorizationStatusString,
   ATT_LAST_STORAGE_KEY,
@@ -174,9 +170,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const isForcePreferenceExperienceShown = useRef(false);
   const consent = useRef<Consent>({});
 
-  // GeoIP result, cached for the lifetime of this provider.
-  const locationCacheRef = useRef<LocationResponse | null>(null);
-
   // Deferred trigger() call, fired once the tag reports its config is loaded.
   // Depth is 1: a later trigger supersedes an earlier pending one.
   const pendingTriggerRef = useRef<string | null>(null);
@@ -223,16 +216,11 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
   /**
    * Region code, preferring a locally set regionCode over a GeoIP lookup.
-   * The lookup is cached for the lifetime of this provider.
+   * The lookup is cached for the lifetime of `headlessApi`.
    */
   const getRegion = useCallback(async (): Promise<string | undefined> => {
     if (parameters.regionCode) return parameters.regionCode;
-    if (locationCacheRef.current) {
-      return toRegionCode(locationCacheRef.current.location);
-    }
-    const location = await headlessApi.getLocation();
-    locationCacheRef.current = location;
-    return toRegionCode(location.location);
+    return headlessApi.getRegion();
   }, [headlessApi, parameters.regionCode]);
 
   /**
