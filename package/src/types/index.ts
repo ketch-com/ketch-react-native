@@ -322,13 +322,13 @@ export interface KetchService {
    * Region code, preferring a locally set regionCode over a GeoIP lookup.
    * Pre-WebView headless API.
    */
-  getRegion?: () => Promise<string | undefined>;
+  getRegion: () => Promise<string | undefined>;
 
   /**
    * Jurisdiction code, preferring a locally set jurisdictionCode over the value
    * resolved by the CDN configuration.
    */
-  getJurisdiction?: () => Promise<string | undefined>;
+  getJurisdiction: () => Promise<string | undefined>;
 
   /** Read a value the tag wrote to native storage. */
   getSavedString?: (key: string) => Promise<string>;
@@ -351,7 +351,7 @@ export interface KetchService {
   ) => Promise<Record<string, unknown>>;
 
   /** Server consent including `protocols`. Does not read WebView cache — use [getConsent]. */
-  fetchConsent?: (config: ConsentConfig) => Promise<Consent>;
+  fetchConsent: (config: ConsentConfig) => Promise<Consent>;
 
   /** Updates consent on the CDN; returns server-computed `protocols`. */
   setConsentOnServer?: (update: ConsentUpdate) => Promise<Consent>;

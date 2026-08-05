@@ -12,4 +12,7 @@ export const KetchServiceContext = createContext<KetchService>({
   // @ts-ignore
   updateParameters: (parameters: Partial<KetchMobile>) => {},
   setCssOverride: (_css: string) => {},
+  getRegion: () => Promise.resolve(undefined),
+  getJurisdiction: () => Promise.resolve(undefined),
+  fetchConsent: () => Promise.resolve({}) as Promise<Consent>,
 });
