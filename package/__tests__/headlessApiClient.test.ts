@@ -162,6 +162,24 @@ describe('getFullConfiguration URL building', () => {
     );
   });
 
+  it('environment + jurisdiction, no language: long path with synthesized language', async () => {
+    const { fetchFn, calls } = mockFetchCapturing();
+    const client = new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn,
+      deviceLanguage: () => 'fr-CA',
+    });
+    await client.getFullConfiguration({
+      organizationCode: 'org',
+      propertyCode: 'prop',
+      environmentCode: 'staging',
+      jurisdictionCode: 'us-ca',
+    });
+    expect(calls()[0]![0]).toBe(
+      'https://global.ketchcdn.com/web/v3/config/org/prop/staging/us-ca/fr-CA/config.json'
+    );
+  });
+
   it('blank environment treated as absent, still includes hash', async () => {
     const { fetchFn, calls } = mockFetchCapturing();
     const client = new HeadlessApiClient({

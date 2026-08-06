@@ -74,20 +74,29 @@ export class HeadlessApiClient {
   async getFullConfiguration(
     request: FullConfigurationRequest
   ): Promise<Record<string, unknown>> {
+    // Environment and jurisdiction alone aren't enough to take the long path below — without a
+    // language too, the short path silently drops the configured environment. Synthesize one
+    // from the device locale so a caller who only set env + jurisdiction still gets the long path.
+    const languageCode =
+      request.languageCode ||
+      (request.environmentCode && request.jurisdictionCode
+        ? this.deviceLanguage()
+        : undefined);
+
     let path = `/config/${request.organizationCode}/${request.propertyCode}`;
     const isShortPath = !(
       request.environmentCode &&
       request.jurisdictionCode &&
-      request.languageCode
+      languageCode
     );
     if (!isShortPath) {
-      path += `/${request.environmentCode}/${request.jurisdictionCode}/${request.languageCode}`;
+      path += `/${request.environmentCode}/${request.jurisdictionCode}/${languageCode}`;
     }
     path += '/config.json';
 
     const query: Record<string, string> = {};
     if (isShortPath) {
-      query.language = request.languageCode || this.deviceLanguage();
+      query.language = languageCode || this.deviceLanguage();
       if (request.jurisdictionCode)
         query.jurisdiction = request.jurisdictionCode;
       if (request.regionCode) query.region = request.regionCode;
