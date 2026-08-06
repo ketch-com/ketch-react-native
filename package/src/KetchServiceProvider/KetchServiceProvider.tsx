@@ -205,11 +205,11 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [webViewParameters, cssOverrideState, webViewReloadNonce]
   );
 
-  // A remount discards the booted tag, so a trigger queued against the old one is dropped
-  // rather than replayed.
+  // A remount discards the booted tag, but a trigger already queued against it is carried
+  // over rather than dropped — the caller was already told trigger() succeeded, so it is
+  // drained against the new tag once onConfigLoaded fires again.
   useEffect(() => {
     isConfigLoadedRef.current = false;
-    pendingTriggerRef.current = null;
   }, [webViewMountKey]);
 
   const webResourceUrlOverrideScript = useMemo(
