@@ -407,7 +407,7 @@ describe('HeadlessApiClient consent', () => {
     });
 
     await expect(client.setConsentOnServer(consentUpdate)).resolves.toEqual({
-      purposes: undefined,
+      purposes: {},
       vendors: undefined,
       protocols: { gpp: 'DBABLA~' },
     });
@@ -455,7 +455,7 @@ describe('hasUsableConsentFields (via getConsent)', () => {
     });
 
     await expect(client.getConsent(consentConfig)).resolves.toEqual({
-      purposes: undefined,
+      purposes: {},
       vendors: undefined,
       protocols: { gpp: 'DBABLA~' },
     });
@@ -471,7 +471,7 @@ describe('hasUsableConsentFields (via getConsent)', () => {
     });
 
     await expect(client.getConsent(consentConfig)).resolves.toEqual({
-      purposes: undefined,
+      purposes: {},
       vendors: ['1'],
       protocols: undefined,
     });

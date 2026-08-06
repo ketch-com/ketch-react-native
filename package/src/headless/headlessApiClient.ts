@@ -314,10 +314,12 @@ function hasUsableConsentFields(consent: Consent): boolean {
 }
 
 function parseConsent(json: Record<string, unknown>): Consent {
+  // Default to {}, matching emptyConsent() — a vendors-only response would otherwise leave
+  // purposes undefined, which breaks a caller doing Object.keys(consent.purposes).
   const purposes =
     json.purposes && typeof json.purposes === 'object'
       ? (json.purposes as Record<string, boolean>)
-      : undefined;
+      : {};
   const vendors = Array.isArray(json.vendors)
     ? (json.vendors as string[])
     : undefined;
