@@ -29,6 +29,17 @@ describe('createUrlParamsObject', () => {
     expect(params.ketch_log).toBe(LogLevel.ERROR);
   });
 
+  it('ketchMobileSdkUrl overrides the data center URL', () => {
+    const params = createUrlParamsObject({
+      organizationCode: 'acme',
+      propertyCode: 'prop',
+      dataCenter: KetchDataCenter.US,
+      ketchMobileSdkUrl: 'https://example.test/web/v3',
+    });
+
+    expect(params.ketch_mobilesdk_url).toBe('https://example.test/web/v3');
+  });
+
   it('maps UAT data center to dev CDN', () => {
     const params = createUrlParamsObject({
       organizationCode: 'acme',

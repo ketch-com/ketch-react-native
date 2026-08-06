@@ -1,4 +1,10 @@
-import { LogLevel, MobileSdkUrlByDataCenterMap } from '../enums';
+import {
+  LogLevel,
+  MobileSdkUrlByDataCenterMap,
+  OnHideExperienceArgument,
+  type TriggerName,
+  WillShowExperienceType,
+} from '../enums';
 import type { AllExperienceOptions, CommonExperienceOptions } from '../types';
 
 export const createOptionsString = (options: Partial<AllExperienceOptions>) => {
@@ -139,9 +145,63 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
     }
   }
 
+  // Applied after the loop so it wins regardless of key iteration order.
+  if (parameters.ketchMobileSdkUrl) {
+    result.ketch_mobilesdk_url = parameters.ketchMobileSdkUrl;
+  }
+
   return result;
 };
 
 /** Stable key for WebView remounts when init HTML would change. */
 export const getWebViewConfigKey = (parameters: CommonExperienceOptions) =>
   JSON.stringify(createUrlParamsObject(parameters));
+
+/**
+ * Mirrors ketch-tag's function-name validation: non-blank, and only letters, digits,
+ * '_', '-', or '.'. The name is interpolated into a quoted JS literal, so this is the
+ * only guard against breaking out of it.
+ */
+const TRIGGER_FUNCTION_NAME_REGEX = /^[A-Za-z0-9_.-]+$/;
+
+export const isValidTriggerFunctionName = (functionName: string): boolean =>
+  TRIGGER_FUNCTION_NAME_REGEX.test(functionName);
+
+/**
+ * Builds the JS injected for a trigger call. The trailing `; true;` is required by
+ * injectJavaScript on iOS. Non-serializable options are dropped to `{}` rather than
+ * failing the call, matching the iOS SDK.
+ */
+export const buildTriggerExpression = (
+  triggerName: TriggerName,
+  functionName: string,
+  options: Record<string, unknown> = {}
+): string => {
+  let optionsJson = '{}';
+  try {
+    optionsJson = JSON.stringify(options ?? {});
+  } catch {
+    optionsJson = '{}';
+  }
+  return `ketch("trigger", "${triggerName}", "${functionName}", ${optionsJson}); true;`;
+};
+
+/** Maps a hideExperience reason from ketch-tag, falling back to `none` when unrecognized. */
+export const toHideExperienceArgument = (
+  value: unknown
+): OnHideExperienceArgument =>
+  Object.values(OnHideExperienceArgument).includes(
+    value as OnHideExperienceArgument
+  )
+    ? (value as OnHideExperienceArgument)
+    : OnHideExperienceArgument.none;
+
+/** Maps a willShowExperience type from ketch-tag, falling back to `None` when unrecognized. */
+export const toWillShowExperienceType = (
+  value: unknown
+): WillShowExperienceType =>
+  Object.values(WillShowExperienceType).includes(
+    value as WillShowExperienceType
+  )
+    ? (value as WillShowExperienceType)
+    : WillShowExperienceType.None;
