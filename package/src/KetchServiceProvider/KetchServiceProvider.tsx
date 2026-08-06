@@ -56,6 +56,7 @@ import {
 import styles from './styles';
 import nativeStorage from '../util/nativeStorage';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
+import wrapSharedPrefencesRead from '../util/wrapSharedPrefencesRead';
 import { KetchHeadless } from '../headless';
 import type {
   ConsentConfig,
@@ -555,6 +556,41 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       })()
     : nativeStorage.write;
 
+  // A preferenceStorage configured as a plain PreferenceBackend function is write-only by
+  // construction, so reads fall back to the cross-platform helper in that case too.
+  const readPreference = preferenceStorage
+    ? (() => {
+        if (
+          'getItemAsync' in preferenceStorage &&
+          preferenceStorage.getItemAsync
+        ) {
+          return wrapSharedPrefencesRead(preferenceStorage);
+        }
+
+        console.warn(
+          'KetchServiceProvider preferenceStorage has no getItemAsync; privacy string accessors will read via the cross-platform storage helper instead, which may not reflect what was written'
+        );
+        return nativeStorage.read;
+      })()
+    : nativeStorage.read;
+
+  const getSavedStringForContext = useCallback(
+    (key: string) => getSavedString(key, readPreference),
+    [readPreference]
+  );
+  const getTCFTCStringForContext = useCallback(
+    () => getTCFTCString(readPreference),
+    [readPreference]
+  );
+  const getUSPrivacyStringForContext = useCallback(
+    () => getUSPrivacyString(readPreference),
+    [readPreference]
+  );
+  const getGPPHDRGppStringForContext = useCallback(
+    () => getGPPHDRGppString(readPreference),
+    [readPreference]
+  );
+
   const handleMessageReceive = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
     setIsServiceReady(true);
@@ -730,10 +766,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       setCssOverride,
       getRegion,
       getJurisdiction,
-      getSavedString,
-      getTCFTCString,
-      getUSPrivacyString,
-      getGPPHDRGppString,
+      getSavedString: getSavedStringForContext,
+      getTCFTCString: getTCFTCStringForContext,
+      getUSPrivacyString: getUSPrivacyStringForContext,
+      getGPPHDRGppString: getGPPHDRGppStringForContext,
       getBootstrapConfiguration,
       getFullConfiguration,
       fetchConsent,
@@ -754,6 +790,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       setCssOverride,
       getRegion,
       getJurisdiction,
+      getSavedStringForContext,
+      getTCFTCStringForContext,
+      getUSPrivacyStringForContext,
+      getGPPHDRGppStringForContext,
       getBootstrapConfiguration,
       getFullConfiguration,
       fetchConsent,

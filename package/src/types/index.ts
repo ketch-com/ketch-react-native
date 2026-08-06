@@ -34,6 +34,8 @@ export type PreferenceBackend = (key: string, value: string) => Promise<void>;
 
 export interface SharedPrefencesInterface extends Record<string, unknown> {
   setItemAsync: (key: string, value: string) => Promise<void>;
+  /** Optional: without it, privacy-string accessors fall back to native storage. */
+  getItemAsync?: (key: string) => Promise<string | null>;
 }
 
 export type CommonExperienceOptions = Pick<
