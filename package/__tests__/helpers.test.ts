@@ -1,8 +1,19 @@
 import {
   createUrlParamsObject,
   getWebViewConfigKey,
+  toHideExperienceArgument,
+  toWillShowExperienceType,
 } from '../src/util/helpers';
-import { KetchDataCenter, LogLevel } from '../src/enums';
+import {
+  KetchDataCenter,
+  LogLevel,
+  OnHideExperienceArgument,
+  WillShowExperienceType,
+} from '../src/enums';
+import {
+  jurisdictionCodeFromConfig,
+  toRegionCode,
+} from '../src/headless/headlessTypes';
 
 describe('createUrlParamsObject', () => {
   it('includes ketch_att when ketchAtt is set', () => {
@@ -65,5 +76,88 @@ describe('createUrlParamsObject', () => {
     });
 
     expect(usKey).not.toBe(uatKey);
+  });
+});
+
+describe('toRegionCode', () => {
+  it('combines country and region', () => {
+    expect(toRegionCode({ countryCode: 'US', regionCode: 'CA' })).toBe('US-CA');
+  });
+
+  it('falls back to country alone when there is no subdivision', () => {
+    expect(toRegionCode({ countryCode: 'FR' })).toBe('FR');
+    expect(toRegionCode({ countryCode: 'FR', regionCode: '  ' })).toBe('FR');
+  });
+
+  it('falls back to region alone when there is no country', () => {
+    expect(toRegionCode({ regionCode: 'CA' })).toBe('CA');
+  });
+
+  it('returns undefined when neither is present', () => {
+    expect(toRegionCode({})).toBeUndefined();
+    expect(toRegionCode(undefined)).toBeUndefined();
+  });
+});
+
+describe('jurisdictionCodeFromConfig', () => {
+  it('prefers the specific code over the default', () => {
+    expect(
+      jurisdictionCodeFromConfig({
+        jurisdiction: { code: 'us_ca', defaultJurisdictionCode: 'default' },
+      })
+    ).toBe('us_ca');
+  });
+
+  it('falls back to the default code', () => {
+    expect(
+      jurisdictionCodeFromConfig({
+        jurisdiction: { defaultJurisdictionCode: 'default' },
+      })
+    ).toBe('default');
+  });
+
+  it('returns undefined when jurisdiction is absent', () => {
+    expect(jurisdictionCodeFromConfig({})).toBeUndefined();
+  });
+});
+
+describe('toHideExperienceArgument', () => {
+  it('passes through recognized reasons', () => {
+    expect(toHideExperienceArgument('setConsent')).toBe(
+      OnHideExperienceArgument.setConsent
+    );
+    expect(toHideExperienceArgument('setSubscriptions')).toBe(
+      OnHideExperienceArgument.setSubscriptions
+    );
+  });
+
+  it('falls back to none for unrecognized, undefined, and null', () => {
+    expect(toHideExperienceArgument('somethingNew')).toBe(
+      OnHideExperienceArgument.none
+    );
+    expect(toHideExperienceArgument(undefined)).toBe(
+      OnHideExperienceArgument.none
+    );
+    expect(toHideExperienceArgument(null)).toBe(OnHideExperienceArgument.none);
+  });
+});
+
+describe('toWillShowExperienceType', () => {
+  it('passes through recognized types', () => {
+    expect(toWillShowExperienceType('experiences.consent')).toBe(
+      WillShowExperienceType.ConsentExperience
+    );
+    expect(toWillShowExperienceType('experiences.preference')).toBe(
+      WillShowExperienceType.PreferenceExperience
+    );
+  });
+
+  it('falls back to None for unrecognized and undefined', () => {
+    expect(toWillShowExperienceType('experiences.other')).toBe(
+      WillShowExperienceType.None
+    );
+    expect(toWillShowExperienceType(undefined)).toBe(
+      WillShowExperienceType.None
+    );
   });
 });
