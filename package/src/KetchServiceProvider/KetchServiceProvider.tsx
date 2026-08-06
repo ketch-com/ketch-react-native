@@ -56,6 +56,16 @@ import {
 import styles from './styles';
 import nativeStorage from '../util/nativeStorage';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
+import { KetchHeadless } from '../headless';
+import type {
+  ConsentConfig,
+  ConsentUpdate,
+  FullConfigurationRequest,
+  InvokeRightRequest,
+  PreferenceQRRequest,
+  SubscriptionsRequest,
+} from '../headless/headlessTypes';
+import { jurisdictionCodeFromConfig } from '../headless/headlessTypes';
 import {
   trackingAuthorizationStatusString,
   ATT_LAST_STORAGE_KEY,
@@ -96,6 +106,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   preferenceExperienceOptions = {},
   preferenceStorage,
   webResourceUrlOverrides,
+  ketchMobileSdkUrl,
   autoLoad = true,
   children,
   onEnvironmentUpdated,
@@ -180,17 +191,106 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     ketchAtt,
     ketchAttPrev,
     webResourceUrlOverrides,
+    ketchMobileSdkUrl,
     onEnvironmentUpdated,
     onRegionUpdated,
     onJurisdictionUpdated,
     onIdentitiesUpdated,
     onConsentUpdated,
     onPrivacyProtocolUpdated,
+    onWillShowExperience,
     onHideExperience,
     onHasShownExperience,
     onNativeStoragePut,
     onError,
   });
+
+  const headlessApi = useMemo(
+    () =>
+      new KetchHeadless({
+        dataCenter: parameters.dataCenter,
+        baseUrl: parameters.ketchMobileSdkUrl,
+      }),
+    [parameters.dataCenter, parameters.ketchMobileSdkUrl]
+  );
+
+  /**
+   * Region code, preferring a locally set regionCode over a GeoIP lookup.
+   * The lookup is cached for the lifetime of `headlessApi`.
+   */
+  const getRegion = useCallback(async (): Promise<string | undefined> => {
+    if (parameters.regionCode) return parameters.regionCode;
+    return headlessApi.getRegion();
+  }, [headlessApi, parameters.regionCode]);
+
+  /**
+   * Jurisdiction code, preferring a locally set jurisdictionCode over the value
+   * resolved by the CDN configuration.
+   */
+  const getJurisdiction = useCallback(async (): Promise<string | undefined> => {
+    if (parameters.jurisdictionCode) return parameters.jurisdictionCode;
+    const config = await headlessApi.getFullConfiguration({
+      organizationCode: parameters.organizationCode,
+      propertyCode: parameters.propertyCode,
+      environmentCode: parameters.environmentName,
+      languageCode: parameters.languageCode,
+      regionCode: parameters.regionCode,
+    });
+    return jurisdictionCodeFromConfig(config);
+  }, [
+    headlessApi,
+    parameters.jurisdictionCode,
+    parameters.organizationCode,
+    parameters.propertyCode,
+    parameters.environmentName,
+    parameters.languageCode,
+    parameters.regionCode,
+  ]);
+
+  const getBootstrapConfiguration = useCallback(
+    () =>
+      headlessApi.getBootstrapConfiguration(
+        parameters.organizationCode,
+        parameters.propertyCode
+      ),
+    [headlessApi, parameters.organizationCode, parameters.propertyCode]
+  );
+
+  const getFullConfiguration = useCallback(
+    (request: FullConfigurationRequest) =>
+      headlessApi.getFullConfiguration(request),
+    [headlessApi]
+  );
+
+  const fetchConsent = useCallback(
+    (config: ConsentConfig) => headlessApi.getConsent(config),
+    [headlessApi]
+  );
+
+  const setConsentOnServer = useCallback(
+    (update: ConsentUpdate) => headlessApi.setConsentOnServer(update),
+    [headlessApi]
+  );
+
+  const invokeRight = useCallback(
+    (request: InvokeRightRequest) => headlessApi.invokeRight(request),
+    [headlessApi]
+  );
+
+  const getSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.getSubscriptions(request),
+    [headlessApi]
+  );
+
+  const setSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.setSubscriptions(request),
+    [headlessApi]
+  );
+
+  const preferenceQRUrl = useCallback(
+    (request: PreferenceQRRequest) => headlessApi.preferenceQRUrl(request),
+    [headlessApi]
+  );
 
   const webViewParameters = useMemo(() => {
     const att = parameters.ketchAtt ?? resolvedKetchAtt;
@@ -618,18 +718,55 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   `;
 
   // Simply render children if no identities passed as SDK cannot be used
+  const contextValue = useMemo(
+    () => ({
+      showConsentExperience,
+      showPreferenceExperience,
+      dismissExperience,
+      trigger,
+      getConsent,
+      updateParameters,
+      load,
+      setCssOverride,
+      getRegion,
+      getJurisdiction,
+      getSavedString,
+      getTCFTCString,
+      getUSPrivacyString,
+      getGPPHDRGppString,
+      getBootstrapConfiguration,
+      getFullConfiguration,
+      fetchConsent,
+      setConsentOnServer,
+      invokeRight,
+      getSubscriptions,
+      setSubscriptions,
+      preferenceQRUrl,
+    }),
+    [
+      showConsentExperience,
+      showPreferenceExperience,
+      dismissExperience,
+      trigger,
+      getConsent,
+      updateParameters,
+      load,
+      setCssOverride,
+      getRegion,
+      getJurisdiction,
+      getBootstrapConfiguration,
+      getFullConfiguration,
+      fetchConsent,
+      setConsentOnServer,
+      invokeRight,
+      getSubscriptions,
+      setSubscriptions,
+      preferenceQRUrl,
+    ]
+  );
+
   return (
-    <KetchServiceContext.Provider
-      value={{
-        showConsentExperience,
-        showPreferenceExperience,
-        dismissExperience,
-        getConsent,
-        updateParameters,
-        load,
-        setCssOverride,
-      }}
-    >
+    <KetchServiceContext.Provider value={contextValue}>
       {children}
       {shouldLoadWebView && isAttReady && (
         <View

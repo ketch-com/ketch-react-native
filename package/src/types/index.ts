@@ -5,7 +5,18 @@ import {
   type OnHideExperienceArgument,
   type PreferenceTab,
   type PrivacyProtocol,
+  type TriggerName,
+  type WillShowExperienceType,
 } from '../enums';
+import type {
+  ConsentConfig,
+  ConsentUpdate,
+  FullConfigurationRequest,
+  InvokeRightRequest,
+  PreferenceQRRequest,
+  SubscriptionsRequest,
+  SubscriptionsResponse,
+} from '../headless/headlessTypes';
 
 /**
  * Consent object
@@ -306,4 +317,56 @@ export interface KetchService {
    * Will ignore if string contains any HTML tags or exceeds 1kb.
    */
   setCssOverride?: (css: string) => void;
+
+  /**
+   * Region code, preferring a locally set regionCode over a GeoIP lookup.
+   * Pre-WebView headless API.
+   */
+  getRegion: () => Promise<string | undefined>;
+
+  /**
+   * Jurisdiction code, preferring a locally set jurisdictionCode over the value
+   * resolved by the CDN configuration.
+   */
+  getJurisdiction: () => Promise<string | undefined>;
+
+  /** Read a value the tag wrote to native storage. */
+  getSavedString?: (key: string) => Promise<string>;
+
+  /** Retrieve the IABTCF_TCString value written by the tag. */
+  getTCFTCString?: () => Promise<string>;
+
+  /** Retrieve the IABUSPrivacy_String value written by the tag. */
+  getUSPrivacyString?: () => Promise<string>;
+
+  /** Retrieve the IABGPP_HDR_GppString value written by the tag. */
+  getGPPHDRGppString?: () => Promise<string>;
+
+  /** Minimal config (`GET .../boot.json`). */
+  getBootstrapConfiguration?: () => Promise<Record<string, unknown>>;
+
+  /** Full config with optional env / jurisdiction / language and hash query param. */
+  getFullConfiguration?: (
+    request: FullConfigurationRequest
+  ) => Promise<Record<string, unknown>>;
+
+  /** Server consent including `protocols`. Does not read WebView cache — use [getConsent]. */
+  fetchConsent: (config: ConsentConfig) => Promise<Consent>;
+
+  /** Updates consent on the CDN; returns server-computed `protocols`. */
+  setConsentOnServer?: (update: ConsentUpdate) => Promise<Consent>;
+
+  /** Invokes a data subject right (`POST .../rights/{org}/invoke`). */
+  invokeRight?: (request: InvokeRightRequest) => Promise<void>;
+
+  /** Gets subscription topics/controls (`POST .../subscriptions/{org}/get`). */
+  getSubscriptions?: (
+    request: SubscriptionsRequest
+  ) => Promise<SubscriptionsResponse>;
+
+  /** Updates subscription topics/controls (`POST .../subscriptions/{org}/update`). */
+  setSubscriptions?: (request: SubscriptionsRequest) => Promise<void>;
+
+  /** Builds preferences QR image URL (no HTTP). */
+  preferenceQRUrl?: (request: PreferenceQRRequest) => string;
 }
