@@ -467,7 +467,11 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       // true means accepted (injected now or queued) — not that an experience
       // appeared. A queued call only runs after onConfigLoaded; if that never
       // arrives the expression stays pending and is not reported as failure.
-      if (shouldLoadWebView && isConfigLoadedRef.current && webViewRef.current) {
+      if (
+        shouldLoadWebView &&
+        isConfigLoadedRef.current &&
+        webViewRef.current
+      ) {
         pendingTriggerRef.current = null;
         webViewRef.current.injectJavaScript(expression);
       } else {

@@ -98,9 +98,9 @@ describe('createUrlParamsObject', () => {
 
 describe('normalizeKetchMobileSdkUrl', () => {
   it('accepts https and local http', () => {
-    expect(normalizeKetchMobileSdkUrl('https://global.ketchcdn.com/web/v3')).toBe(
-      'https://global.ketchcdn.com/web/v3'
-    );
+    expect(
+      normalizeKetchMobileSdkUrl('https://global.ketchcdn.com/web/v3')
+    ).toBe('https://global.ketchcdn.com/web/v3');
     expect(normalizeKetchMobileSdkUrl('http://localhost:9000/web/v3')).toBe(
       'http://localhost:9000/web/v3'
     );
@@ -108,10 +108,10 @@ describe('normalizeKetchMobileSdkUrl', () => {
 
   it('rejects non-https remote and script breakout', () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    expect(normalizeKetchMobileSdkUrl('http://example.test/web/v3')).toBeUndefined();
     expect(
-      normalizeKetchMobileSdkUrl('https://x/</script>')
+      normalizeKetchMobileSdkUrl('http://example.test/web/v3')
     ).toBeUndefined();
+    expect(normalizeKetchMobileSdkUrl('https://x/</script>')).toBeUndefined();
     expect(normalizeKetchMobileSdkUrl('not a url')).toBeUndefined();
     warn.mockRestore();
   });
