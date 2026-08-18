@@ -1,6 +1,7 @@
 import {
   createUrlParamsObject,
   getWebViewConfigKey,
+  normalizeKetchMobileSdkUrl,
   toHideExperienceArgument,
   toWillShowExperienceType,
 } from '../src/util/helpers';
@@ -51,6 +52,22 @@ describe('createUrlParamsObject', () => {
     expect(params.ketch_mobilesdk_url).toBe('https://example.test/web/v3');
   });
 
+  it('ignores invalid ketchMobileSdkUrl and keeps data center URL', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const params = createUrlParamsObject({
+      organizationCode: 'acme',
+      propertyCode: 'prop',
+      dataCenter: KetchDataCenter.US,
+      ketchMobileSdkUrl: 'https://evil.test/x</script><script>',
+    });
+
+    expect(params.ketch_mobilesdk_url).toBe(
+      'https://global.ketchcdn.com/web/v3'
+    );
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it('maps UAT data center to dev CDN', () => {
     const params = createUrlParamsObject({
       organizationCode: 'acme',
@@ -76,6 +93,27 @@ describe('createUrlParamsObject', () => {
     });
 
     expect(usKey).not.toBe(uatKey);
+  });
+});
+
+describe('normalizeKetchMobileSdkUrl', () => {
+  it('accepts https and local http', () => {
+    expect(normalizeKetchMobileSdkUrl('https://global.ketchcdn.com/web/v3')).toBe(
+      'https://global.ketchcdn.com/web/v3'
+    );
+    expect(normalizeKetchMobileSdkUrl('http://localhost:9000/web/v3')).toBe(
+      'http://localhost:9000/web/v3'
+    );
+  });
+
+  it('rejects non-https remote and script breakout', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(normalizeKetchMobileSdkUrl('http://example.test/web/v3')).toBeUndefined();
+    expect(
+      normalizeKetchMobileSdkUrl('https://x/</script>')
+    ).toBeUndefined();
+    expect(normalizeKetchMobileSdkUrl('not a url')).toBeUndefined();
+    warn.mockRestore();
   });
 });
 

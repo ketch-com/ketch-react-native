@@ -44,6 +44,7 @@ import {
   getTCFTCString,
   getUSPrivacyString,
   isValidTriggerFunctionName,
+  normalizeKetchMobileSdkUrl,
   toHideExperienceArgument,
   toWillShowExperienceType,
 } from '../util';
@@ -210,7 +211,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     () =>
       new KetchHeadless({
         dataCenter: parameters.dataCenter,
-        baseUrl: parameters.ketchMobileSdkUrl,
+        baseUrl: normalizeKetchMobileSdkUrl(parameters.ketchMobileSdkUrl),
       }),
     [parameters.dataCenter, parameters.ketchMobileSdkUrl]
   );
