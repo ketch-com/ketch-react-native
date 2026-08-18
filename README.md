@@ -132,8 +132,10 @@ trigger(TriggerName.Custom, 'managePrivacy');
 ```
 
 Returns `false` if the function name is invalid or an experience is already
-showing. Calls made before the tag finishes loading are queued and fired once it
-is ready.
+showing. Returns `true` when the call is accepted — either injected into a
+booted WebView or queued. Queued calls fire on `onConfigLoaded`; if the tag
+never finishes loading, the queue is not drained and there is no later error
+callback. A later `trigger()` supersedes an earlier pending one.
 
 **Reading values** — `getConsent()` reads the cached consent state.
 `getRegion()` and `getJurisdiction()` resolve those codes, preferring anything
