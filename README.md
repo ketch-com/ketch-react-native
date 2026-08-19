@@ -114,6 +114,46 @@ Where `YOUR_ORGANIZATION_CODE`, `YOUR_PROPERTY_CODE`, `YOUR_IDENTIFIER_NAME`, an
 
 See our [Getting Started](https://developers.ketch.com/v3.0/docs/ketch-react-native-sdk-getting-started) and [Technical Documentation](https://developers.ketch.com/v3.0/docs/ketch-react-native-sdk-reference) documentation for further usage instructions.
 
+## API
+
+`useKetchService()` returns the service from anywhere inside the provider.
+
+```tsx
+const { showConsentExperience, trigger, getRegion } = useKetchService();
+```
+
+**Experiences** — `showConsentExperience()`, `showPreferenceExperience(options?)`,
+`dismissExperience()`, `load()`, `updateParameters(params)`, `setCssOverride(css)`.
+
+**Rule triggers**
+
+```tsx
+trigger(TriggerName.Custom, 'managePrivacy');
+```
+
+Returns `false` if the function name is invalid or an experience is already
+showing. Returns `true` when the call is accepted — either injected into a
+booted WebView or queued. Queued calls fire on `onConfigLoaded`; if the tag
+never finishes loading, the queue is not drained and there is no later error
+callback. A later `trigger()` supersedes an earlier pending one.
+
+**Reading values** — `getConsent()` reads the cached consent state.
+`getRegion()` and `getJurisdiction()` resolve those codes, preferring anything
+you passed as a prop over a network lookup. `getTCFTCString()`,
+`getUSPrivacyString()`, `getGPPHDRGppString()`, and `getSavedString(key)` read
+the IAB privacy strings the tag wrote to native storage. All return promises.
+
+**Headless** — `fetchConsent`, `setConsentOnServer`, `invokeRight`,
+`getBootstrapConfiguration`, `getFullConfiguration`, `getSubscriptions`,
+`setSubscriptions`, and `preferenceQRUrl` hit the CDN directly, for consent
+operations that need no WebView.
+
+**Provider props** worth knowing beyond the required codes: `dataCenter`
+(selects the server, and therefore which build of the Ketch tag is used — `US`
+and `EU` are production, `UAT` is the UAT environment), `languageCode`,
+`regionCode`, `jurisdictionCode`, `environmentName`, `logLevel`, `autoLoad`,
+`ketchMobileSdkUrl`, `webResourceUrlOverrides`, and the `on*` event callbacks.
+
 ## Running
 
 See the example app [README](/example/README.md), or the example expo app [README](/example-expo/README.md).

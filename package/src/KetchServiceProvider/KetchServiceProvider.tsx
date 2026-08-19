@@ -9,14 +9,7 @@ import React, {
   type ReactElement,
 } from 'react';
 
-import {
-  Platform,
-  NativeModules,
-  View,
-  Linking,
-  StatusBar,
-  Dimensions,
-} from 'react-native';
+import { Platform, View, Linking, StatusBar, Dimensions } from 'react-native';
 import WebView, {
   type WebViewMessageEvent,
   type WebViewNavigation,
@@ -35,14 +28,25 @@ import {
   KetchDataCenter,
   LogLevel,
   PrivacyProtocol,
+  type TriggerName,
 } from '../enums';
 
 import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
 import {
+  buildTriggerExpression,
   createOptionsString,
   getWebViewConfigKey,
   savePrivacyToStorage,
+  getDeviceLanguageTag,
+  getGPPHDRGppString,
+  getSavedString,
+  getTCFTCString,
+  getUSPrivacyString,
+  isValidTriggerFunctionName,
+  normalizeKetchMobileSdkUrl,
+  toHideExperienceArgument,
+  toWillShowExperienceType,
 } from '../util';
 import {
   getIndexHtml,
@@ -53,6 +57,17 @@ import {
 import styles from './styles';
 import nativeStorage from '../util/nativeStorage';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
+import wrapSharedPrefencesRead from '../util/wrapSharedPrefencesRead';
+import { KetchHeadless } from '../headless';
+import type {
+  ConsentConfig,
+  ConsentUpdate,
+  FullConfigurationRequest,
+  InvokeRightRequest,
+  PreferenceQRRequest,
+  SubscriptionsRequest,
+} from '../headless/headlessTypes';
+import { jurisdictionCodeFromConfig } from '../headless/headlessTypes';
 import {
   trackingAuthorizationStatusString,
   ATT_LAST_STORAGE_KEY,
@@ -73,18 +88,11 @@ const isWithin1kb = (css: string): boolean =>
     ? new TextEncoder().encode(css).length <= 1024
     : css.length <= 1024;
 
-const deviceLanguage: string =
-  Platform.OS === 'ios'
-    ? NativeModules.SettingsManager?.settings?.AppleLocale ||
-      NativeModules.SettingsManager?.settings?.AppleLanguages?.[0] ||
-      'en'
-    : NativeModules.I18nManager?.localeIdentifier || 'en';
-
 export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   organizationCode,
   propertyCode,
   identities,
-  languageCode = deviceLanguage,
+  languageCode = getDeviceLanguageTag(),
   regionCode,
   jurisdictionCode,
   environmentName,
@@ -100,6 +108,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   preferenceExperienceOptions = {},
   preferenceStorage,
   webResourceUrlOverrides,
+  ketchMobileSdkUrl,
   autoLoad = true,
   children,
   onEnvironmentUpdated,
@@ -108,6 +117,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   onIdentitiesUpdated,
   onConsentUpdated,
   onPrivacyProtocolUpdated,
+  onWillShowExperience,
   onHideExperience,
   onHasShownExperience,
   onNativeStoragePut,
@@ -162,6 +172,11 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const isForcePreferenceExperienceShown = useRef(false);
   const consent = useRef<Consent>({});
 
+  // Deferred trigger() call, fired once the tag reports its config is loaded.
+  // Depth is 1: a later trigger supersedes an earlier pending one.
+  const pendingTriggerRef = useRef<string | null>(null);
+  const isConfigLoadedRef = useRef(false);
+
   const [parameters, dispatch] = useReducer(reducer, {
     organizationCode,
     propertyCode,
@@ -178,17 +193,106 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     ketchAtt,
     ketchAttPrev,
     webResourceUrlOverrides,
+    ketchMobileSdkUrl,
     onEnvironmentUpdated,
     onRegionUpdated,
     onJurisdictionUpdated,
     onIdentitiesUpdated,
     onConsentUpdated,
     onPrivacyProtocolUpdated,
+    onWillShowExperience,
     onHideExperience,
     onHasShownExperience,
     onNativeStoragePut,
     onError,
   });
+
+  const headlessApi = useMemo(
+    () =>
+      new KetchHeadless({
+        dataCenter: parameters.dataCenter,
+        baseUrl: normalizeKetchMobileSdkUrl(parameters.ketchMobileSdkUrl),
+      }),
+    [parameters.dataCenter, parameters.ketchMobileSdkUrl]
+  );
+
+  /**
+   * Region code, preferring a locally set regionCode over a GeoIP lookup.
+   * The lookup is cached for the lifetime of `headlessApi`.
+   */
+  const getRegion = useCallback(async (): Promise<string | undefined> => {
+    if (parameters.regionCode) return parameters.regionCode;
+    return headlessApi.getRegion();
+  }, [headlessApi, parameters.regionCode]);
+
+  /**
+   * Jurisdiction code, preferring a locally set jurisdictionCode over the value
+   * resolved by the CDN configuration.
+   */
+  const getJurisdiction = useCallback(async (): Promise<string | undefined> => {
+    if (parameters.jurisdictionCode) return parameters.jurisdictionCode;
+    const config = await headlessApi.getFullConfiguration({
+      organizationCode: parameters.organizationCode,
+      propertyCode: parameters.propertyCode,
+      environmentCode: parameters.environmentName,
+      languageCode: parameters.languageCode,
+      regionCode: parameters.regionCode,
+    });
+    return jurisdictionCodeFromConfig(config);
+  }, [
+    headlessApi,
+    parameters.jurisdictionCode,
+    parameters.organizationCode,
+    parameters.propertyCode,
+    parameters.environmentName,
+    parameters.languageCode,
+    parameters.regionCode,
+  ]);
+
+  const getBootstrapConfiguration = useCallback(
+    () =>
+      headlessApi.getBootstrapConfiguration(
+        parameters.organizationCode,
+        parameters.propertyCode
+      ),
+    [headlessApi, parameters.organizationCode, parameters.propertyCode]
+  );
+
+  const getFullConfiguration = useCallback(
+    (request: FullConfigurationRequest) =>
+      headlessApi.getFullConfiguration(request),
+    [headlessApi]
+  );
+
+  const fetchConsent = useCallback(
+    (config: ConsentConfig) => headlessApi.getConsent(config),
+    [headlessApi]
+  );
+
+  const setConsentOnServer = useCallback(
+    (update: ConsentUpdate) => headlessApi.setConsentOnServer(update),
+    [headlessApi]
+  );
+
+  const invokeRight = useCallback(
+    (request: InvokeRightRequest) => headlessApi.invokeRight(request),
+    [headlessApi]
+  );
+
+  const getSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.getSubscriptions(request),
+    [headlessApi]
+  );
+
+  const setSubscriptions = useCallback(
+    (request: SubscriptionsRequest) => headlessApi.setSubscriptions(request),
+    [headlessApi]
+  );
+
+  const preferenceQRUrl = useCallback(
+    (request: PreferenceQRRequest) => headlessApi.preferenceQRUrl(request),
+    [headlessApi]
+  );
 
   const webViewParameters = useMemo(() => {
     const att = parameters.ketchAtt ?? resolvedKetchAtt;
@@ -202,6 +306,13 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       `${getWebViewConfigKey(webViewParameters)}|${cssOverrideState ?? ''}|${webViewReloadNonce}`,
     [webViewParameters, cssOverrideState, webViewReloadNonce]
   );
+
+  // A remount discards the booted tag, but a trigger already queued against it is carried
+  // over rather than dropped — the caller was already told trigger() succeeded, so it is
+  // drained against the new tag once onConfigLoaded fires again.
+  useEffect(() => {
+    isConfigLoadedRef.current = false;
+  }, [webViewMountKey]);
 
   const webResourceUrlOverrideScript = useMemo(
     () =>
@@ -325,6 +436,55 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   }, []);
 
   /**
+   * Fire an onFunction rule trigger
+   */
+  const trigger = useCallback(
+    (
+      triggerName: TriggerName,
+      functionName: string,
+      options: Record<string, unknown> = {}
+    ): boolean => {
+      if (!isValidTriggerFunctionName(functionName)) {
+        console.warn(
+          "[Ketch] trigger rejected: functionName must be non-blank and contain only letters, digits, '_', '-', or '.'"
+        );
+        return false;
+      }
+
+      if (isVisible) {
+        console.warn(
+          `[Ketch] Not triggering '${functionName}' as an experience is already being shown`
+        );
+        return false;
+      }
+
+      const expression = buildTriggerExpression(
+        triggerName,
+        functionName,
+        options
+      );
+
+      // true means accepted (injected now or queued) — not that an experience
+      // appeared. A queued call only runs after onConfigLoaded; if that never
+      // arrives the expression stays pending and is not reported as failure.
+      if (
+        shouldLoadWebView &&
+        isConfigLoadedRef.current &&
+        webViewRef.current
+      ) {
+        pendingTriggerRef.current = null;
+        webViewRef.current.injectJavaScript(expression);
+      } else {
+        pendingTriggerRef.current = expression;
+        setShouldLoadWebView(true);
+      }
+
+      return true;
+    },
+    [isVisible, shouldLoadWebView]
+  );
+
+  /**
    * Get consent state
    */
   const getConsent = useCallback(() => consent.current, []);
@@ -404,12 +564,62 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       })()
     : nativeStorage.write;
 
+  // A preferenceStorage configured as a plain PreferenceBackend function is write-only by
+  // construction, so reads fall back to the cross-platform helper in that case too.
+  const readPreference = preferenceStorage
+    ? (() => {
+        if (
+          'getItemAsync' in preferenceStorage &&
+          preferenceStorage.getItemAsync
+        ) {
+          return wrapSharedPrefencesRead(preferenceStorage);
+        }
+
+        console.warn(
+          'KetchServiceProvider preferenceStorage has no getItemAsync; privacy string accessors will read via the cross-platform storage helper instead, which may not reflect what was written'
+        );
+        return nativeStorage.read;
+      })()
+    : nativeStorage.read;
+
+  const getSavedStringForContext = useCallback(
+    (key: string) => getSavedString(key, readPreference),
+    [readPreference]
+  );
+  const getTCFTCStringForContext = useCallback(
+    () => getTCFTCString(readPreference),
+    [readPreference]
+  );
+  const getUSPrivacyStringForContext = useCallback(
+    () => getUSPrivacyString(readPreference),
+    [readPreference]
+  );
+  const getGPPHDRGppStringForContext = useCallback(
+    () => getGPPHDRGppString(readPreference),
+    [readPreference]
+  );
+
   const handleMessageReceive = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
     setIsServiceReady(true);
 
     switch (data.event) {
+      // The tag is booted and can accept imperative calls. Drain a deferred trigger here
+      // rather than on isServiceReady, which flips on the first message of any kind.
+      case EventName.onConfigLoaded: {
+        isConfigLoadedRef.current = true;
+        const pendingTrigger = pendingTriggerRef.current;
+        // Only clear after a successful inject; keep the queue if the ref is
+        // gone (e.g. remount race) so the next onConfigLoaded can drain it.
+        if (pendingTrigger && webViewRef.current) {
+          pendingTriggerRef.current = null;
+          webViewRef.current.injectJavaScript(pendingTrigger);
+        }
+        break;
+      }
+
       case EventName.willShowExperience:
+        parameters.onWillShowExperience?.(toWillShowExperienceType(data.data));
         setIsVisible(true);
         break;
 
@@ -418,7 +628,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         break;
 
       case EventName.hideExperience:
-        parameters.onHideExperience?.(data.data);
+        parameters.onHideExperience?.(toHideExperienceArgument(data.data));
         setIsVisible(false);
         break;
 
@@ -554,18 +764,59 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   `;
 
   // Simply render children if no identities passed as SDK cannot be used
+  const contextValue = useMemo(
+    () => ({
+      showConsentExperience,
+      showPreferenceExperience,
+      dismissExperience,
+      trigger,
+      getConsent,
+      updateParameters,
+      load,
+      setCssOverride,
+      getRegion,
+      getJurisdiction,
+      getSavedString: getSavedStringForContext,
+      getTCFTCString: getTCFTCStringForContext,
+      getUSPrivacyString: getUSPrivacyStringForContext,
+      getGPPHDRGppString: getGPPHDRGppStringForContext,
+      getBootstrapConfiguration,
+      getFullConfiguration,
+      fetchConsent,
+      setConsentOnServer,
+      invokeRight,
+      getSubscriptions,
+      setSubscriptions,
+      preferenceQRUrl,
+    }),
+    [
+      showConsentExperience,
+      showPreferenceExperience,
+      dismissExperience,
+      trigger,
+      getConsent,
+      updateParameters,
+      load,
+      setCssOverride,
+      getRegion,
+      getJurisdiction,
+      getSavedStringForContext,
+      getTCFTCStringForContext,
+      getUSPrivacyStringForContext,
+      getGPPHDRGppStringForContext,
+      getBootstrapConfiguration,
+      getFullConfiguration,
+      fetchConsent,
+      setConsentOnServer,
+      invokeRight,
+      getSubscriptions,
+      setSubscriptions,
+      preferenceQRUrl,
+    ]
+  );
+
   return (
-    <KetchServiceContext.Provider
-      value={{
-        showConsentExperience,
-        showPreferenceExperience,
-        dismissExperience,
-        getConsent,
-        updateParameters,
-        load,
-        setCssOverride,
-      }}
-    >
+    <KetchServiceContext.Provider value={contextValue}>
       {children}
       {shouldLoadWebView && isAttReady && (
         <View

@@ -1,4 +1,10 @@
-import { LogLevel, MobileSdkUrlByDataCenterMap } from '../enums';
+import {
+  LogLevel,
+  MobileSdkUrlByDataCenterMap,
+  OnHideExperienceArgument,
+  type TriggerName,
+  WillShowExperienceType,
+} from '../enums';
 import type { AllExperienceOptions, CommonExperienceOptions } from '../types';
 
 export const createOptionsString = (options: Partial<AllExperienceOptions>) => {
@@ -139,9 +145,100 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
     }
   }
 
+  // Applied after the loop so it wins regardless of key iteration order.
+  const mobileSdkUrl = normalizeKetchMobileSdkUrl(parameters.ketchMobileSdkUrl);
+  if (mobileSdkUrl) {
+    result.ketch_mobilesdk_url = mobileSdkUrl;
+  }
+
   return result;
+};
+
+/**
+ * Accepts an HTTPS CDN base (or http://localhost / 127.0.0.1 for local mirrors).
+ * Rejects values that cannot be parsed as a URL or that contain characters which
+ * break out of the inline bootstrap `<script>` when embedded in HTML.
+ */
+export const normalizeKetchMobileSdkUrl = (
+  url: string | undefined
+): string | undefined => {
+  if (url == null || url === '') {
+    return undefined;
+  }
+  if (/[<>\s]/.test(url)) {
+    console.warn(
+      '[Ketch] ketchMobileSdkUrl rejected: must not contain whitespace or < >'
+    );
+    return undefined;
+  }
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname;
+    const isLocalHttp =
+      parsed.protocol === 'http:' &&
+      (host === 'localhost' || host === '127.0.0.1');
+    if (parsed.protocol !== 'https:' && !isLocalHttp) {
+      console.warn(
+        '[Ketch] ketchMobileSdkUrl rejected: use https:// (or http://localhost for local mirrors)'
+      );
+      return undefined;
+    }
+    return url;
+  } catch {
+    console.warn('[Ketch] ketchMobileSdkUrl rejected: not a valid URL');
+    return undefined;
+  }
 };
 
 /** Stable key for WebView remounts when init HTML would change. */
 export const getWebViewConfigKey = (parameters: CommonExperienceOptions) =>
   JSON.stringify(createUrlParamsObject(parameters));
+
+/**
+ * Mirrors ketch-tag's function-name validation: non-blank, and only letters, digits,
+ * '_', '-', or '.'. The name is interpolated into a quoted JS literal, so this is the
+ * only guard against breaking out of it.
+ */
+const TRIGGER_FUNCTION_NAME_REGEX = /^[A-Za-z0-9_.-]+$/;
+
+export const isValidTriggerFunctionName = (functionName: string): boolean =>
+  TRIGGER_FUNCTION_NAME_REGEX.test(functionName);
+
+/**
+ * Builds the JS injected for a trigger call. The trailing `; true;` is required by
+ * injectJavaScript on iOS. Non-serializable options are dropped to `{}` rather than
+ * failing the call, matching the iOS SDK.
+ */
+export const buildTriggerExpression = (
+  triggerName: TriggerName,
+  functionName: string,
+  options: Record<string, unknown> = {}
+): string => {
+  let optionsJson = '{}';
+  try {
+    optionsJson = JSON.stringify(options ?? {});
+  } catch {
+    optionsJson = '{}';
+  }
+  return `ketch("trigger", "${triggerName}", "${functionName}", ${optionsJson}); true;`;
+};
+
+/** Maps a hideExperience reason from ketch-tag, falling back to `none` when unrecognized. */
+export const toHideExperienceArgument = (
+  value: unknown
+): OnHideExperienceArgument =>
+  Object.values(OnHideExperienceArgument).includes(
+    value as OnHideExperienceArgument
+  )
+    ? (value as OnHideExperienceArgument)
+    : OnHideExperienceArgument.none;
+
+/** Maps a willShowExperience type from ketch-tag, falling back to `None` when unrecognized. */
+export const toWillShowExperienceType = (
+  value: unknown
+): WillShowExperienceType =>
+  Object.values(WillShowExperienceType).includes(
+    value as WillShowExperienceType
+  )
+    ? (value as WillShowExperienceType)
+    : WillShowExperienceType.None;

@@ -5,7 +5,18 @@ import {
   type OnHideExperienceArgument,
   type PreferenceTab,
   type PrivacyProtocol,
+  type TriggerName,
+  type WillShowExperienceType,
 } from '../enums';
+import type {
+  ConsentConfig,
+  ConsentUpdate,
+  FullConfigurationRequest,
+  InvokeRightRequest,
+  PreferenceQRRequest,
+  SubscriptionsRequest,
+  SubscriptionsResponse,
+} from '../headless/headlessTypes';
 
 /**
  * Consent object
@@ -23,6 +34,8 @@ export type PreferenceBackend = (key: string, value: string) => Promise<void>;
 
 export interface SharedPrefencesInterface extends Record<string, unknown> {
   setItemAsync: (key: string, value: string) => Promise<void>;
+  /** Optional: without it, privacy-string accessors fall back to native storage. */
+  getItemAsync?: (key: string) => Promise<string | null>;
 }
 
 export type CommonExperienceOptions = Pick<
@@ -42,6 +55,7 @@ export type CommonExperienceOptions = Pick<
   | 'ketchAtt'
   | 'ketchAttPrev'
   | 'webResourceUrlOverrides'
+  | 'ketchMobileSdkUrl'
 > & {
   // This is separate because we don't want to add ketch_show to the KetchMobile type
   // which is used for the KetchServiceProvider parameters
@@ -159,6 +173,12 @@ export interface KetchMobile {
   webResourceUrlOverrides?: Record<string, string>;
 
   /**
+   * Override the CDN base URL. Takes precedence over the URL implied by dataCenter,
+   * for both the WebView and the headless API.
+   */
+  ketchMobileSdkUrl?: string;
+
+  /**
    * Force show the consent experience initially
    */
   forceConsentExperience?: boolean;
@@ -231,6 +251,13 @@ export interface KetchMobile {
   onHideExperience?: (data: OnHideExperienceArgument) => void;
 
   /**
+   * Experience will show listener. Fires for every experience path, including
+   * those started by a rule trigger rather than an explicit show call.
+   * @param type Which experience is about to be shown
+   */
+  onWillShowExperience?: (type: WillShowExperienceType) => void;
+
+  /**
    * Experience has shown listener
    */
   onHasShownExperience?: () => void;
@@ -262,6 +289,17 @@ export interface KetchService {
   dismissExperience: () => void;
 
   /**
+   * Fire an `onFunction` rule trigger. If a backend rule matches, any experience it
+   * shows is presented automatically. Queues until the tag has loaded its config.
+   * @returns false if functionName is invalid or an experience is already showing
+   */
+  trigger: (
+    triggerName: TriggerName,
+    functionName: string,
+    options?: Record<string, unknown>
+  ) => boolean;
+
+  /**
    * Get current consent data
    */
   getConsent: () => Consent | undefined;
@@ -281,4 +319,56 @@ export interface KetchService {
    * Will ignore if string contains any HTML tags or exceeds 1kb.
    */
   setCssOverride?: (css: string) => void;
+
+  /**
+   * Region code, preferring a locally set regionCode over a GeoIP lookup.
+   * Pre-WebView headless API.
+   */
+  getRegion: () => Promise<string | undefined>;
+
+  /**
+   * Jurisdiction code, preferring a locally set jurisdictionCode over the value
+   * resolved by the CDN configuration.
+   */
+  getJurisdiction: () => Promise<string | undefined>;
+
+  /** Read a value the tag wrote to native storage. */
+  getSavedString?: (key: string) => Promise<string>;
+
+  /** Retrieve the IABTCF_TCString value written by the tag. */
+  getTCFTCString?: () => Promise<string>;
+
+  /** Retrieve the IABUSPrivacy_String value written by the tag. */
+  getUSPrivacyString?: () => Promise<string>;
+
+  /** Retrieve the IABGPP_HDR_GppString value written by the tag. */
+  getGPPHDRGppString?: () => Promise<string>;
+
+  /** Minimal config (`GET .../boot.json`). */
+  getBootstrapConfiguration?: () => Promise<Record<string, unknown>>;
+
+  /** Full config with optional env / jurisdiction / language and hash query param. */
+  getFullConfiguration?: (
+    request: FullConfigurationRequest
+  ) => Promise<Record<string, unknown>>;
+
+  /** Server consent including `protocols`. Does not read WebView cache — use [getConsent]. */
+  fetchConsent: (config: ConsentConfig) => Promise<Consent>;
+
+  /** Updates consent on the CDN; returns server-computed `protocols`. */
+  setConsentOnServer?: (update: ConsentUpdate) => Promise<Consent>;
+
+  /** Invokes a data subject right (`POST .../rights/{org}/invoke`). */
+  invokeRight?: (request: InvokeRightRequest) => Promise<void>;
+
+  /** Gets subscription topics/controls (`POST .../subscriptions/{org}/get`). */
+  getSubscriptions?: (
+    request: SubscriptionsRequest
+  ) => Promise<SubscriptionsResponse>;
+
+  /** Updates subscription topics/controls (`POST .../subscriptions/{org}/update`). */
+  setSubscriptions?: (request: SubscriptionsRequest) => Promise<void>;
+
+  /** Builds preferences QR image URL (no HTTP). */
+  preferenceQRUrl?: (request: PreferenceQRRequest) => string;
 }
