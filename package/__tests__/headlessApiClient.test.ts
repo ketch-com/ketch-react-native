@@ -594,3 +594,107 @@ describe('HeadlessApiClient URL building under the React Native URL polyfill', (
     );
   });
 });
+
+/**
+ * The CDN types purpose values as strings, not booleans: /consent/{org}/get returns
+ * "purposes":{"analytics":"false"} and /consent/{org}/update returns
+ * "purposes":{"analytics":{"allowed":"false"}}. Consent.purposes is declared
+ * Record<string, boolean>, so a cast leaves a truthy "false" in a boolean field and a
+ * caller doing `if (consent.purposes[x])` reads a denied purpose as granted.
+ */
+describe('Consent purpose conversion', () => {
+  function clientReturning(body: string) {
+    return new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn: mockFetchResponse({ ok: true, body }),
+    });
+  }
+
+  it('converts bare "false" from /get to boolean false', async () => {
+    const client = clientReturning(
+      JSON.stringify({ purposes: { analytics_900: 'false' } })
+    );
+    const consent = await client.getConsent(consentConfig);
+    expect(consent.purposes).toEqual({ analytics_900: false });
+    expect(typeof consent.purposes?.analytics_900).toBe('boolean');
+  });
+
+  it('converts bare "true" from /get to boolean true', async () => {
+    const client = clientReturning(
+      JSON.stringify({ purposes: { analytics_900: 'true' } })
+    );
+    await expect(client.getConsent(consentConfig)).resolves.toEqual({
+      purposes: { analytics_900: true },
+      vendors: undefined,
+      protocols: undefined,
+    });
+  });
+
+  it('converts a mixed map without losing either value', async () => {
+    const client = clientReturning(
+      JSON.stringify({
+        purposes: { analytics_900: 'false', targeted_advertising: 'true' },
+      })
+    );
+    const consent = await client.getConsent(consentConfig);
+    expect(consent.purposes).toEqual({
+      analytics_900: false,
+      targeted_advertising: true,
+    });
+  });
+
+  it('converts the { allowed } object shape from /update', async () => {
+    const client = clientReturning(
+      JSON.stringify({
+        purposes: {
+          analytics_900: {
+            allowed: 'false',
+            legalBasisCode: 'consent_optout',
+          },
+        },
+      })
+    );
+    const consent = await client.setConsentOnServer(consentUpdate);
+    expect(consent.purposes).toEqual({ analytics_900: false });
+  });
+
+  it('treats any value other than "true" as denied', async () => {
+    const client = clientReturning(
+      JSON.stringify({ purposes: { a: 'TRUE', b: 'yes', c: '1' } })
+    );
+    const consent = await client.getConsent(consentConfig);
+    expect(consent.purposes).toEqual({ a: false, b: false, c: false });
+  });
+
+  it('keeps raw JSON booleans', async () => {
+    const client = clientReturning(
+      JSON.stringify({ purposes: { a: true, b: false } })
+    );
+    const consent = await client.getConsent(consentConfig);
+    expect(consent.purposes).toEqual({ a: true, b: false });
+  });
+
+  it('omits unreadable values without discarding the rest of the map', async () => {
+    const client = clientReturning(
+      JSON.stringify({
+        purposes: {
+          readable: 'false',
+          empty: '',
+          nulled: null,
+          emptyObject: {},
+          noAllowed: { legalBasisCode: 'consent_optin' },
+          numeric: 7,
+        },
+      })
+    );
+    const consent = await client.getConsent(consentConfig);
+    expect(consent.purposes).toEqual({ readable: false });
+  });
+
+  it('falls back to empty consent when no purpose is readable', async () => {
+    const client = clientReturning(JSON.stringify({ purposes: { a: '' } }));
+    await expect(client.getConsent(consentConfig)).resolves.toEqual({
+      purposes: {},
+    });
+  });
+});

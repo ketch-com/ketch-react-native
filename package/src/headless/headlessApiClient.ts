@@ -321,13 +321,51 @@ function hasUsableConsentFields(consent: Consent): boolean {
   return hasPurposes || hasVendors || hasProtocols;
 }
 
+/**
+ * Converts one CDN purpose value to a boolean, or undefined when unreadable.
+ *
+ * The CDN sends three shapes: a bare string ("true"/"false") from /consent/{org}/get,
+ * an { allowed } object from /consent/{org}/update, and occasionally a JSON boolean.
+ */
+function purposeAllowed(value: unknown): boolean | undefined {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    // '' carries no decision; the web tag skips it rather than treating it as a denial.
+    return value === '' ? undefined : value === 'true';
+  }
+  if (value != null && typeof value === 'object') {
+    const allowed = (value as { allowed?: unknown }).allowed;
+    if (typeof allowed === 'boolean') {
+      return allowed;
+    }
+    if (typeof allowed === 'string') {
+      return allowed === '' ? undefined : allowed === 'true';
+    }
+  }
+  return undefined;
+}
+
+/** Converts a purpose map, dropping only the entries it cannot read. */
+function parsePurposes(value: unknown): Record<string, boolean> {
+  const purposes: Record<string, boolean> = {};
+  if (value == null || typeof value !== 'object') {
+    return purposes;
+  }
+  for (const [code, raw] of Object.entries(value as Record<string, unknown>)) {
+    const allowed = purposeAllowed(raw);
+    if (allowed !== undefined) {
+      purposes[code] = allowed;
+    }
+  }
+  return purposes;
+}
+
 function parseConsent(json: Record<string, unknown>): Consent {
   // Default to {}, matching emptyConsent() — a vendors-only response would otherwise leave
   // purposes undefined, which breaks a caller doing Object.keys(consent.purposes).
-  const purposes =
-    json.purposes && typeof json.purposes === 'object'
-      ? (json.purposes as Record<string, boolean>)
-      : {};
+  const purposes = parsePurposes(json.purposes);
   const vendors = Array.isArray(json.vendors)
     ? (json.vendors as string[])
     : undefined;

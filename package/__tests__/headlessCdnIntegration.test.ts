@@ -85,6 +85,55 @@ const runIntegration = process.env.KETCH_INTEGRATION_TESTS === '1';
     };
 
     const updated = await client.setConsentOnServer(withoutProtocols(update));
-    expect(updated.purposes?.[purposeCode || '']).toBeDefined();
+    // toBeDefined() would also pass for the string 'true'; assert the boolean.
+    expect(updated.purposes?.[purposeCode || '']).toBe(true);
+    expect(typeof updated.purposes?.[purposeCode || '']).toBe('boolean');
   });
+
+  /**
+   * Denial is the direction that inverts: the CDN answers with the string 'false'
+   * from /update (inside an { allowed } object) and bare 'false' from /get, both of
+   * which are truthy. Uses its own identity and writes once — `collectedAt` is
+   * second-resolution, so two writes in the same second race on the tie-break.
+   */
+  it('a denied purpose reads back as boolean false on both endpoints', async () => {
+    const identities = HeadlessIntegrationSupport.uniqueEmailIdentity();
+
+    const fullConfig = await client.getFullConfiguration({
+      organizationCode: HeadlessIntegrationSupport.orgCode,
+      propertyCode: HeadlessIntegrationSupport.propertyCode,
+    });
+
+    const consentConfig =
+      HeadlessIntegrationSupport.consentConfigFromConfiguration({
+        configuration: fullConfig,
+        identities,
+      });
+
+    const purposeCode = Object.keys(consentConfig.purposes)[0] || '';
+    const legalBasis = consentConfig.purposes[purposeCode];
+
+    const denied = await client.setConsentOnServer(
+      withoutProtocols({
+        organizationCode: HeadlessIntegrationSupport.orgCode,
+        propertyCode: HeadlessIntegrationSupport.propertyCode,
+        environmentCode: HeadlessIntegrationSupport.environmentCode,
+        identities,
+        jurisdictionCode: consentConfig.jurisdictionCode,
+        migrationOption: MigrationOption.MIGRATE_DEFAULT,
+        purposes: {
+          [purposeCode]: {
+            allowed: 'false',
+            legalBasisCode: legalBasis?.legalBasisCode || '',
+          },
+        },
+      })
+    );
+    expect(denied.purposes?.[purposeCode]).toBe(false);
+
+    const reread = await client.getConsent(consentConfig);
+    expect(reread.purposes?.[purposeCode]).toBe(false);
+    expect(typeof reread.purposes?.[purposeCode]).toBe('boolean');
+  });
+
 });
