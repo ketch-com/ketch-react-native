@@ -136,4 +136,47 @@ const runIntegration = process.env.KETCH_INTEGRATION_TESTS === '1';
     expect(typeof reread.purposes?.[purposeCode]).toBe('boolean');
   });
 
+  it('subscriptions round-trip with the schema topic shape', async () => {
+    const identities = HeadlessIntegrationSupport.uniqueEmailIdentity();
+    const request = {
+      organizationCode: HeadlessIntegrationSupport.orgCode,
+      propertyCode: HeadlessIntegrationSupport.propertyCode,
+      environmentCode: HeadlessIntegrationSupport.environmentCode,
+      identities,
+    };
+
+    const before = await client.getSubscriptions(request);
+    // GetSubscriptionResponseBody carries no organizationCode.
+    expect(
+      (before as unknown as Record<string, unknown>).organizationCode
+    ).toBeUndefined();
+
+    // A cold identity has no topics yet, so take a configured topic and contact
+    // method from the configuration rather than from the response above.
+    const config = await client.getFullConfiguration({
+      organizationCode: HeadlessIntegrationSupport.orgCode,
+      propertyCode: HeadlessIntegrationSupport.propertyCode,
+    });
+    const configured = (
+      config.subscription as
+        | { topics?: { code?: string; contactMethods?: string[] }[] }
+        | undefined
+    )?.topics;
+    const topic = (configured ?? []).find(
+      (entry) => entry.code && entry.contactMethods?.length
+    );
+    if (!topic?.code || !topic.contactMethods?.[0]) {
+      throw new Error('Configuration returned no subscription topics');
+    }
+    const topicCode = topic.code;
+    const contactMethod = topic.contactMethods[0];
+
+    await client.setSubscriptions({
+      ...request,
+      topics: { [topicCode]: { [contactMethod]: { status: 'granted' } } },
+    });
+
+    const after = await client.getSubscriptions(request);
+    expect(after.topics?.[topicCode]?.[contactMethod]?.status).toBe('granted');
+  });
 });

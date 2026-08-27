@@ -144,21 +144,100 @@ export interface InvokeRightRequest {
   isAuthenticated?: boolean;
 }
 
-/** ketch-types `GetSubscriptionsRequest` / `SetSubscriptionsRequest` */
+/** Subscription opt state. Anything the server cannot read is recorded as `denied`. */
+export type SubscriptionStatus = 'granted' | 'denied';
+
+/**
+ * Breadth of a subscription control. Sent as an integer; `Property` additionally
+ * requires `propertyCode` on the request.
+ *
+ * Only the numeric values are part of the wire contract. The server uses a
+ * different name for `2`, so do not rename these to "match" it.
+ */
+export enum ControlImpact {
+  Unknown = 0,
+  Global = 1,
+  Local = 2,
+  Property = 3,
+}
+
+/** Per-contact-method setting for one topic. */
+export interface SubscriptionTopicContactMethodSetting {
+  status?: SubscriptionStatus;
+}
+
+/** Contact method code (`email`, `sms`, …) to its setting. */
+export type SubscriptionTopicSetting = Record<
+  string,
+  SubscriptionTopicContactMethodSetting
+>;
+
+export interface SubscriptionControlSetting {
+  status?: SubscriptionStatus;
+  impact?: ControlImpact;
+}
+
+/** Attribution recorded against a write. Omitting it records the source as `unknown`. */
+export type SubscriptionSource =
+  | 'preference.subscriptionsTab.manual'
+  | 'preference.subscriptionsTab.unsubscribeAll'
+  | 'auditLog.subscribeAll'
+  | 'auditLog.unsubscribeAll'
+  | 'auditLog.default'
+  | 'auditLog.manual'
+  | 'headless'
+  | 'unknown';
+
+export interface SubscriptionContext {
+  configurationId?: string;
+  source?: SubscriptionSource;
+}
+
+/** Collection metadata, returned only when the caller asks for subscription info. */
+export interface SubscriptionInfo {
+  collectedAt?: number;
+  source?: string;
+  issuedAt?: number;
+}
+
+/**
+ * Request body for `POST /subscriptions/{org}/get` and `/update`.
+ *
+ * `organizationCode` is the path segment, not a body field; it is required here
+ * because the URL cannot be built without it.
+ */
 export interface SubscriptionsRequest {
   organizationCode: string;
   controllerCode?: string;
   propertyCode?: string;
   environmentCode?: string;
   identities?: Record<string, string>;
-  topics?: Record<string, Record<string, string>>;
-  controls?: Record<string, Record<string, string>>;
+  topics?: Record<string, SubscriptionTopicSetting>;
+  controls?: Record<string, SubscriptionControlSetting>;
+  context?: SubscriptionContext;
   collectedAt?: number;
   jurisdictionCode?: string;
   regionCode?: string;
 }
 
-export type SubscriptionsResponse = SubscriptionsRequest;
+/**
+ * Response body for `POST /subscriptions/{org}/get`. Every field is optional and
+ * `organizationCode` is absent entirely, so this cannot alias the request type.
+ */
+export interface SubscriptionsResponse {
+  controllerCode?: string;
+  propertyCode?: string;
+  environmentCode?: string;
+  identities?: Record<string, string>;
+  topics?: Record<string, SubscriptionTopicSetting>;
+  controls?: Record<string, SubscriptionControlSetting>;
+  properties?: Record<string, unknown>;
+  collectedAt?: number;
+  jurisdictionCode?: string;
+  regionCode?: string;
+  topicInfo?: Record<string, SubscriptionInfo>;
+  controlInfo?: Record<string, SubscriptionInfo>;
+}
 
 export interface PreferenceQRRequest {
   organizationCode: string;
