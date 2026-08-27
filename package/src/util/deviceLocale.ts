@@ -9,7 +9,7 @@ export function getDeviceLanguage(): string {
     : NativeModules.I18nManager?.localeIdentifier || 'en';
 }
 
-/** Matches ketch-tag's `formatLanguage` ("fr-CA"), tolerant of the "fr_CA" form. */
+/** Normalizes a locale to the "fr-CA" form, tolerating the "fr_CA" form. */
 export function formatLanguageTag(raw: string): string {
   if (!raw) return 'en';
   const [root, dialect] = raw.split(/[-_]/);

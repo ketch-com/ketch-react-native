@@ -18,7 +18,7 @@ import {
 
 export type FetchFn = typeof fetch;
 
-/** Native HTTP client mirroring ketch-tag KetchWebAPI (web/v3). */
+/** Native HTTP client for the web/v3 CDN API. */
 export class HeadlessApiClient {
   private readonly baseUrl: string;
   private readonly fetchFn: FetchFn;

@@ -1,4 +1,4 @@
-/** GeoIP details from `GET /ip` (ketch-types `IPInfo`). */
+/** GeoIP details from `GET /ip`. */
 export interface IPInfo {
   ip?: string;
   hostname?: string;
@@ -113,7 +113,7 @@ export function withoutProtocols(update: ConsentUpdate): ConsentUpdate {
   return rest;
 }
 
-/** ketch-types `DataSubject` */
+/** Data subject details submitted with a rights invocation. */
 export interface DataSubject {
   email: string;
   firstName: string;
@@ -128,7 +128,7 @@ export interface DataSubject {
   addressLine2?: string;
 }
 
-/** ketch-types `InvokeRightRequest` */
+/** Request body for `POST /rights/{org}/invoke`. */
 export interface InvokeRightRequest {
   organizationCode: string;
   propertyCode: string;

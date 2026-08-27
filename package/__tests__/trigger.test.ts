@@ -4,7 +4,7 @@ import {
 } from '../src/util/helpers';
 import { TriggerName } from '../src/enums';
 
-// Mirrors ketch-android's TriggerFunctionNameTest so both SDKs reject the same inputs.
+// Keeps the accepted and rejected inputs aligned across the mobile SDKs.
 describe('isValidTriggerFunctionName', () => {
   it('accepts valid names', () => {
     expect(isValidTriggerFunctionName('managePrivacy')).toBe(true);
@@ -41,7 +41,7 @@ describe('isValidTriggerFunctionName', () => {
 });
 
 describe('buildTriggerExpression', () => {
-  it('matches the ketch-tag call shape with empty options', () => {
+  it('emits the tag call shape with empty options', () => {
     expect(buildTriggerExpression(TriggerName.Custom, 'managePrivacy')).toBe(
       'ketch("trigger", "custom", "managePrivacy", {}); true;'
     );

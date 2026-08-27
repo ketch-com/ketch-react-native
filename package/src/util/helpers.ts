@@ -195,9 +195,9 @@ export const getWebViewConfigKey = (parameters: CommonExperienceOptions) =>
   JSON.stringify(createUrlParamsObject(parameters));
 
 /**
- * Mirrors ketch-tag's function-name validation: non-blank, and only letters, digits,
- * '_', '-', or '.'. The name is interpolated into a quoted JS literal, so this is the
- * only guard against breaking out of it.
+ * Accepts a non-blank name of letters, digits, '_', '-', or '.'. The name is
+ * interpolated into a quoted JS literal, so this is the only guard against
+ * breaking out of it.
  */
 const TRIGGER_FUNCTION_NAME_REGEX = /^[A-Za-z0-9_.-]+$/;
 
@@ -223,7 +223,7 @@ export const buildTriggerExpression = (
   return `ketch("trigger", "${triggerName}", "${functionName}", ${optionsJson}); true;`;
 };
 
-/** Maps a hideExperience reason from ketch-tag, falling back to `none` when unrecognized. */
+/** Maps a hideExperience reason from the WebView, falling back to `none` when unrecognized. */
 export const toHideExperienceArgument = (
   value: unknown
 ): OnHideExperienceArgument =>
@@ -233,7 +233,7 @@ export const toHideExperienceArgument = (
     ? (value as OnHideExperienceArgument)
     : OnHideExperienceArgument.none;
 
-/** Maps a willShowExperience type from ketch-tag, falling back to `None` when unrecognized. */
+/** Maps a willShowExperience type from the WebView, falling back to `None` when unrecognized. */
 export const toWillShowExperienceType = (
   value: unknown
 ): WillShowExperienceType =>
