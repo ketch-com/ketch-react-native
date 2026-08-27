@@ -156,7 +156,12 @@ export class HeadlessApiClient {
   /** Updates subscription topics/controls (`POST .../subscriptions/{org}/update`). */
   async setSubscriptions(request: SubscriptionsRequest): Promise<void> {
     const path = `/subscriptions/${request.organizationCode}/update`;
-    await this.postVoid(path, request as unknown as Record<string, unknown>);
+    // Without a context.source the server attributes the write to "unknown".
+    const body: SubscriptionsRequest = {
+      ...request,
+      context: { source: 'headless', ...request.context },
+    };
+    await this.postVoid(path, body as unknown as Record<string, unknown>);
   }
 
   /** Builds preferences QR image URL (no HTTP). */
