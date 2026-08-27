@@ -698,3 +698,59 @@ describe('Consent purpose conversion', () => {
     });
   });
 });
+
+/**
+ * Omitting `context` makes the server record the write as source "unknown".
+ * The SubscriptionSource union includes a `headless` value for this caller.
+ */
+describe('setSubscriptions context', () => {
+  const request = {
+    organizationCode: 'org',
+    propertyCode: 'prop',
+    environmentCode: 'production',
+    identities: { email: 'a@b.test' },
+    topics: { newsletter: { email: { status: 'granted' as const } } },
+  };
+
+  function sentBody(calls: [string, RequestInit | undefined][]) {
+    return JSON.parse(String(calls[0]?.[1]?.body)) as Record<string, unknown>;
+  }
+
+  it('defaults the source to headless', async () => {
+    const { fetchFn, calls } = mockFetchCapturing();
+    await new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn,
+    }).setSubscriptions(request);
+    expect(calls()[0]?.[0]).toBe(
+      'https://global.ketchcdn.com/web/v3/subscriptions/org/update'
+    );
+    expect(sentBody(calls()).context).toEqual({ source: 'headless' });
+  });
+
+  it('lets an explicit source win', async () => {
+    const { fetchFn, calls } = mockFetchCapturing();
+    await new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn,
+    }).setSubscriptions({
+      ...request,
+      context: { source: 'preference.subscriptionsTab.manual' },
+    });
+    expect(sentBody(calls()).context).toEqual({
+      source: 'preference.subscriptionsTab.manual',
+    });
+  });
+
+  it('keeps a caller-supplied configurationId alongside the default source', async () => {
+    const { fetchFn, calls } = mockFetchCapturing();
+    await new HeadlessApiClient({
+      dataCenter: KetchDataCenter.US,
+      fetchFn,
+    }).setSubscriptions({ ...request, context: { configurationId: 'cfg-1' } });
+    expect(sentBody(calls()).context).toEqual({
+      source: 'headless',
+      configurationId: 'cfg-1',
+    });
+  });
+});
