@@ -181,6 +181,9 @@ export interface SubscriptionControlSetting {
 export type SubscriptionSource =
   | 'preference.subscriptionsTab.manual'
   | 'preference.subscriptionsTab.unsubscribeAll'
+  | 'progressive.subscription'
+  | 'consentGate.subscription'
+  | 'router.setSubscriptions'
   | 'auditLog.subscribeAll'
   | 'auditLog.unsubscribeAll'
   | 'auditLog.default'
