@@ -507,3 +507,90 @@ describe('hasUsableConsentFields (via getConsent)', () => {
     });
   });
 });
+
+/**
+ * React Native only partially polyfills the WHATWG URL API: its URL constructor
+ * appends a trailing slash to every URL (react-native/Libraries/Blob/URL.js) and
+ * URLSearchParams.set() throws (Libraries/Blob/URLSearchParams.js). Node's URL is
+ * complete, so a buildUrl that relies on either passes under jest and 404s on device.
+ * These tests substitute the React Native semantics to keep that gap covered.
+ */
+describe('HeadlessApiClient URL building under the React Native URL polyfill', () => {
+  const realURL = globalThis.URL;
+  const realURLSearchParams = globalThis.URLSearchParams;
+
+  beforeEach(() => {
+    class ReactNativeURL {
+      _url: string;
+      constructor(url: string) {
+        this._url = url.endsWith('/') ? url : `${url}/`;
+      }
+      get searchParams(): never {
+        throw new Error('URL.searchParams is not implemented');
+      }
+      toString(): string {
+        return this._url;
+      }
+    }
+    class ReactNativeURLSearchParams {
+      set(): never {
+        throw new Error('URLSearchParams.set is not implemented');
+      }
+    }
+    // @ts-expect-error substituting a deliberately incomplete polyfill
+    globalThis.URL = ReactNativeURL;
+    // @ts-expect-error substituting a deliberately incomplete polyfill
+    globalThis.URLSearchParams = ReactNativeURLSearchParams;
+  });
+
+  afterEach(() => {
+    globalThis.URL = realURL;
+    globalThis.URLSearchParams = realURLSearchParams;
+  });
+
+  it('does not append a trailing slash to a .json path', () => {
+    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
+    expect(client.buildUrl('/config/acme/prop/boot.json')).toBe(
+      'https://global.ketchcdn.com/web/v3/config/acme/prop/boot.json'
+    );
+  });
+
+  it('does not append a trailing slash to a POST path', () => {
+    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
+    expect(client.buildUrl('/subscriptions/acme/get')).toBe(
+      'https://global.ketchcdn.com/web/v3/subscriptions/acme/get'
+    );
+  });
+
+  it('builds query strings without URLSearchParams.set', () => {
+    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
+    expect(
+      client.buildUrl('/config/acme/prop/config.json', { hash: '123' })
+    ).toBe(
+      'https://global.ketchcdn.com/web/v3/config/acme/prop/config.json?hash=123'
+    );
+  });
+
+  it('percent-encodes query values without URLSearchParams.set', () => {
+    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
+    expect(
+      client.buildUrl('/qr/org/prop/preferences.png', { path: '/policy.html' })
+    ).toBe(
+      'https://global.ketchcdn.com/web/v3/qr/org/prop/preferences.png?path=%2Fpolicy.html'
+    );
+  });
+
+  it('preferenceQRUrl works without URLSearchParams.set', () => {
+    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
+    expect(
+      client.preferenceQRUrl({
+        organizationCode: 'org',
+        propertyCode: 'prop',
+        environmentCode: 'production',
+        imageSize: 256,
+      })
+    ).toBe(
+      'https://global.ketchcdn.com/web/v3/qr/org/prop/preferences.png?env=production&size=256'
+    );
+  });
+});

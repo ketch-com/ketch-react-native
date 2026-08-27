@@ -40,14 +40,22 @@ export class HeadlessApiClient {
 
   /** Builds an absolute CDN URL for unit tests and debugging. */
   buildUrl(path: string, query?: Record<string, string>): string {
+    // Built by string concatenation, not `new URL`: React Native's URL polyfill
+    // appends a trailing slash to every URL (Libraries/Blob/URL.js) and its
+    // URLSearchParams.set() throws unconditionally.
     const normalized = path.startsWith('/') ? path : `/${path}`;
-    const url = new URL(`${this.baseUrl.replace(/\/+$/, '')}${normalized}`);
-    if (query) {
-      Object.entries(query).forEach(([key, value]) => {
-        url.searchParams.set(key, value);
-      });
+    const base = `${this.baseUrl.replace(/\/+$/, '')}${normalized}`;
+    const entries = Object.entries(query ?? {});
+    if (entries.length === 0) {
+      return base;
     }
-    return url.toString();
+    const search = entries
+      .map(
+        ([key, value]) =>
+          `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+      )
+      .join('&');
+    return `${base}${base.includes('?') ? '&' : '?'}${search}`;
   }
 
   /** GeoIP / jurisdiction hint (`GET /ip`). */
