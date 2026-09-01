@@ -1,6 +1,7 @@
 export { KetchHeadless, type KetchHeadlessOptions } from './KetchHeadless';
 export {
   HeadlessException,
+  ControlImpact,
   MigrationOption,
   consentConfigToJson,
   consentUpdateToJson,
@@ -15,6 +16,13 @@ export {
   type PreferenceQRRequest,
   type PurposeAllowedLegalBasis,
   type PurposeLegalBasis,
+  type SubscriptionContext,
+  type SubscriptionControlSetting,
+  type SubscriptionInfo,
+  type SubscriptionSource,
+  type SubscriptionStatus,
+  type SubscriptionTopicContactMethodSetting,
+  type SubscriptionTopicSetting,
   type SubscriptionsRequest,
   type SubscriptionsResponse,
 } from './headlessTypes';

@@ -18,7 +18,7 @@ import {
 
 export type FetchFn = typeof fetch;
 
-/** Native HTTP client mirroring ketch-tag KetchWebAPI (web/v3). */
+/** Native HTTP client for the web/v3 CDN API. */
 export class HeadlessApiClient {
   private readonly baseUrl: string;
   private readonly fetchFn: FetchFn;
@@ -40,14 +40,22 @@ export class HeadlessApiClient {
 
   /** Builds an absolute CDN URL for unit tests and debugging. */
   buildUrl(path: string, query?: Record<string, string>): string {
+    // Built by string concatenation, not `new URL`: React Native's URL polyfill
+    // appends a trailing slash to every URL (Libraries/Blob/URL.js) and its
+    // URLSearchParams.set() throws unconditionally.
     const normalized = path.startsWith('/') ? path : `/${path}`;
-    const url = new URL(`${this.baseUrl.replace(/\/+$/, '')}${normalized}`);
-    if (query) {
-      Object.entries(query).forEach(([key, value]) => {
-        url.searchParams.set(key, value);
-      });
+    const base = `${this.baseUrl.replace(/\/+$/, '')}${normalized}`;
+    const entries = Object.entries(query ?? {});
+    if (entries.length === 0) {
+      return base;
     }
-    return url.toString();
+    const search = entries
+      .map(
+        ([key, value]) =>
+          `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+      )
+      .join('&');
+    return `${base}${base.includes('?') ? '&' : '?'}${search}`;
   }
 
   /** GeoIP / jurisdiction hint (`GET /ip`). */
@@ -148,7 +156,12 @@ export class HeadlessApiClient {
   /** Updates subscription topics/controls (`POST .../subscriptions/{org}/update`). */
   async setSubscriptions(request: SubscriptionsRequest): Promise<void> {
     const path = `/subscriptions/${request.organizationCode}/update`;
-    await this.postVoid(path, request as unknown as Record<string, unknown>);
+    // Without a context.source the server attributes the write to "unknown".
+    const body: SubscriptionsRequest = {
+      ...request,
+      context: { source: 'headless', ...request.context },
+    };
+    await this.postVoid(path, body as unknown as Record<string, unknown>);
   }
 
   /** Builds preferences QR image URL (no HTTP). */
@@ -313,13 +326,51 @@ function hasUsableConsentFields(consent: Consent): boolean {
   return hasPurposes || hasVendors || hasProtocols;
 }
 
+/**
+ * Converts one CDN purpose value to a boolean, or undefined when unreadable.
+ *
+ * The CDN sends three shapes: a bare string ("true"/"false") from /consent/{org}/get,
+ * an { allowed } object from /consent/{org}/update, and occasionally a JSON boolean.
+ */
+function purposeAllowed(value: unknown): boolean | undefined {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    // '' carries no decision; the web tag skips it rather than treating it as a denial.
+    return value === '' ? undefined : value === 'true';
+  }
+  if (value != null && typeof value === 'object') {
+    const allowed = (value as { allowed?: unknown }).allowed;
+    if (typeof allowed === 'boolean') {
+      return allowed;
+    }
+    if (typeof allowed === 'string') {
+      return allowed === '' ? undefined : allowed === 'true';
+    }
+  }
+  return undefined;
+}
+
+/** Converts a purpose map, dropping only the entries it cannot read. */
+function parsePurposes(value: unknown): Record<string, boolean> {
+  const purposes: Record<string, boolean> = {};
+  if (value == null || typeof value !== 'object') {
+    return purposes;
+  }
+  for (const [code, raw] of Object.entries(value as Record<string, unknown>)) {
+    const allowed = purposeAllowed(raw);
+    if (allowed !== undefined) {
+      purposes[code] = allowed;
+    }
+  }
+  return purposes;
+}
+
 function parseConsent(json: Record<string, unknown>): Consent {
   // Default to {}, matching emptyConsent() — a vendors-only response would otherwise leave
   // purposes undefined, which breaks a caller doing Object.keys(consent.purposes).
-  const purposes =
-    json.purposes && typeof json.purposes === 'object'
-      ? (json.purposes as Record<string, boolean>)
-      : {};
+  const purposes = parsePurposes(json.purposes);
   const vendors = Array.isArray(json.vendors)
     ? (json.vendors as string[])
     : undefined;

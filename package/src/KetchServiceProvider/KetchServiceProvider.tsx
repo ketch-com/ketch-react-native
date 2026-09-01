@@ -658,7 +658,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
 
       case EventName.consent:
         // Update the consent object with the new purpose consent data
-        const consentObject = JSON.parse(data.data || {}) as Consent;
+        const consentObject = JSON.parse(data.data || '{}') as Consent;
         consent.current.purposes = consentObject.purposes;
         parameters.onConsentUpdated?.(consent.current);
         break;

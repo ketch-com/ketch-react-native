@@ -54,6 +54,9 @@ jobs:
       - name: Typecheck files
         run: npm run typecheck
 
+      - name: Run unit tests
+        run: npm test
+
       - name: Build library
         run: npm run all
 

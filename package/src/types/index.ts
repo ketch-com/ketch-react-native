@@ -263,9 +263,9 @@ export interface KetchMobile {
   onHasShownExperience?: () => void;
 
   /**
-   * Native storage write from ketch-tag (`nativeStoragePut` event).
-   * @param key Storage key written by ketch-tag
-   * @param value Storage value written by ketch-tag
+   * Native storage write requested by the web tag (`nativeStoragePut` event).
+   * @param key Storage key to write
+   * @param value Storage value to write
    */
   onNativeStoragePut?: (key: string, value: string) => void;
 }
