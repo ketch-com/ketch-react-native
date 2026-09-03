@@ -150,6 +150,17 @@ map the SDK will send. `clearIdentities()` wipes the stored identifier; a new on
 is minted on the next launch, which starts a **new consent record**. Identities you
 pass as props are unaffected, and the identifier does not survive app uninstall.
 
+Install [`react-native-get-random-values`](https://github.com/LinusU/react-native-get-random-values)
+alongside this package. React Native ships no WebCrypto, and without it the identifier
+is generated from `Math.random`, whose seeding is not guaranteed to differ between
+devices — two installs could mint the same identifier and share a consent record. The
+dependency is optional so the SDK still runs without it, but it logs a warning and
+falls back to the weaker source.
+
+```sh
+npm install react-native-get-random-values
+```
+
 **Headless** — `fetchConsent`, `setConsentOnServer`, `invokeRight`,
 `getBootstrapConfiguration`, `getFullConfiguration`, `getSubscriptions`,
 `setSubscriptions`, and `preferenceQRUrl` hit the CDN directly, for consent

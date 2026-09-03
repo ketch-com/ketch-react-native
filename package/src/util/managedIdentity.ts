@@ -35,19 +35,50 @@ export type ResolvedManagedIdentity = {
   value: string;
 };
 
+let polyfillAttempted = false;
+let warnedAboutWeakEntropy = false;
+
+/**
+ * Installs `crypto.getRandomValues` by side effect. React Native ships no WebCrypto,
+ * so without this the UUID is generated from `Math.random`, whose seeding is not
+ * guaranteed to be unique across devices.
+ */
+const ensureCryptoPolyfill = (): void => {
+  if (polyfillAttempted) return;
+  polyfillAttempted = true;
+  try {
+    require('react-native-get-random-values');
+  } catch (_) {}
+};
+
 const getRandomBytes = (length: number): Uint8Array => {
   const bytes = new Uint8Array(length);
+  ensureCryptoPolyfill();
   const webCrypto = (
     globalThis as {
       crypto?: { getRandomValues?: (a: Uint8Array) => Uint8Array };
     }
   ).crypto;
   if (webCrypto && typeof webCrypto.getRandomValues === 'function') {
-    webCrypto.getRandomValues(bytes);
-    return bytes;
+    try {
+      webCrypto.getRandomValues(bytes);
+      return bytes;
+    } catch (_) {
+      // Present but unusable, e.g. the polyfill is installed while its native
+      // module is not linked. Fall through rather than failing identity minting.
+    }
   }
-  // React Native does not guarantee WebCrypto. Math.random is weaker entropy but
-  // needs no native module, which keeps this package dependency-free.
+  // Reached only when the optional peer dependency is absent. Two devices whose
+  // PRNG happens to seed alike can mint the same identifier, and identifiers key
+  // consent records, so this is a degraded path rather than an equivalent one.
+  if (!warnedAboutWeakEntropy) {
+    warnedAboutWeakEntropy = true;
+    console.warn(
+      '[Ketch] react-native-get-random-values is not installed. The Ketch-managed ' +
+        'identifier will be generated with Math.random, which is not a cryptographic ' +
+        'source. Install it to avoid the risk of duplicate identifiers.'
+    );
+  }
   for (let i = 0; i < length; i++) {
     bytes[i] = Math.floor(Math.random() * 256);
   }
