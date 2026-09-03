@@ -5,7 +5,9 @@ import {
   clearManagedIdentity,
   findManagedIdentity,
   getCachedManagedIdentity,
+  resolveManagedIdentity,
   resolveManagedIdentityValue,
+  resolveManagedIdentityWithin,
   setCachedManagedIdentity,
   uuidV4,
   withManagedIdentity,
@@ -252,5 +254,54 @@ describe('withManagedIdentity', () => {
     expect(withManagedIdentity({ swb_android: 'app-supplied' })).toEqual({
       swb_android: 'app-supplied',
     });
+  });
+});
+
+describe('resolveManagedIdentityWithin', () => {
+  const identityConfig = {
+    identities: { swb_prop: { type: 'queryString', variable: 'swb_prop' } },
+  };
+
+  afterEach(async () => {
+    await clearManagedIdentity(fakeStorage().storage);
+  });
+
+  it('stops waiting on a stalled load and resolves in the background', async () => {
+    const storage = fakeStorage();
+    let release: () => void = () => {};
+    const gate = new Promise<void>((r) => {
+      release = r;
+    });
+
+    const bounded = await resolveManagedIdentityWithin(
+      'org/stalled',
+      async () => {
+        await gate;
+        return identityConfig;
+      },
+      10,
+      { storage: storage.storage }
+    );
+    // No identifier, but the experience is free to render.
+    expect(bounded).toBeUndefined();
+
+    release();
+    const later = await resolveManagedIdentity(
+      'org/stalled',
+      async () => identityConfig,
+      { storage: storage.storage }
+    );
+    expect(later?.value).toMatch(UUID_V4);
+  });
+
+  it('returns the identifier when the load beats the bound', async () => {
+    const storage = fakeStorage();
+    const resolved = await resolveManagedIdentityWithin(
+      'org/fast',
+      async () => identityConfig,
+      10_000,
+      { storage: storage.storage }
+    );
+    expect(resolved?.value).toMatch(UUID_V4);
   });
 });

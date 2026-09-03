@@ -170,6 +170,11 @@ const resolutions = new Map<
   Promise<ResolvedManagedIdentity | undefined>
 >();
 
+/**
+ * How long a resolve may gate the experience before it proceeds without an identifier.
+ */
+export const MANAGED_IDENTITY_RESOLVE_TIMEOUT_MS = 10_000;
+
 export const managedIdentityKey = (
   organizationCode: string,
   propertyCode: string
@@ -206,6 +211,30 @@ export const resolveManagedIdentity = (
 
   resolutions.set(key, inflight);
   return inflight;
+};
+
+/**
+ * Resolves, but stops waiting after a bound. Without one this gates the experience for as
+ * long as the platform HTTP stack allows — a captive portal does not fail the request, it
+ * hangs it, leaving no banner and no error. The resolve continues in the background and
+ * later callers pick up the result.
+ */
+export const resolveManagedIdentityWithin = async (
+  key: string,
+  loadConfig: ConfigLoader,
+  timeoutMs: number = MANAGED_IDENTITY_RESOLVE_TIMEOUT_MS,
+  options: { storage?: ManagedIdentityStorage; now?: () => number } = {}
+): Promise<ResolvedManagedIdentity | undefined> => {
+  const work = resolveManagedIdentity(key, loadConfig, options);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const bound = new Promise<undefined>((settle) => {
+    timer = setTimeout(() => settle(undefined), timeoutMs);
+  });
+  try {
+    return await Promise.race([work, bound]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 };
 
 /**

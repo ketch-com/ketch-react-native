@@ -59,7 +59,7 @@ import nativeStorage from '../util/nativeStorage';
 import {
   clearManagedIdentity,
   managedIdentityKey,
-  resolveManagedIdentity,
+  resolveManagedIdentityWithin,
   setCachedManagedIdentity,
   withResolvedManagedIdentity,
   type ResolvedManagedIdentity,
@@ -416,7 +416,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       // Shared with the headless client, which memoises per property, so a headless
       // call made before this effect finishes waits on the same work rather than
       // starting its own or sending the request without an identifier.
-      const resolved = await resolveManagedIdentity(
+      const resolved = await resolveManagedIdentityWithin(
         managedIdentityCacheKey,
         loadIdentityConfiguration
       );
