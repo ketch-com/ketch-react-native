@@ -1,3 +1,8 @@
+import {
+  managedIdentityKey,
+  withManagedIdentity,
+  withResolvedManagedIdentity,
+} from '../util/managedIdentity';
 import { KetchDataCenter, MobileSdkUrlByDataCenterMap } from '../enums';
 import { getDeviceLanguageTag } from '../util/deviceLocale';
 import type { Consent } from '../types';
@@ -36,6 +41,59 @@ export class HeadlessApiClient {
     this.baseUrl = options.baseUrl ?? MobileSdkUrlByDataCenterMap[dataCenter];
     this.fetchFn = options.fetchFn ?? fetch;
     this.deviceLanguage = options.deviceLanguage ?? getDeviceLanguageTag;
+  }
+
+  /**
+   * Merges in the Ketch-managed identifier, resolving it if nothing has yet. Headless
+   * calls can run with no provider mounted, so this cannot rely on the provider having
+   * populated it. Without `propertyCode` the identity space cannot be looked up, so
+   * this falls back to whatever a provider has already resolved.
+   */
+  private withIdentities(
+    identities: Record<string, string> | undefined,
+    organizationCode: string,
+    propertyCode: string | undefined
+  ): Promise<Record<string, string>> {
+    if (!propertyCode) {
+      return Promise.resolve(withManagedIdentity(identities));
+    }
+    return withResolvedManagedIdentity(
+      identities,
+      managedIdentityKey(organizationCode, propertyCode),
+      () => this.getIdentityConfiguration({ organizationCode, propertyCode })
+    );
+  }
+
+  /**
+   * Fetches only the identities section of a property config, which is all the managed
+   * identity needs and a fraction of the full document.
+   *
+   * Deliberately uses the short path: `include` is ignored on the
+   * environment/jurisdiction/language variant, and identities do not vary by any of
+   * those, so nothing is lost by omitting them.
+   */
+  async getIdentityConfiguration(request: {
+    organizationCode: string;
+    propertyCode: string;
+  }): Promise<Record<string, unknown>> {
+    const path = `/config/${request.organizationCode}/${request.propertyCode}/config.json`;
+    const response = await this.get(
+      this.buildUrl(path, { include: 'identities' })
+    );
+    const config = await this.parseJsonResponse<Record<string, unknown>>(
+      response,
+      path
+    );
+
+    // An unrecognised include value comes back as 200 with the key absent, which is
+    // otherwise indistinguishable from a property that declares no identities.
+    if (!('identities' in config)) {
+      console.warn(
+        '[Ketch] identity configuration response contained no identities key'
+      );
+    }
+
+    return config;
   }
 
   /** Builds an absolute CDN URL for unit tests and debugging. */
@@ -123,7 +181,17 @@ export class HeadlessApiClient {
   /** Server consent including `protocols` (`POST .../consent/{org}/get`). */
   async getConsent(config: ConsentConfig): Promise<Consent> {
     const path = `/consent/${config.organizationCode}/get`;
-    const response = await this.post(path, consentConfigToJson(config));
+    const response = await this.post(
+      path,
+      consentConfigToJson({
+        ...config,
+        identities: await this.withIdentities(
+          config.identities,
+          config.organizationCode,
+          config.propertyCode
+        ),
+      })
+    );
     if (!response || response === 'null') {
       return emptyConsent();
     }
@@ -138,7 +206,15 @@ export class HeadlessApiClient {
   /** Invokes a data subject right (`POST .../rights/{org}/invoke`). */
   async invokeRight(request: InvokeRightRequest): Promise<void> {
     const path = `/rights/${request.organizationCode}/invoke`;
-    await this.postVoid(path, request as unknown as Record<string, unknown>);
+    const body: InvokeRightRequest = {
+      ...request,
+      identities: await this.withIdentities(
+        request.identities,
+        request.organizationCode,
+        request.propertyCode
+      ),
+    };
+    await this.postVoid(path, body as unknown as Record<string, unknown>);
   }
 
   /** Gets subscription topics/controls (`POST .../subscriptions/{org}/get`). */
@@ -146,9 +222,17 @@ export class HeadlessApiClient {
     request: SubscriptionsRequest
   ): Promise<SubscriptionsResponse> {
     const path = `/subscriptions/${request.organizationCode}/get`;
+    const body: SubscriptionsRequest = {
+      ...request,
+      identities: await this.withIdentities(
+        request.identities,
+        request.organizationCode,
+        request.propertyCode
+      ),
+    };
     const response = await this.post(
       path,
-      request as unknown as Record<string, unknown>
+      body as unknown as Record<string, unknown>
     );
     return this.parseJsonResponse<SubscriptionsResponse>(response, path);
   }
@@ -159,6 +243,11 @@ export class HeadlessApiClient {
     // Without a context.source the server attributes the write to "unknown".
     const body: SubscriptionsRequest = {
       ...request,
+      identities: await this.withIdentities(
+        request.identities,
+        request.organizationCode,
+        request.propertyCode
+      ),
       context: { source: 'headless', ...request.context },
     };
     await this.postVoid(path, body as unknown as Record<string, unknown>);
@@ -196,7 +285,14 @@ export class HeadlessApiClient {
     const path = `/consent/${update.organizationCode}/update`;
     const response = await this.post(
       path,
-      consentUpdateToJson(withoutProtocols(update))
+      consentUpdateToJson({
+        ...withoutProtocols(update),
+        identities: await this.withIdentities(
+          update.identities,
+          update.organizationCode,
+          update.propertyCode
+        ),
+      })
     );
     if (!response || response === 'null') {
       return consentFromUpdate(update);

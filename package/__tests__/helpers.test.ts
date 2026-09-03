@@ -29,6 +29,36 @@ describe('createUrlParamsObject', () => {
     expect(params.organizationCode).toBe('acme');
   });
 
+  it('spreads identity space codes in as query parameter keys', () => {
+    const params = createUrlParamsObject({
+      organizationCode: 'acme',
+      propertyCode: 'prop',
+      dataCenter: KetchDataCenter.US,
+      identities: { swb_prop: 'the-uuid', email: 'a@b.test' },
+    });
+
+    expect(params.swb_prop).toBe('the-uuid');
+    expect(params.email).toBe('a@b.test');
+  });
+
+  it('keeps the reserved parameter when an identity space code collides', () => {
+    const params = createUrlParamsObject({
+      organizationCode: 'acme',
+      propertyCode: 'prop',
+      dataCenter: KetchDataCenter.US,
+      languageCode: 'en',
+      identities: {
+        organizationCode: 'hijacked',
+        ketch_lang: 'hijacked',
+        swb_prop: 'the-uuid',
+      },
+    });
+
+    expect(params.organizationCode).toBe('acme');
+    expect(params.ketch_lang).toBe('en');
+    expect(params.swb_prop).toBe('the-uuid');
+  });
+
   it('maps data center and log level', () => {
     const params = createUrlParamsObject({
       organizationCode: 'acme',
@@ -93,6 +123,44 @@ describe('createUrlParamsObject', () => {
     });
 
     expect(usKey).not.toBe(uatKey);
+  });
+});
+
+describe('normalizeKetchMobileSdkUrl without a working URL global', () => {
+  // React Native's URL polyfill throws "URL.protocol is not implemented", which
+  // silently rejected every ketchMobileSdkUrl on device. Node's URL works, so the
+  // tests below stand in for the device by removing it.
+  const RealURL = globalThis.URL;
+
+  beforeEach(() => {
+    // @ts-expect-error deliberately removing the global for this test
+    delete globalThis.URL;
+  });
+
+  afterEach(() => {
+    globalThis.URL = RealURL;
+  });
+
+  it('still accepts https and local http', () => {
+    expect(
+      normalizeKetchMobileSdkUrl('https://global.ketchcdn.com/web/v3')
+    ).toBe('https://global.ketchcdn.com/web/v3');
+    expect(normalizeKetchMobileSdkUrl('http://localhost:8787/web/v3')).toBe(
+      'http://localhost:8787/web/v3'
+    );
+    expect(normalizeKetchMobileSdkUrl('http://127.0.0.1:8787/web/v3')).toBe(
+      'http://127.0.0.1:8787/web/v3'
+    );
+  });
+
+  it('still rejects non-https remote hosts', () => {
+    expect(
+      normalizeKetchMobileSdkUrl('http://evil.test/web/v3')
+    ).toBeUndefined();
+    expect(
+      normalizeKetchMobileSdkUrl('ftp://global.ketchcdn.com')
+    ).toBeUndefined();
+    expect(normalizeKetchMobileSdkUrl('not a url')).toBeUndefined();
   });
 });
 

@@ -15,4 +15,6 @@ export const KetchServiceContext = createContext<KetchService>({
   getRegion: () => Promise.resolve(undefined),
   getJurisdiction: () => Promise.resolve(undefined),
   fetchConsent: () => Promise.resolve({}) as Promise<Consent>,
+  getIdentities: () => Promise.resolve({}),
+  clearIdentities: () => Promise.resolve(),
 });

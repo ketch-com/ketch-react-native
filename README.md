@@ -143,6 +143,13 @@ you passed as a prop over a network lookup. `getTCFTCString()`,
 `getUSPrivacyString()`, `getGPPHDRGppString()`, and `getSavedString(key)` read
 the IAB privacy strings the tag wrote to native storage. All return promises.
 
+**Managed identity** — the SDK mints a Ketch-managed identifier natively when the
+property config declares one, persists it in native storage, and supplies it to
+both the webview and the headless requests. `getIdentities()` returns the identity
+map the SDK will send. `clearIdentities()` wipes the stored identifier; a new one
+is minted on the next launch, which starts a **new consent record**. Identities you
+pass as props are unaffected, and the identifier does not survive app uninstall.
+
 **Headless** — `fetchConsent`, `setConsentOnServer`, `invokeRight`,
 `getBootstrapConfiguration`, `getFullConfiguration`, `getSubscriptions`,
 `setSubscriptions`, and `preferenceQRUrl` hit the CDN directly, for consent

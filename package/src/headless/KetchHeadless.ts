@@ -58,6 +58,14 @@ export class KetchHeadless {
     return this.client.getFullConfiguration(request);
   }
 
+  /** Only the identities section of a property config. */
+  getIdentityConfiguration(request: {
+    organizationCode: string;
+    propertyCode: string;
+  }): Promise<Record<string, unknown>> {
+    return this.client.getIdentityConfiguration(request);
+  }
+
   getConsent(config: ConsentConfig): Promise<Consent> {
     return this.client.getConsent(config);
   }
