@@ -51,6 +51,15 @@ const ensureCryptoPolyfill = (): void => {
   } catch (_) {}
 };
 
+const warnWeakEntropy = (reason: string): void => {
+  if (warnedAboutWeakEntropy) return;
+  warnedAboutWeakEntropy = true;
+  console.warn(
+    `[Ketch] ${reason} The Ketch-managed identifier falls back to Math.random, ` +
+      'which is not a cryptographic source and risks duplicate identifiers.'
+  );
+};
+
 const getRandomBytes = (length: number): Uint8Array => {
   const bytes = new Uint8Array(length);
   ensureCryptoPolyfill();
@@ -59,6 +68,7 @@ const getRandomBytes = (length: number): Uint8Array => {
       crypto?: { getRandomValues?: (a: Uint8Array) => Uint8Array };
     }
   ).crypto;
+  let getRandomValuesThrew = false;
   if (webCrypto && typeof webCrypto.getRandomValues === 'function') {
     try {
       webCrypto.getRandomValues(bytes);
@@ -66,19 +76,17 @@ const getRandomBytes = (length: number): Uint8Array => {
     } catch (_) {
       // Present but unusable, e.g. the polyfill is installed while its native
       // module is not linked. Fall through rather than failing identity minting.
+      getRandomValuesThrew = true;
     }
   }
-  // Reached only when the optional peer dependency is absent. Two devices whose
-  // PRNG happens to seed alike can mint the same identifier, and identifiers key
-  // consent records, so this is a degraded path rather than an equivalent one.
-  if (!warnedAboutWeakEntropy) {
-    warnedAboutWeakEntropy = true;
-    console.warn(
-      '[Ketch] react-native-get-random-values is not installed. The Ketch-managed ' +
-        'identifier will be generated with Math.random, which is not a cryptographic ' +
-        'source. Install it to avoid the risk of duplicate identifiers.'
-    );
-  }
+  // Two devices whose PRNG happens to seed alike can mint the same identifier, and
+  // identifiers key consent records, so this is a degraded path rather than an
+  // equivalent one. The two ways of reaching it need different fixes, so say which.
+  warnWeakEntropy(
+    getRandomValuesThrew
+      ? 'crypto.getRandomValues threw, so its native module is likely not linked.'
+      : 'react-native-get-random-values is not installed or did not register.'
+  );
   for (let i = 0; i < length; i++) {
     bytes[i] = Math.floor(Math.random() * 256);
   }

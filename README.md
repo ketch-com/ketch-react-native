@@ -158,7 +158,7 @@ dependency is optional so the SDK still runs without it, but it logs a warning a
 falls back to the weaker source.
 
 ```sh
-npm install react-native-get-random-values
+npm install react-native-get-random-values@^1
 ```
 
 **Headless** — `fetchConsent`, `setConsentOnServer`, `invokeRight`,
