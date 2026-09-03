@@ -931,7 +931,11 @@ describe('managed identity injection into headless requests', () => {
   it('uses a provider-resolved identity when the request omits propertyCode', async () => {
     // propertyCode is optional only on subscriptions, so the identity space cannot be
     // looked up. Whatever a mounted provider already resolved still applies.
-    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
+    setCachedManagedIdentity({
+      code: 'swb_android',
+      variable: 'swb_android',
+      value: 'the-uuid',
+    });
     const { fetchFn, calls } = mockFetchWithConfig();
     const client = new HeadlessApiClient({ fetchFn });
 

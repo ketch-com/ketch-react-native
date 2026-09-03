@@ -31,6 +31,9 @@ export type ManagedIdentityDescriptor = {
 };
 
 export type ResolvedManagedIdentity = {
+  /** Identity space code. Consent request bodies are keyed by this. */
+  code: string;
+  /** Query parameter name the tag reads the value from. */
   variable: string;
   value: string;
 };
@@ -170,6 +173,9 @@ const resolutions = new Map<
   Promise<ResolvedManagedIdentity | undefined>
 >();
 
+/** Bumped by clearManagedIdentity so a resolve already in flight cannot repopulate. */
+let generation = 0;
+
 /**
  * How long a resolve may gate the experience before it proceeds without an identifier.
  */
@@ -192,12 +198,21 @@ export const resolveManagedIdentity = (
   const existing = resolutions.get(key);
   if (existing) return existing;
 
+  const startedAt = generation;
   const inflight = (async () => {
     const config = await loadConfig();
+    if (startedAt !== generation) return undefined;
+
     const descriptor = findManagedIdentity(config);
     if (!descriptor) return undefined;
+
     const value = await resolveManagedIdentityValue(descriptor, options);
-    const resolved = { variable: descriptor.variable, value };
+    if (startedAt !== generation) return undefined;
+    const resolved = {
+      code: descriptor.code,
+      variable: descriptor.variable,
+      value,
+    };
     cached = resolved;
     return resolved;
   })().catch((err) => {
@@ -244,6 +259,7 @@ export const resolveManagedIdentityWithin = async (
 export const clearManagedIdentity = async (
   storage: ManagedIdentityStorage = nativeStorage
 ): Promise<void> => {
+  generation += 1;
   cached = undefined;
   // Memoised resolutions hold the old value, so a clear that left them in place
   // would hand the previous identifier back on the next call.
@@ -259,7 +275,7 @@ export const withManagedIdentity = (
   if (!cached) {
     return identities ?? {};
   }
-  return { [cached.variable]: cached.value, ...identities };
+  return { [cached.code]: cached.value, ...identities };
 };
 
 /**
@@ -274,5 +290,5 @@ export const withResolvedManagedIdentity = async (
 ): Promise<Record<string, string>> => {
   const resolved = await resolveManagedIdentity(key, loadConfig);
   if (!resolved) return identities ?? {};
-  return { [resolved.variable]: resolved.value, ...identities };
+  return { [resolved.code]: resolved.value, ...identities };
 };

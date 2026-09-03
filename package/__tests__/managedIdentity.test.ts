@@ -203,6 +203,7 @@ describe('clearManagedIdentity', () => {
       [MANAGED_IDENTITY_MINTED_AT_KEY]: '1000',
     });
     setCachedManagedIdentity({
+      code: 'swb_android',
       variable: 'swb_android',
       value: 'existing-value',
     });
@@ -240,7 +241,11 @@ describe('withManagedIdentity', () => {
   });
 
   it('adds the resolved identity under its query parameter name', () => {
-    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
+    setCachedManagedIdentity({
+      code: 'swb_android',
+      variable: 'swb_android',
+      value: 'the-uuid',
+    });
 
     expect(withManagedIdentity({ email: 'a@b.test' })).toEqual({
       swb_android: 'the-uuid',
@@ -249,7 +254,11 @@ describe('withManagedIdentity', () => {
   });
 
   it('lets an app-supplied value override the managed one', () => {
-    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
+    setCachedManagedIdentity({
+      code: 'swb_android',
+      variable: 'swb_android',
+      value: 'the-uuid',
+    });
 
     expect(withManagedIdentity({ swb_android: 'app-supplied' })).toEqual({
       swb_android: 'app-supplied',
@@ -303,5 +312,60 @@ describe('resolveManagedIdentityWithin', () => {
       { storage: storage.storage }
     );
     expect(resolved?.value).toMatch(UUID_V4);
+  });
+});
+
+describe('space code versus query variable', () => {
+  afterEach(async () => {
+    await clearManagedIdentity(fakeStorage().storage);
+  });
+
+  it('merges by space code while exposing the variable for the query param', async () => {
+    const storage = fakeStorage();
+    const resolved = await resolveManagedIdentity(
+      'org/prop',
+      async () => ({
+        identities: { swb_prop: { type: 'queryString', variable: '_swb' } },
+      }),
+      { storage: storage.storage }
+    );
+
+    expect(resolved?.code).toBe('swb_prop');
+    expect(resolved?.variable).toBe('_swb');
+    expect(Object.keys(withManagedIdentity())).toEqual(['swb_prop']);
+  });
+});
+
+describe('clearManagedIdentity against an in-flight resolve', () => {
+  afterEach(async () => {
+    await clearManagedIdentity(fakeStorage().storage);
+  });
+
+  it('is not undone by a resolve that started before it', async () => {
+    const storage = fakeStorage();
+    let release: () => void = () => {};
+    const gate = new Promise<void>((r) => {
+      release = r;
+    });
+
+    const work = resolveManagedIdentity(
+      'org/prop',
+      async () => {
+        await gate;
+        return {
+          identities: {
+            swb_prop: { type: 'queryString', variable: 'swb_prop' },
+          },
+        };
+      },
+      { storage: storage.storage }
+    );
+
+    await clearManagedIdentity(storage.storage);
+    release();
+
+    expect(await work).toBeUndefined();
+    expect(getCachedManagedIdentity()).toBeUndefined();
+    expect(await storage.storage.read(MANAGED_IDENTITY_KEY, '')).toBe('');
   });
 });
