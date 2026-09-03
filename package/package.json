@@ -67,6 +67,7 @@
     "react-native": "0.79.0",
     "react-native-builder-bob": "^0.23.2",
     "react-native-default-preference": "^1.4.4",
+    "react-native-get-random-values": "^1.11.0",
     "react-native-webview": "~13.8.4",
     "release-it": "^17.1.1",
     "typescript": "5.4.3"
@@ -76,10 +77,14 @@
     "react": ">=18.2.0",
     "react-native": ">=0.71.0",
     "react-native-default-preference": ">=1.4.4",
+    "react-native-get-random-values": ">=1.11.0 <2",
     "react-native-webview": ">=13.8.4"
   },
   "peerDependenciesMeta": {
     "expo-shared-preferences": {
+      "optional": true
+    },
+    "react-native-get-random-values": {
       "optional": true
     }
   },

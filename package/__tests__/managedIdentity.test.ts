@@ -50,6 +50,46 @@ describe('uuidV4', () => {
     const values = new Set(Array.from({ length: 1000 }, () => uuidV4()));
     expect(values.size).toBe(1000);
   });
+
+  it('names the right cause when getRandomValues throws', () => {
+    const globals = globalThis as { crypto?: unknown };
+    const original = globals.crypto;
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    globals.crypto = {
+      getRandomValues: () => {
+        throw new Error('native module not linked');
+      },
+    };
+    try {
+      expect(uuidV4()).toMatch(UUID_V4);
+      // Only meaningful if a warning was emitted at all; the module warns once per
+      // process, so tolerate an earlier test having consumed it.
+      const message = warn.mock.calls.map(String).join(' ');
+      if (message.includes('[Ketch]')) {
+        expect(message).toContain('threw');
+        expect(message).not.toContain('is not installed');
+      }
+    } finally {
+      globals.crypto = original;
+      warn.mockRestore();
+    }
+  });
+
+  it('prefers crypto.getRandomValues over the Math.random fallback', () => {
+    const getRandomValues = jest.fn((a: Uint8Array) => a.fill(0x42));
+    const globals = globalThis as { crypto?: unknown };
+    const original = globals.crypto;
+    globals.crypto = { getRandomValues };
+    try {
+      const value = uuidV4();
+      expect(getRandomValues).toHaveBeenCalled();
+      // Version nibble pinned to 4 and variant to 0b10, even from fixed bytes.
+      expect(value).toBe('42424242-4242-4242-8242-424242424242');
+      expect(value).toMatch(UUID_V4);
+    } finally {
+      globals.crypto = original;
+    }
+  });
 });
 
 describe('findManagedIdentity', () => {
