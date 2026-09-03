@@ -171,23 +171,24 @@ export const normalizeKetchMobileSdkUrl = (
     );
     return undefined;
   }
-  try {
-    const parsed = new URL(url);
-    const host = parsed.hostname;
-    const isLocalHttp =
-      parsed.protocol === 'http:' &&
-      (host === 'localhost' || host === '127.0.0.1');
-    if (parsed.protocol !== 'https:' && !isLocalHttp) {
-      console.warn(
-        '[Ketch] ketchMobileSdkUrl rejected: use https:// (or http://localhost for local mirrors)'
-      );
-      return undefined;
-    }
-    return url;
-  } catch {
+  const match = /^(https?):\/\/([^/:?#]+)(?::(\d+))?(?:[/?#]|$)/i.exec(url);
+  if (!match) {
     console.warn('[Ketch] ketchMobileSdkUrl rejected: not a valid URL');
     return undefined;
   }
+
+  const protocol = match[1]!.toLowerCase();
+  const host = match[2]!.toLowerCase();
+  const isLocalHttp =
+    protocol === 'http' && (host === 'localhost' || host === '127.0.0.1');
+  if (protocol !== 'https' && !isLocalHttp) {
+    console.warn(
+      '[Ketch] ketchMobileSdkUrl rejected: use https:// (or http://localhost for local mirrors)'
+    );
+    return undefined;
+  }
+
+  return url;
 };
 
 /** Stable key for WebView remounts when init HTML would change. */

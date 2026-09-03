@@ -96,6 +96,44 @@ describe('createUrlParamsObject', () => {
   });
 });
 
+describe('normalizeKetchMobileSdkUrl without a working URL global', () => {
+  // React Native's URL polyfill throws "URL.protocol is not implemented", which
+  // silently rejected every ketchMobileSdkUrl on device. Node's URL works, so the
+  // tests below stand in for the device by removing it.
+  const RealURL = globalThis.URL;
+
+  beforeEach(() => {
+    // @ts-expect-error deliberately removing the global for this test
+    delete globalThis.URL;
+  });
+
+  afterEach(() => {
+    globalThis.URL = RealURL;
+  });
+
+  it('still accepts https and local http', () => {
+    expect(
+      normalizeKetchMobileSdkUrl('https://global.ketchcdn.com/web/v3')
+    ).toBe('https://global.ketchcdn.com/web/v3');
+    expect(normalizeKetchMobileSdkUrl('http://localhost:8787/web/v3')).toBe(
+      'http://localhost:8787/web/v3'
+    );
+    expect(normalizeKetchMobileSdkUrl('http://127.0.0.1:8787/web/v3')).toBe(
+      'http://127.0.0.1:8787/web/v3'
+    );
+  });
+
+  it('still rejects non-https remote hosts', () => {
+    expect(
+      normalizeKetchMobileSdkUrl('http://evil.test/web/v3')
+    ).toBeUndefined();
+    expect(
+      normalizeKetchMobileSdkUrl('ftp://global.ketchcdn.com')
+    ).toBeUndefined();
+    expect(normalizeKetchMobileSdkUrl('not a url')).toBeUndefined();
+  });
+});
+
 describe('normalizeKetchMobileSdkUrl', () => {
   it('accepts https and local http', () => {
     expect(
