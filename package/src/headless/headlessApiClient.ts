@@ -1,5 +1,6 @@
 import {
   managedIdentityKey,
+  withManagedIdentity,
   withResolvedManagedIdentity,
 } from '../util/managedIdentity';
 import { KetchDataCenter, MobileSdkUrlByDataCenterMap } from '../enums';
@@ -45,8 +46,8 @@ export class HeadlessApiClient {
   /**
    * Merges in the Ketch-managed identifier, resolving it if nothing has yet. Headless
    * calls can run with no provider mounted, so this cannot rely on the provider having
-   * populated it. Without `propertyCode` the identity space cannot be located, so the
-   * caller's identities are used unchanged.
+   * populated it. Without `propertyCode` the identity space cannot be looked up, so
+   * this falls back to whatever a provider has already resolved.
    */
   private withIdentities(
     identities: Record<string, string> | undefined,
@@ -54,7 +55,7 @@ export class HeadlessApiClient {
     propertyCode: string | undefined
   ): Promise<Record<string, string>> {
     if (!propertyCode) {
-      return Promise.resolve(identities ?? {});
+      return Promise.resolve(withManagedIdentity(identities));
     }
     return withResolvedManagedIdentity(
       identities,

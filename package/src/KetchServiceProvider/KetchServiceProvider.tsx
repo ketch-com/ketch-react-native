@@ -148,7 +148,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     ResolvedManagedIdentity | undefined
   >(undefined);
   const [isManagedIdentityReady, setIsManagedIdentityReady] = useState(false);
-  const hasResolvedManagedIdentityRef = useRef(false);
+  const resolvedManagedIdentityKeyRef = useRef<string | undefined>(undefined);
 
   // CSS override state
   const [cssOverrideState, setCssOverrideState] = useState<string | undefined>(
@@ -412,10 +412,12 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
    */
   useEffect(() => {
     let cancelled = false;
-    // Only the first resolve gates the mount. A reload re-checks config in the
-    // background: the stored identifier does not change, so unmounting the webview
-    // to wait on the network again would blank an already-working experience.
-    if (!hasResolvedManagedIdentityRef.current) {
+    // Only the first resolve for a given property gates the mount. A reload re-checks
+    // config in the background: the stored identifier does not change, so unmounting
+    // the webview to wait on the network again would blank a working experience.
+    // A different property does gate, since the space code in state is then the
+    // previous property's and the tag would find no identity under it.
+    if (resolvedManagedIdentityKeyRef.current !== managedIdentityCacheKey) {
       setIsManagedIdentityReady(false);
     }
 
@@ -440,7 +442,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       })
       .finally(() => {
         if (cancelled) return;
-        hasResolvedManagedIdentityRef.current = true;
+        resolvedManagedIdentityKeyRef.current = managedIdentityCacheKey;
         setIsManagedIdentityReady(true);
       });
 
