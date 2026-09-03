@@ -29,6 +29,36 @@ describe('createUrlParamsObject', () => {
     expect(params.organizationCode).toBe('acme');
   });
 
+  it('spreads identity space codes in as query parameter keys', () => {
+    const params = createUrlParamsObject({
+      organizationCode: 'acme',
+      propertyCode: 'prop',
+      dataCenter: KetchDataCenter.US,
+      identities: { swb_prop: 'the-uuid', email: 'a@b.test' },
+    });
+
+    expect(params.swb_prop).toBe('the-uuid');
+    expect(params.email).toBe('a@b.test');
+  });
+
+  it('keeps the reserved parameter when an identity space code collides', () => {
+    const params = createUrlParamsObject({
+      organizationCode: 'acme',
+      propertyCode: 'prop',
+      dataCenter: KetchDataCenter.US,
+      languageCode: 'en',
+      identities: {
+        organizationCode: 'hijacked',
+        ketch_lang: 'hijacked',
+        swb_prop: 'the-uuid',
+      },
+    });
+
+    expect(params.organizationCode).toBe('acme');
+    expect(params.ketch_lang).toBe('en');
+    expect(params.swb_prop).toBe('the-uuid');
+  });
+
   it('maps data center and log level', () => {
     const params = createUrlParamsObject({
       organizationCode: 'acme',
