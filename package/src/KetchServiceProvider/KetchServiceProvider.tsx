@@ -312,25 +312,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     parameters.propertyCode
   );
 
-  const loadFullConfiguration = useCallback(
+  // Only the identities section is needed, and it does not vary by environment,
+  // jurisdiction or language, so none of those are passed. Keeping them out also
+  // stops a language or region change from re-resolving the identifier.
+  const loadIdentityConfiguration = useCallback(
     () =>
-      headlessApi.getFullConfiguration({
+      headlessApi.getIdentityConfiguration({
         organizationCode: parameters.organizationCode,
         propertyCode: parameters.propertyCode,
-        environmentCode: parameters.environmentName,
-        languageCode: parameters.languageCode,
-        jurisdictionCode: parameters.jurisdictionCode,
-        regionCode: parameters.regionCode,
       }),
-    [
-      headlessApi,
-      parameters.organizationCode,
-      parameters.propertyCode,
-      parameters.environmentName,
-      parameters.languageCode,
-      parameters.jurisdictionCode,
-      parameters.regionCode,
-    ]
+    [headlessApi, parameters.organizationCode, parameters.propertyCode]
   );
 
   /**
@@ -343,9 +334,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       withResolvedManagedIdentity(
         parameters.identities,
         managedIdentityCacheKey,
-        loadFullConfiguration
+        loadIdentityConfiguration
       ),
-    [parameters.identities, managedIdentityCacheKey, loadFullConfiguration]
+    [parameters.identities, managedIdentityCacheKey, loadIdentityConfiguration]
   );
 
   /**
@@ -427,7 +418,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       // starting its own or sending the request without an identifier.
       const resolved = await resolveManagedIdentity(
         managedIdentityCacheKey,
-        loadFullConfiguration
+        loadIdentityConfiguration
       );
       if (cancelled) return;
       setCachedManagedIdentity(resolved);
@@ -449,7 +440,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     return () => {
       cancelled = true;
     };
-  }, [managedIdentityCacheKey, loadFullConfiguration, webViewReloadNonce]);
+  }, [managedIdentityCacheKey, loadIdentityConfiguration, webViewReloadNonce]);
 
   useEffect(() => {
     if (Platform.OS !== 'ios') {

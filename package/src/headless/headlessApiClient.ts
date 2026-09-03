@@ -60,8 +60,40 @@ export class HeadlessApiClient {
     return withResolvedManagedIdentity(
       identities,
       managedIdentityKey(organizationCode, propertyCode),
-      () => this.getFullConfiguration({ organizationCode, propertyCode })
+      () => this.getIdentityConfiguration({ organizationCode, propertyCode })
     );
+  }
+
+  /**
+   * Fetches only the identities section of a property config, which is all the managed
+   * identity needs and a fraction of the full document.
+   *
+   * Deliberately uses the short path: `include` is ignored on the
+   * environment/jurisdiction/language variant, and identities do not vary by any of
+   * those, so nothing is lost by omitting them.
+   */
+  async getIdentityConfiguration(request: {
+    organizationCode: string;
+    propertyCode: string;
+  }): Promise<Record<string, unknown>> {
+    const path = `/config/${request.organizationCode}/${request.propertyCode}/config.json`;
+    const response = await this.get(
+      this.buildUrl(path, { include: 'identities' })
+    );
+    const config = await this.parseJsonResponse<Record<string, unknown>>(
+      response,
+      path
+    );
+
+    // An unrecognised include value comes back as 200 with the key absent, which is
+    // otherwise indistinguishable from a property that declares no identities.
+    if (!('identities' in config)) {
+      console.warn(
+        '[Ketch] identity configuration response contained no identities key'
+      );
+    }
+
+    return config;
   }
 
   /** Builds an absolute CDN URL for unit tests and debugging. */

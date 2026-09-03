@@ -778,6 +778,56 @@ describe('setSubscriptions context', () => {
   });
 });
 
+describe('getIdentityConfiguration', () => {
+  it('requests the short path with include=identities', async () => {
+    const { fetchFn, calls } = mockFetchCapturing();
+    const client = new HeadlessApiClient({ fetchFn });
+
+    await client.getIdentityConfiguration({
+      organizationCode: 'org',
+      propertyCode: 'prop',
+    });
+
+    const [url] = calls()[0]!;
+    expect(url).toContain('/config/org/prop/config.json');
+    expect(url).toContain('include=identities');
+    // The long path ignores include, so it must not be used here.
+    expect(url).not.toContain('/config/org/prop/production');
+  });
+
+  it('warns when the response carries no identities key', async () => {
+    // An unrecognised include value returns 200 with the key absent, which would
+    // otherwise be silently read as a property declaring no identities.
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const fetchFn = mockFetchResponse({ ok: true, body: '{"bogus":null}' });
+    const client = new HeadlessApiClient({ fetchFn });
+
+    await client.getIdentityConfiguration({
+      organizationCode: 'org',
+      propertyCode: 'prop',
+    });
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('no identities key')
+    );
+    warn.mockRestore();
+  });
+
+  it('stays quiet when identities are present but empty', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const fetchFn = mockFetchResponse({ ok: true, body: '{"identities":{}}' });
+    const client = new HeadlessApiClient({ fetchFn });
+
+    await client.getIdentityConfiguration({
+      organizationCode: 'org',
+      propertyCode: 'prop',
+    });
+
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+});
+
 describe('managed identity injection into headless requests', () => {
   // Resolutions are memoised per property and other tests in this file drive the
   // same org/property through error paths, so reset on both sides of each test.
