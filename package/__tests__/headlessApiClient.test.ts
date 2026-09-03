@@ -878,6 +878,37 @@ describe('managed identity injection into headless requests', () => {
     expect(identities.swb_android).toMatch(UUID);
   });
 
+  it('uses a provider-resolved identity when the request omits propertyCode', async () => {
+    // propertyCode is optional only on subscriptions, so the identity space cannot be
+    // looked up. Whatever a mounted provider already resolved still applies.
+    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
+    const { fetchFn, calls } = mockFetchWithConfig();
+    const client = new HeadlessApiClient({ fetchFn });
+
+    await client.getSubscriptions({
+      organizationCode: 'org',
+      identities: { id: '1' },
+    } as Parameters<HeadlessApiClient['getSubscriptions']>[0]);
+
+    const identities = identitiesSentTo(calls(), '/subscriptions/org/get');
+    expect(identities.id).toBe('1');
+    expect(identities.swb_android).toBe('the-uuid');
+  });
+
+  it('leaves identities alone without propertyCode when nothing is resolved', async () => {
+    const { fetchFn, calls } = mockFetchWithConfig();
+    const client = new HeadlessApiClient({ fetchFn });
+
+    await client.getSubscriptions({
+      organizationCode: 'org',
+      identities: { id: '1' },
+    } as Parameters<HeadlessApiClient['getSubscriptions']>[0]);
+
+    expect(identitiesSentTo(calls(), '/subscriptions/org/get')).toEqual({
+      id: '1',
+    });
+  });
+
   it('resolves without a provider having mounted', async () => {
     const { fetchFn, calls } = mockFetchWithConfig();
     const client = new HeadlessApiClient({ fetchFn });
