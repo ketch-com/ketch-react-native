@@ -1,3 +1,4 @@
+import { withManagedIdentity } from '../util/managedIdentity';
 import { KetchDataCenter, MobileSdkUrlByDataCenterMap } from '../enums';
 import { getDeviceLanguageTag } from '../util/deviceLocale';
 import type { Consent } from '../types';
@@ -138,7 +139,11 @@ export class HeadlessApiClient {
   /** Invokes a data subject right (`POST .../rights/{org}/invoke`). */
   async invokeRight(request: InvokeRightRequest): Promise<void> {
     const path = `/rights/${request.organizationCode}/invoke`;
-    await this.postVoid(path, request as unknown as Record<string, unknown>);
+    const body: InvokeRightRequest = {
+      ...request,
+      identities: withManagedIdentity(request.identities),
+    };
+    await this.postVoid(path, body as unknown as Record<string, unknown>);
   }
 
   /** Gets subscription topics/controls (`POST .../subscriptions/{org}/get`). */
@@ -146,9 +151,13 @@ export class HeadlessApiClient {
     request: SubscriptionsRequest
   ): Promise<SubscriptionsResponse> {
     const path = `/subscriptions/${request.organizationCode}/get`;
+    const body: SubscriptionsRequest = {
+      ...request,
+      identities: withManagedIdentity(request.identities),
+    };
     const response = await this.post(
       path,
-      request as unknown as Record<string, unknown>
+      body as unknown as Record<string, unknown>
     );
     return this.parseJsonResponse<SubscriptionsResponse>(response, path);
   }
@@ -159,6 +168,7 @@ export class HeadlessApiClient {
     // Without a context.source the server attributes the write to "unknown".
     const body: SubscriptionsRequest = {
       ...request,
+      identities: withManagedIdentity(request.identities),
       context: { source: 'headless', ...request.context },
     };
     await this.postVoid(path, body as unknown as Record<string, unknown>);

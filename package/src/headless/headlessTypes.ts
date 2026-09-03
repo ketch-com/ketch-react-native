@@ -1,3 +1,5 @@
+import { withManagedIdentity } from '../util/managedIdentity';
+
 /** GeoIP details from `GET /ip`. */
 export interface IPInfo {
   ip?: string;
@@ -87,7 +89,7 @@ export function consentConfigToJson(
     propertyCode: config.propertyCode,
     environmentCode: config.environmentCode,
     jurisdictionCode: config.jurisdictionCode,
-    identities: config.identities,
+    identities: withManagedIdentity(config.identities),
     purposes: config.purposes,
   };
 }
@@ -99,7 +101,7 @@ export function consentUpdateToJson(
     organizationCode: update.organizationCode,
     propertyCode: update.propertyCode,
     environmentCode: update.environmentCode,
-    identities: update.identities,
+    identities: withManagedIdentity(update.identities),
     jurisdictionCode: update.jurisdictionCode,
     migrationOption: update.migrationOption,
     purposes: update.purposes,
