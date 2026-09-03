@@ -371,4 +371,13 @@ export interface KetchService {
 
   /** Builds preferences QR image URL (no HTTP). */
   preferenceQRUrl?: (request: PreferenceQRRequest) => string;
+
+  /** The identity map the SDK supplies, including the Ketch-managed identifier. */
+  getIdentities?: () => Promise<Record<string, string>>;
+
+  /**
+   * Wipes the stored Ketch-managed identifier. A new one is minted on the next launch,
+   * which starts a new consent record. Identities passed as props are unaffected.
+   */
+  clearIdentities?: () => Promise<void>;
 }

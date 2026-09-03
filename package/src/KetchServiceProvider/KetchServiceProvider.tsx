@@ -56,6 +56,14 @@ import {
 } from '../assets';
 import styles from './styles';
 import nativeStorage from '../util/nativeStorage';
+import {
+  clearManagedIdentity,
+  findManagedIdentity,
+  resolveManagedIdentityValue,
+  setCachedManagedIdentity,
+  withManagedIdentity,
+  type ResolvedManagedIdentity,
+} from '../util/managedIdentity';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
 import wrapSharedPrefencesRead from '../util/wrapSharedPrefencesRead';
 import { KetchHeadless } from '../headless';
@@ -136,6 +144,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     string | undefined
   >(undefined);
   const [isAttReady, setIsAttReady] = useState(Platform.OS !== 'ios');
+  const [resolvedManagedIdentity, setResolvedManagedIdentity] = useState<
+    ResolvedManagedIdentity | undefined
+  >(undefined);
+  const [isManagedIdentityReady, setIsManagedIdentityReady] = useState(false);
 
   // CSS override state
   const [cssOverrideState, setCssOverrideState] = useState<string | undefined>(
@@ -294,12 +306,49 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [headlessApi]
   );
 
+  /** The identity map the SDK supplies, including the Ketch-managed identifier. */
+  const getIdentities = useCallback(
+    async (): Promise<Record<string, string>> =>
+      withManagedIdentity(parameters.identities),
+    [parameters.identities]
+  );
+
+  /**
+   * Wipes the stored Ketch-managed identifier. A new one is minted on the next
+   * launch, which starts a new consent record. Identities passed as props are
+   * unaffected.
+   *
+   * Deliberately leaves `resolvedManagedIdentity` alone: it feeds `webViewMountKey`,
+   * so clearing it would remount the webview and re-boot the tag mid-session. The
+   * already-booted tag keeps the old value until the next launch.
+   */
+  const clearIdentities = useCallback(async (): Promise<void> => {
+    await clearManagedIdentity();
+  }, []);
+
   const webViewParameters = useMemo(() => {
     const att = parameters.ketchAtt ?? resolvedKetchAtt;
     const attPrev = parameters.ketchAttPrev ?? resolvedKetchAttPrev;
     const withAtt = att ? { ...parameters, ketchAtt: att } : parameters;
-    return attPrev ? { ...withAtt, ketchAttPrev: attPrev } : withAtt;
-  }, [parameters, resolvedKetchAtt, resolvedKetchAttPrev]);
+    const withAttPrev = attPrev
+      ? { ...withAtt, ketchAttPrev: attPrev }
+      : withAtt;
+    if (!resolvedManagedIdentity) {
+      return withAttPrev;
+    }
+    return {
+      ...withAttPrev,
+      identities: {
+        [resolvedManagedIdentity.variable]: resolvedManagedIdentity.value,
+        ...parameters.identities,
+      },
+    };
+  }, [
+    parameters,
+    resolvedKetchAtt,
+    resolvedKetchAttPrev,
+    resolvedManagedIdentity,
+  ]);
 
   const webViewMountKey = useMemo(
     () =>
@@ -321,6 +370,63 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       ),
     [webViewParameters.webResourceUrlOverrides]
   );
+
+  /**
+   * Resolve the Ketch-managed identifier before the webview mounts. Injecting it later
+   * would change `webViewMountKey` and re-boot the tag.
+   */
+  useEffect(() => {
+    let cancelled = false;
+    setIsManagedIdentityReady(false);
+
+    const resolve = async () => {
+      const config = await headlessApi.getFullConfiguration({
+        organizationCode: parameters.organizationCode,
+        propertyCode: parameters.propertyCode,
+        environmentCode: parameters.environmentName,
+        languageCode: parameters.languageCode,
+        jurisdictionCode: parameters.jurisdictionCode,
+        regionCode: parameters.regionCode,
+      });
+
+      const descriptor = findManagedIdentity(config);
+      if (!descriptor) {
+        if (cancelled) return;
+        setCachedManagedIdentity(undefined);
+        setResolvedManagedIdentity(undefined);
+        return;
+      }
+
+      const value = await resolveManagedIdentityValue(descriptor);
+      if (cancelled) return;
+      const resolved = { variable: descriptor.variable, value };
+      setCachedManagedIdentity(resolved);
+      setResolvedManagedIdentity(resolved);
+    };
+
+    resolve()
+      .catch((err) => {
+        // The property may not use a managed identity, or the config fetch may have
+        // failed. Neither should stop the experience from rendering.
+        console.warn('[Ketch] managed identity resolution failed', err);
+      })
+      .finally(() => {
+        if (!cancelled) setIsManagedIdentityReady(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    headlessApi,
+    parameters.organizationCode,
+    parameters.propertyCode,
+    parameters.environmentName,
+    parameters.languageCode,
+    parameters.jurisdictionCode,
+    parameters.regionCode,
+    webViewReloadNonce,
+  ]);
 
   useEffect(() => {
     if (Platform.OS !== 'ios') {
@@ -763,7 +869,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   document.documentElement.style.setProperty('--safe-area-inset-bottom', '${bottomPadding}px');
   `;
 
-  // Simply render children if no identities passed as SDK cannot be used
   const contextValue = useMemo(
     () => ({
       showConsentExperience,
@@ -788,6 +893,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       getSubscriptions,
       setSubscriptions,
       preferenceQRUrl,
+      getIdentities,
+      clearIdentities,
     }),
     [
       showConsentExperience,
@@ -812,13 +919,15 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       getSubscriptions,
       setSubscriptions,
       preferenceQRUrl,
+      getIdentities,
+      clearIdentities,
     ]
   );
 
   return (
     <KetchServiceContext.Provider value={contextValue}>
       {children}
-      {shouldLoadWebView && isAttReady && (
+      {shouldLoadWebView && isAttReady && isManagedIdentityReady && (
         <View
           style={[styles.container, isVisible ? styles.shown : styles.hidden]}
         >
