@@ -10,6 +10,7 @@ import {
   type FetchFn,
 } from '../src/headless/headlessApiClient';
 import { KetchDataCenter, MobileSdkUrlByDataCenterMap } from '../src/enums';
+import { setCachedManagedIdentity } from '../src/util/managedIdentity';
 
 const consentConfig = {
   organizationCode: 'org',
@@ -752,5 +753,84 @@ describe('setSubscriptions context', () => {
       source: 'headless',
       configurationId: 'cfg-1',
     });
+  });
+});
+
+describe('managed identity injection into headless requests', () => {
+  afterEach(() => setCachedManagedIdentity(undefined));
+
+  const bodyOf = (calls: [string, RequestInit | undefined][]) =>
+    JSON.parse(String(calls[0]?.[1]?.body));
+
+  it('adds the resolved identity to the consent request body', async () => {
+    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
+    const { fetchFn, calls } = mockFetchCapturing();
+    const client = new HeadlessApiClient({ fetchFn });
+
+    await client.getConsent(consentConfig);
+
+    expect(bodyOf(calls()).identities).toEqual({
+      swb_android: 'the-uuid',
+      id: '1',
+    });
+  });
+
+  it('adds the resolved identity to the consent update body', async () => {
+    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
+    const { fetchFn, calls } = mockFetchCapturing();
+    const client = new HeadlessApiClient({ fetchFn });
+
+    await client.setConsentOnServer(consentUpdate);
+
+    expect(bodyOf(calls()).identities).toEqual({
+      swb_android: 'the-uuid',
+      id: '1',
+    });
+  });
+
+  it('adds the resolved identity to an invokeRight body', async () => {
+    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
+    const { fetchFn, calls } = mockFetchCapturing();
+    const client = new HeadlessApiClient({ fetchFn });
+
+    await client.invokeRight({
+      organizationCode: 'org',
+      propertyCode: 'prop',
+      environmentCode: 'production',
+      jurisdictionCode: 'default',
+      rightCode: 'delete',
+      identities: { id: '1' },
+      user: { email: 'a@b.test', firstName: 'A', lastName: 'B' },
+    } as Parameters<typeof client.invokeRight>[0]);
+
+    expect(bodyOf(calls()).identities).toEqual({
+      swb_android: 'the-uuid',
+      id: '1',
+    });
+  });
+
+  it('adds the resolved identity to a subscriptions body', async () => {
+    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
+    const { fetchFn, calls } = mockFetchCapturing();
+    const client = new HeadlessApiClient({ fetchFn });
+
+    await client.getSubscriptions({
+      organizationCode: 'org',
+      identities: { id: '1' },
+    } as Parameters<typeof client.getSubscriptions>[0]);
+
+    expect(bodyOf(calls()).identities).toEqual({
+      swb_android: 'the-uuid',
+      id: '1',
+    });
+  });
+
+  it('leaves request identities untouched when nothing is resolved', async () => {
+    const { fetchFn, calls } = mockFetchCapturing();
+    const client = new HeadlessApiClient({ fetchFn });
+
+    await client.getConsent(consentConfig);
+
+    expect(bodyOf(calls()).identities).toEqual({ id: '1' });
   });
 });
