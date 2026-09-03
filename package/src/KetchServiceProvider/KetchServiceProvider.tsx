@@ -58,10 +58,10 @@ import styles from './styles';
 import nativeStorage from '../util/nativeStorage';
 import {
   clearManagedIdentity,
-  findManagedIdentity,
-  resolveManagedIdentityValue,
+  managedIdentityKey,
+  resolveManagedIdentity,
   setCachedManagedIdentity,
-  withManagedIdentity,
+  withResolvedManagedIdentity,
   type ResolvedManagedIdentity,
 } from '../util/managedIdentity';
 import wrapSharedPrefences from '../util/wrapSharedPrefences';
@@ -148,6 +148,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     ResolvedManagedIdentity | undefined
   >(undefined);
   const [isManagedIdentityReady, setIsManagedIdentityReady] = useState(false);
+  const hasResolvedManagedIdentityRef = useRef(false);
 
   // CSS override state
   const [cssOverrideState, setCssOverrideState] = useState<string | undefined>(
@@ -306,11 +307,45 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [headlessApi]
   );
 
-  /** The identity map the SDK supplies, including the Ketch-managed identifier. */
+  const managedIdentityCacheKey = managedIdentityKey(
+    parameters.organizationCode,
+    parameters.propertyCode
+  );
+
+  const loadFullConfiguration = useCallback(
+    () =>
+      headlessApi.getFullConfiguration({
+        organizationCode: parameters.organizationCode,
+        propertyCode: parameters.propertyCode,
+        environmentCode: parameters.environmentName,
+        languageCode: parameters.languageCode,
+        jurisdictionCode: parameters.jurisdictionCode,
+        regionCode: parameters.regionCode,
+      }),
+    [
+      headlessApi,
+      parameters.organizationCode,
+      parameters.propertyCode,
+      parameters.environmentName,
+      parameters.languageCode,
+      parameters.jurisdictionCode,
+      parameters.regionCode,
+    ]
+  );
+
+  /**
+   * The identity map the SDK supplies, including the Ketch-managed identifier.
+   * Resolves rather than reading the cache, so a call made before the effect below
+   * has finished still returns the identifier instead of omitting it.
+   */
   const getIdentities = useCallback(
-    async (): Promise<Record<string, string>> =>
-      withManagedIdentity(parameters.identities),
-    [parameters.identities]
+    (): Promise<Record<string, string>> =>
+      withResolvedManagedIdentity(
+        parameters.identities,
+        managedIdentityCacheKey,
+        loadFullConfiguration
+      ),
+    [parameters.identities, managedIdentityCacheKey, loadFullConfiguration]
   );
 
   /**
@@ -377,29 +412,22 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
    */
   useEffect(() => {
     let cancelled = false;
-    setIsManagedIdentityReady(false);
+    // Only the first resolve gates the mount. A reload re-checks config in the
+    // background: the stored identifier does not change, so unmounting the webview
+    // to wait on the network again would blank an already-working experience.
+    if (!hasResolvedManagedIdentityRef.current) {
+      setIsManagedIdentityReady(false);
+    }
 
     const resolve = async () => {
-      const config = await headlessApi.getFullConfiguration({
-        organizationCode: parameters.organizationCode,
-        propertyCode: parameters.propertyCode,
-        environmentCode: parameters.environmentName,
-        languageCode: parameters.languageCode,
-        jurisdictionCode: parameters.jurisdictionCode,
-        regionCode: parameters.regionCode,
-      });
-
-      const descriptor = findManagedIdentity(config);
-      if (!descriptor) {
-        if (cancelled) return;
-        setCachedManagedIdentity(undefined);
-        setResolvedManagedIdentity(undefined);
-        return;
-      }
-
-      const value = await resolveManagedIdentityValue(descriptor);
+      // Shared with the headless client, which memoises per property, so a headless
+      // call made before this effect finishes waits on the same work rather than
+      // starting its own or sending the request without an identifier.
+      const resolved = await resolveManagedIdentity(
+        managedIdentityCacheKey,
+        loadFullConfiguration
+      );
       if (cancelled) return;
-      const resolved = { variable: descriptor.variable, value };
       setCachedManagedIdentity(resolved);
       setResolvedManagedIdentity(resolved);
     };
@@ -411,22 +439,15 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         console.warn('[Ketch] managed identity resolution failed', err);
       })
       .finally(() => {
-        if (!cancelled) setIsManagedIdentityReady(true);
+        if (cancelled) return;
+        hasResolvedManagedIdentityRef.current = true;
+        setIsManagedIdentityReady(true);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [
-    headlessApi,
-    parameters.organizationCode,
-    parameters.propertyCode,
-    parameters.environmentName,
-    parameters.languageCode,
-    parameters.jurisdictionCode,
-    parameters.regionCode,
-    webViewReloadNonce,
-  ]);
+  }, [managedIdentityCacheKey, loadFullConfiguration, webViewReloadNonce]);
 
   useEffect(() => {
     if (Platform.OS !== 'ios') {
@@ -493,14 +514,14 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const showConsentExperience = useCallback(() => {
     // If the webview is not yet loaded when this is called, we load it initially with
     // ?ketch_show=consent
-    if (!shouldLoadWebView) {
+    if (!webViewRef.current) {
       dispatch({ type: Action.KetchShowConsent, payload: {} });
       setShouldLoadWebView(true);
     } else {
       // If the webview is already loaded, we inject the JavaScript to show the consent experience
-      webViewRef.current?.injectJavaScript('ketch("showConsent"); true;');
+      webViewRef.current.injectJavaScript('ketch("showConsent"); true;');
     }
-  }, [shouldLoadWebView]);
+  }, []);
 
   /**
    * Show the preference experience
@@ -509,7 +530,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     (preferencesOptions: Partial<PreferenceExperienceOptions> = {}) => {
       // If the webview is not yet loaded when this is called, we load it initially with
       // ?ketch_show=preferences
-      if (!shouldLoadWebView) {
+      if (!webViewRef.current) {
         dispatch({ type: Action.KetchShowPreference, payload: {} });
         setShouldLoadWebView(true);
       } else {
@@ -531,7 +552,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         webViewRef.current?.injectJavaScript(expression);
       }
     },
-    [shouldLoadWebView, preferenceExperienceOptions]
+    [preferenceExperienceOptions]
   );
 
   /**

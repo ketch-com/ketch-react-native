@@ -10,7 +10,29 @@ import {
   type FetchFn,
 } from '../src/headless/headlessApiClient';
 import { KetchDataCenter, MobileSdkUrlByDataCenterMap } from '../src/enums';
-import { setCachedManagedIdentity } from '../src/util/managedIdentity';
+import {
+  clearManagedIdentity,
+  setCachedManagedIdentity,
+} from '../src/util/managedIdentity';
+
+// The real native storage reaches for React Native's Settings module, which does
+// not exist under Jest. The headless path uses the default rather than injecting.
+jest.mock('../src/util/nativeStorage', () => {
+  const values = new Map<string, string>();
+  return {
+    __esModule: true,
+    default: {
+      read: async (key: string, fallback = '') => values.get(key) ?? fallback,
+      write: async (key: string, value: string) => {
+        values.set(key, value);
+      },
+      remove: async (key: string) => {
+        values.delete(key);
+      },
+      removeValues: async () => 0,
+    },
+  };
+});
 
 const consentConfig = {
   organizationCode: 'org',
@@ -757,80 +779,134 @@ describe('setSubscriptions context', () => {
 });
 
 describe('managed identity injection into headless requests', () => {
-  afterEach(() => setCachedManagedIdentity(undefined));
+  // Resolutions are memoised per property and other tests in this file drive the
+  // same org/property through error paths, so reset on both sides of each test.
+  const reset = async () => {
+    setCachedManagedIdentity(undefined);
+    await clearManagedIdentity();
+  };
 
-  const bodyOf = (calls: [string, RequestInit | undefined][]) =>
-    JSON.parse(String(calls[0]?.[1]?.body));
+  beforeEach(reset);
+  afterEach(reset);
+
+  /**
+   * Serves a config declaring a query-string managed identity, and an empty body for
+   * anything else. The client fetches config to learn the identity space, so the
+   * request under test is not the first call.
+   */
+  const mockFetchWithConfig = (declaresIdentity = true) => {
+    const calls: [string, RequestInit | undefined][] = [];
+    const fetchFn = jest
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        calls.push([url, init]);
+        const body =
+          url.includes('/config/') && declaresIdentity
+            ? JSON.stringify({
+                identities: {
+                  swb_android: { type: 'queryString', variable: 'swb_android' },
+                },
+              })
+            : '{}';
+        return { ok: true, status: 200, text: async () => body };
+      }) as unknown as FetchFn;
+    return { fetchFn, calls: () => calls };
+  };
+
+  const identitiesSentTo = (
+    calls: [string, RequestInit | undefined][],
+    fragment: string
+  ) => {
+    const call = calls.find(([url]) => url.includes(fragment));
+    if (!call) throw new Error(`no request to ${fragment}`);
+    return JSON.parse(String(call[1]?.body)).identities;
+  };
+
+  const UUID =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
   it('adds the resolved identity to the consent request body', async () => {
-    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
-    const { fetchFn, calls } = mockFetchCapturing();
+    const { fetchFn, calls } = mockFetchWithConfig();
     const client = new HeadlessApiClient({ fetchFn });
 
     await client.getConsent(consentConfig);
 
-    expect(bodyOf(calls()).identities).toEqual({
-      swb_android: 'the-uuid',
-      id: '1',
-    });
+    const identities = identitiesSentTo(calls(), '/consent/org/get');
+    expect(identities.id).toBe('1');
+    expect(identities.swb_android).toMatch(UUID);
   });
 
   it('adds the resolved identity to the consent update body', async () => {
-    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
-    const { fetchFn, calls } = mockFetchCapturing();
+    const { fetchFn, calls } = mockFetchWithConfig();
     const client = new HeadlessApiClient({ fetchFn });
 
     await client.setConsentOnServer(consentUpdate);
 
-    expect(bodyOf(calls()).identities).toEqual({
-      swb_android: 'the-uuid',
-      id: '1',
-    });
+    const identities = identitiesSentTo(calls(), '/consent/org/update');
+    expect(identities.id).toBe('1');
+    expect(identities.swb_android).toMatch(UUID);
   });
 
   it('adds the resolved identity to an invokeRight body', async () => {
-    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
-    const { fetchFn, calls } = mockFetchCapturing();
+    const { fetchFn, calls } = mockFetchWithConfig();
     const client = new HeadlessApiClient({ fetchFn });
 
     await client.invokeRight({
       organizationCode: 'org',
       propertyCode: 'prop',
-      environmentCode: 'production',
-      jurisdictionCode: 'default',
-      rightCode: 'delete',
+      rightCode: 'gdpr_portability',
       identities: { id: '1' },
-      user: { email: 'a@b.test', firstName: 'A', lastName: 'B' },
-    } as Parameters<typeof client.invokeRight>[0]);
+    } as unknown as Parameters<HeadlessApiClient['invokeRight']>[0]);
 
-    expect(bodyOf(calls()).identities).toEqual({
-      swb_android: 'the-uuid',
-      id: '1',
-    });
+    const identities = identitiesSentTo(calls(), '/rights/org/invoke');
+    expect(identities.id).toBe('1');
+    expect(identities.swb_android).toMatch(UUID);
   });
 
   it('adds the resolved identity to a subscriptions body', async () => {
-    setCachedManagedIdentity({ variable: 'swb_android', value: 'the-uuid' });
-    const { fetchFn, calls } = mockFetchCapturing();
+    const { fetchFn, calls } = mockFetchWithConfig();
     const client = new HeadlessApiClient({ fetchFn });
 
     await client.getSubscriptions({
       organizationCode: 'org',
+      propertyCode: 'prop',
       identities: { id: '1' },
-    } as Parameters<typeof client.getSubscriptions>[0]);
+    } as Parameters<HeadlessApiClient['getSubscriptions']>[0]);
 
-    expect(bodyOf(calls()).identities).toEqual({
-      swb_android: 'the-uuid',
-      id: '1',
-    });
+    const identities = identitiesSentTo(calls(), '/subscriptions/org/get');
+    expect(identities.id).toBe('1');
+    expect(identities.swb_android).toMatch(UUID);
   });
 
-  it('leaves request identities untouched when nothing is resolved', async () => {
-    const { fetchFn, calls } = mockFetchCapturing();
+  it('resolves without a provider having mounted', async () => {
+    const { fetchFn, calls } = mockFetchWithConfig();
+    const client = new HeadlessApiClient({ fetchFn });
+
+    // Nothing primes the cache here, which is the standalone KetchHeadless case.
+    await client.getConsent(consentConfig);
+
+    expect(identitiesSentTo(calls(), '/consent/org/get').swb_android).toMatch(
+      UUID
+    );
+  });
+
+  it('fetches config once across repeated calls', async () => {
+    const { fetchFn, calls } = mockFetchWithConfig();
+    const client = new HeadlessApiClient({ fetchFn });
+
+    await client.getConsent(consentConfig);
+    await client.getConsent(consentConfig);
+
+    const configCalls = calls().filter(([url]) => url.includes('/config/'));
+    expect(configCalls).toHaveLength(1);
+  });
+
+  it('leaves identities untouched when the property declares none', async () => {
+    const { fetchFn, calls } = mockFetchWithConfig(false);
     const client = new HeadlessApiClient({ fetchFn });
 
     await client.getConsent(consentConfig);
 
-    expect(bodyOf(calls()).identities).toEqual({ id: '1' });
+    expect(identitiesSentTo(calls(), '/consent/org/get')).toEqual({ id: '1' });
   });
 });
