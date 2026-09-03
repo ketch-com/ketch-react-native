@@ -1,4 +1,7 @@
-import { withManagedIdentity } from '../util/managedIdentity';
+import {
+  managedIdentityKey,
+  withResolvedManagedIdentity,
+} from '../util/managedIdentity';
 import { KetchDataCenter, MobileSdkUrlByDataCenterMap } from '../enums';
 import { getDeviceLanguageTag } from '../util/deviceLocale';
 import type { Consent } from '../types';
@@ -37,6 +40,27 @@ export class HeadlessApiClient {
     this.baseUrl = options.baseUrl ?? MobileSdkUrlByDataCenterMap[dataCenter];
     this.fetchFn = options.fetchFn ?? fetch;
     this.deviceLanguage = options.deviceLanguage ?? getDeviceLanguageTag;
+  }
+
+  /**
+   * Merges in the Ketch-managed identifier, resolving it if nothing has yet. Headless
+   * calls can run with no provider mounted, so this cannot rely on the provider having
+   * populated it. Without `propertyCode` the identity space cannot be located, so the
+   * caller's identities are used unchanged.
+   */
+  private withIdentities(
+    identities: Record<string, string> | undefined,
+    organizationCode: string,
+    propertyCode: string | undefined
+  ): Promise<Record<string, string>> {
+    if (!propertyCode) {
+      return Promise.resolve(identities ?? {});
+    }
+    return withResolvedManagedIdentity(
+      identities,
+      managedIdentityKey(organizationCode, propertyCode),
+      () => this.getFullConfiguration({ organizationCode, propertyCode })
+    );
   }
 
   /** Builds an absolute CDN URL for unit tests and debugging. */
@@ -124,7 +148,17 @@ export class HeadlessApiClient {
   /** Server consent including `protocols` (`POST .../consent/{org}/get`). */
   async getConsent(config: ConsentConfig): Promise<Consent> {
     const path = `/consent/${config.organizationCode}/get`;
-    const response = await this.post(path, consentConfigToJson(config));
+    const response = await this.post(
+      path,
+      consentConfigToJson({
+        ...config,
+        identities: await this.withIdentities(
+          config.identities,
+          config.organizationCode,
+          config.propertyCode
+        ),
+      })
+    );
     if (!response || response === 'null') {
       return emptyConsent();
     }
@@ -141,7 +175,11 @@ export class HeadlessApiClient {
     const path = `/rights/${request.organizationCode}/invoke`;
     const body: InvokeRightRequest = {
       ...request,
-      identities: withManagedIdentity(request.identities),
+      identities: await this.withIdentities(
+        request.identities,
+        request.organizationCode,
+        request.propertyCode
+      ),
     };
     await this.postVoid(path, body as unknown as Record<string, unknown>);
   }
@@ -153,7 +191,11 @@ export class HeadlessApiClient {
     const path = `/subscriptions/${request.organizationCode}/get`;
     const body: SubscriptionsRequest = {
       ...request,
-      identities: withManagedIdentity(request.identities),
+      identities: await this.withIdentities(
+        request.identities,
+        request.organizationCode,
+        request.propertyCode
+      ),
     };
     const response = await this.post(
       path,
@@ -168,7 +210,11 @@ export class HeadlessApiClient {
     // Without a context.source the server attributes the write to "unknown".
     const body: SubscriptionsRequest = {
       ...request,
-      identities: withManagedIdentity(request.identities),
+      identities: await this.withIdentities(
+        request.identities,
+        request.organizationCode,
+        request.propertyCode
+      ),
       context: { source: 'headless', ...request.context },
     };
     await this.postVoid(path, body as unknown as Record<string, unknown>);
@@ -206,7 +252,14 @@ export class HeadlessApiClient {
     const path = `/consent/${update.organizationCode}/update`;
     const response = await this.post(
       path,
-      consentUpdateToJson(withoutProtocols(update))
+      consentUpdateToJson({
+        ...withoutProtocols(update),
+        identities: await this.withIdentities(
+          update.identities,
+          update.organizationCode,
+          update.propertyCode
+        ),
+      })
     );
     if (!response || response === 'null') {
       return consentFromUpdate(update);
