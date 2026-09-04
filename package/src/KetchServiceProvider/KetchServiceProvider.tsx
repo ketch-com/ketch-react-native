@@ -186,6 +186,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   // clearIdentities() don't need a storage round trip and aren't tied to how a given
   // identity's value happens to be sourced.
   const resolvedIdentitiesRef = useRef<Record<string, string>>({});
+  // Keys the tag has asked to resolve via nativeResolve.
+  const identityKeysRef = useRef<Set<string>>(new Set());
 
   const [parameters, dispatch] = useReducer(reducer, {
     organizationCode,
@@ -771,12 +773,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           }
           const value = String(payload.value ?? '');
           // A fresh mint is the one case where a value becomes known without a
-          // nativeResolve round trip, so it's recorded here too.
-          resolvedIdentitiesRef.current = withIdentityValue(
-            resolvedIdentitiesRef.current,
-            key,
-            value
-          );
+          // nativeResolve round trip, so it's recorded here too — but only for a
+          // key already proven to be an identity, since this event also carries
+          // unrelated tag storage writes.
+          if (identityKeysRef.current.has(key)) {
+            resolvedIdentitiesRef.current = withIdentityValue(
+              resolvedIdentitiesRef.current,
+              key,
+              value
+            );
+          }
           nativeStorage
             .write(key, value)
             .then(() => parameters.onNativeStoragePut?.(key, value))
@@ -799,6 +805,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
           break;
         }
         const { requestId, key } = message;
+        identityKeysRef.current.add(key);
 
         // Reply promptly: the tag gives up after 2000ms and treats no reply the
         // same as an explicit undefined, so a slow read gains nothing.
