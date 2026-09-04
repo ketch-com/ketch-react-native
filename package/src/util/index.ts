@@ -1,4 +1,5 @@
 export * from './helpers';
+export * from './nativeIdentity';
 export * from './services';
 export * from './hooks';
 export * from './deviceLocale';

@@ -371,4 +371,16 @@ export interface KetchService {
 
   /** Builds preferences QR image URL (no HTTP). */
   preferenceQRUrl?: (request: PreferenceQRRequest) => string;
+
+  /**
+   * Identity map the SDK can currently report: identities passed as props, merged
+   * with whatever the tag has already asked to resolve and been given a value for.
+   */
+  getIdentities?: () => Promise<Record<string, string>>;
+
+  /**
+   * Wipes every identity value the tag has asked the SDK to resolve. A new value is
+   * minted by the tag on its next resolve. Identities passed as props are unaffected.
+   */
+  clearIdentities?: () => Promise<void>;
 }
