@@ -629,7 +629,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         mergeIdentities(
           hostIdentitiesRef.current,
           resolvedIdentitiesRef.current
-        ),
+        )
       ),
     []
   );
