@@ -281,29 +281,51 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [headlessApi]
   );
 
+  /**
+   * Fills in `getIdentities()` when the caller left `identities` unset.
+   */
+  const withMergedIdentities = useCallback(
+    <T extends {identities?: Record<string, string>}>(request: T): T =>
+      request.identities === undefined
+        ? {
+            ...request,
+            identities: mergeIdentities(
+              hostIdentitiesRef.current,
+              resolvedIdentitiesRef.current
+            ),
+          }
+        : request,
+    []
+  );
+
   const fetchConsent = useCallback(
-    (config: ConsentConfig) => headlessApi.getConsent(config),
-    [headlessApi]
+    (config: ConsentConfig) =>
+      headlessApi.getConsent(withMergedIdentities(config)),
+    [headlessApi, withMergedIdentities]
   );
 
   const setConsentOnServer = useCallback(
-    (update: ConsentUpdate) => headlessApi.setConsentOnServer(update),
-    [headlessApi]
+    (update: ConsentUpdate) =>
+      headlessApi.setConsentOnServer(withMergedIdentities(update)),
+    [headlessApi, withMergedIdentities]
   );
 
   const invokeRight = useCallback(
-    (request: InvokeRightRequest) => headlessApi.invokeRight(request),
-    [headlessApi]
+    (request: InvokeRightRequest) =>
+      headlessApi.invokeRight(withMergedIdentities(request)),
+    [headlessApi, withMergedIdentities]
   );
 
   const getSubscriptions = useCallback(
-    (request: SubscriptionsRequest) => headlessApi.getSubscriptions(request),
-    [headlessApi]
+    (request: SubscriptionsRequest) =>
+      headlessApi.getSubscriptions(withMergedIdentities(request)),
+    [headlessApi, withMergedIdentities]
   );
 
   const setSubscriptions = useCallback(
-    (request: SubscriptionsRequest) => headlessApi.setSubscriptions(request),
-    [headlessApi]
+    (request: SubscriptionsRequest) =>
+      headlessApi.setSubscriptions(withMergedIdentities(request)),
+    [headlessApi, withMergedIdentities]
   );
 
   const preferenceQRUrl = useCallback(
