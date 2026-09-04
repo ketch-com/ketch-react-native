@@ -186,6 +186,11 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   // clearIdentities() don't need a storage round trip and aren't tied to how a given
   // identity's value happens to be sourced.
   const resolvedIdentitiesRef = useRef<Record<string, string>>({});
+  // Mirrors the host-supplied identities (the `identities` prop, or a later
+  // updateParameters({identities}) call) synchronously, so getIdentities() reads a
+  // value that's never stale — `parameters.identities` only updates on React's next
+  // render, which is too late for a getIdentities() call chained right after clear.
+  const hostIdentitiesRef = useRef<Record<string, string>>(identities);
   // Keys the tag has asked to resolve via nativeResolve.
   const identityKeysRef = useRef<Set<string>>(new Set());
 
@@ -506,6 +511,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
    */
   const updateParameters = useCallback(
     (params: Partial<KetchMobile>) => {
+      if (params.identities !== undefined) {
+        hostIdentitiesRef.current = params.identities;
+      }
       dispatch({ type: Action.UPDATE_PARAMETERS, payload: params });
     },
     [dispatch]
@@ -618,19 +626,24 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const getIdentities = useCallback(
     (): Promise<Record<string, string>> =>
       Promise.resolve(
-        mergeIdentities(parameters.identities, resolvedIdentitiesRef.current)
+        mergeIdentities(hostIdentitiesRef.current, resolvedIdentitiesRef.current)
       ),
-    [parameters.identities]
+    []
   );
 
   /**
-   * Wipes every identity value the tag has resolved this session, both from memory
-   * and from native storage. The tag mints fresh values on the next resolve.
+   * Forgets every identity: those supplied by the host app, and every one the tag has
+   * resolved natively, both from memory and from native storage. The tag mints fresh
+   * values on the next resolve. Synchronous on the host-supplied side (via
+   * hostIdentitiesRef) so a getIdentities() call chained right after this one is never
+   * stale — dispatch alone wouldn't land until React's next render.
    */
   const clearIdentities = useCallback(async (): Promise<void> => {
     const keys = Object.keys(resolvedIdentitiesRef.current);
     await Promise.all(keys.map((key) => nativeStorage.remove(key)));
     resolvedIdentitiesRef.current = {};
+    hostIdentitiesRef.current = {};
+    dispatch({ type: Action.UPDATE_PARAMETERS, payload: { identities: {} } });
   }, []);
 
   const handleMessageReceive = (e: WebViewMessageEvent) => {
