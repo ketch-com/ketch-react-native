@@ -626,7 +626,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   const getIdentities = useCallback(
     (): Promise<Record<string, string>> =>
       Promise.resolve(
-        mergeIdentities(hostIdentitiesRef.current, resolvedIdentitiesRef.current)
+        mergeIdentities(
+          hostIdentitiesRef.current,
+          resolvedIdentitiesRef.current
+        ),
       ),
     []
   );
