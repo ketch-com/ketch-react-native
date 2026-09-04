@@ -53,6 +53,7 @@ export enum EventName {
   error = 'error',
   openAppSettings = 'openAppSettings',
   nativeStoragePut = 'nativeStoragePut',
+  nativeResolve = 'nativeResolve',
 }
 
 export enum OnHideExperienceArgument {

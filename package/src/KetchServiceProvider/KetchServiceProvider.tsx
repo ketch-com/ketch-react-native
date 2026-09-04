@@ -34,6 +34,7 @@ import {
 import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
 import {
+  buildNativeResolveReply,
   buildTriggerExpression,
   createOptionsString,
   getWebViewConfigKey,
@@ -44,9 +45,12 @@ import {
   getTCFTCString,
   getUSPrivacyString,
   isValidTriggerFunctionName,
+  mergeIdentities,
   normalizeKetchMobileSdkUrl,
+  parseNativeResolveMessage,
   toHideExperienceArgument,
   toWillShowExperienceType,
+  withIdentityValue,
 } from '../util';
 import {
   getIndexHtml,
@@ -176,6 +180,14 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   // Depth is 1: a later trigger supersedes an earlier pending one.
   const pendingTriggerRef = useRef<string | null>(null);
   const isConfigLoadedRef = useRef(false);
+
+  // Identities the tag has resolved this session, name to current value. Kept purely
+  // in memory (no persistence, no native-storage index) so getIdentities()/
+  // clearIdentities() don't need a storage round trip and aren't tied to how a given
+  // identity's value happens to be sourced.
+  const resolvedIdentitiesRef = useRef<Record<string, string>>({});
+  // Keys the tag has asked to resolve via nativeResolve.
+  const identityKeysRef = useRef<Set<string>>(new Set());
 
   const [parameters, dispatch] = useReducer(reducer, {
     organizationCode,
@@ -599,6 +611,28 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [readPreference]
   );
 
+  /**
+   * Identity map the SDK can report: identities passed as props, merged with whatever
+   * the tag has resolved this session.
+   */
+  const getIdentities = useCallback(
+    (): Promise<Record<string, string>> =>
+      Promise.resolve(
+        mergeIdentities(parameters.identities, resolvedIdentitiesRef.current)
+      ),
+    [parameters.identities]
+  );
+
+  /**
+   * Wipes every identity value the tag has resolved this session, both from memory
+   * and from native storage. The tag mints fresh values on the next resolve.
+   */
+  const clearIdentities = useCallback(async (): Promise<void> => {
+    const keys = Object.keys(resolvedIdentitiesRef.current);
+    await Promise.all(keys.map((key) => nativeStorage.remove(key)));
+    resolvedIdentitiesRef.current = {};
+  }, []);
+
   const handleMessageReceive = (e: WebViewMessageEvent) => {
     const data = JSON.parse(e.nativeEvent.data) as OnMessageEventData;
     setIsServiceReady(true);
@@ -738,6 +772,17 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
             break;
           }
           const value = String(payload.value ?? '');
+          // A fresh mint is the one case where a value becomes known without a
+          // nativeResolve round trip, so it's recorded here too — but only for a
+          // key already proven to be an identity, since this event also carries
+          // unrelated tag storage writes.
+          if (identityKeysRef.current.has(key)) {
+            resolvedIdentitiesRef.current = withIdentityValue(
+              resolvedIdentitiesRef.current,
+              key,
+              value
+            );
+          }
           nativeStorage
             .write(key, value)
             .then(() => parameters.onNativeStoragePut?.(key, value))
@@ -749,6 +794,39 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         } catch (err) {
           console.warn('[Ketch] nativeStoragePut parse failed', err);
         }
+        break;
+      }
+
+      // Unlike every other event, this arrives as a flat {event, requestId, key}
+      // object rather than wrapped in {data}, so it's parsed from the raw message.
+      case EventName.nativeResolve: {
+        const message = parseNativeResolveMessage(data);
+        if (!message) {
+          break;
+        }
+        const { requestId, key } = message;
+        identityKeysRef.current.add(key);
+
+        // Reply promptly: the tag gives up after 2000ms and treats no reply the
+        // same as an explicit undefined, so a slow read gains nothing.
+        nativeStorage
+          .read(key)
+          .then((value) => {
+            resolvedIdentitiesRef.current = withIdentityValue(
+              resolvedIdentitiesRef.current,
+              key,
+              value
+            );
+            webViewRef.current?.injectJavaScript(
+              buildNativeResolveReply(requestId, value ? value : undefined)
+            );
+          })
+          .catch((err) => {
+            console.warn('[Ketch] nativeResolve read failed', err);
+            webViewRef.current?.injectJavaScript(
+              buildNativeResolveReply(requestId, undefined)
+            );
+          });
         break;
       }
 
@@ -788,6 +866,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       getSubscriptions,
       setSubscriptions,
       preferenceQRUrl,
+      getIdentities,
+      clearIdentities,
     }),
     [
       showConsentExperience,
@@ -812,6 +892,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       getSubscriptions,
       setSubscriptions,
       preferenceQRUrl,
+      getIdentities,
+      clearIdentities,
     ]
   );
 
