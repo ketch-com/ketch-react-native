@@ -39,7 +39,7 @@ export interface ConsentConfig {
   propertyCode: string;
   environmentCode: string;
   jurisdictionCode: string;
-  identities: Record<string, string>;
+  identities?: Record<string, string>;
   purposes: Record<string, PurposeLegalBasis>;
 }
 
@@ -61,7 +61,7 @@ export interface ConsentUpdate {
   organizationCode: string;
   propertyCode: string;
   environmentCode: string;
-  identities: Record<string, string>;
+  identities?: Record<string, string>;
   jurisdictionCode: string;
   migrationOption: MigrationOption;
   purposes: Record<string, PurposeAllowedLegalBasis>;
@@ -87,7 +87,7 @@ export function consentConfigToJson(
     propertyCode: config.propertyCode,
     environmentCode: config.environmentCode,
     jurisdictionCode: config.jurisdictionCode,
-    identities: config.identities,
+    identities: config.identities ?? {},
     purposes: config.purposes,
   };
 }
@@ -99,7 +99,7 @@ export function consentUpdateToJson(
     organizationCode: update.organizationCode,
     propertyCode: update.propertyCode,
     environmentCode: update.environmentCode,
-    identities: update.identities,
+    identities: update.identities ?? {},
     jurisdictionCode: update.jurisdictionCode,
     migrationOption: update.migrationOption,
     purposes: update.purposes,
@@ -133,7 +133,7 @@ export interface InvokeRightRequest {
   organizationCode: string;
   propertyCode: string;
   environmentCode: string;
-  identities: Record<string, string>;
+  identities?: Record<string, string>;
   jurisdictionCode: string;
   rightCode: string;
   user: DataSubject;
