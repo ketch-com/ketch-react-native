@@ -285,7 +285,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
    * Fills in `getIdentities()` when the caller left `identities` unset.
    */
   const withMergedIdentities = useCallback(
-    <T extends {identities?: Record<string, string>}>(request: T): T =>
+    <T extends { identities?: Record<string, string> }>(request: T): T =>
       request.identities === undefined
         ? {
             ...request,
