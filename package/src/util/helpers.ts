@@ -51,89 +51,99 @@ export const createOptionsString = (options: Partial<AllExperienceOptions>) => {
   return `{${dataCenter}${language}${region}${jurisdiction}${environment}${tab}${showOverviewTab}${showConsentsTab}${showSubscriptionsTab}${showRightsTab}}`;
 };
 
-export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
-  let result: {
-    organizationCode: string;
-    propertyCode: string;
-    ketch_mobilesdk_url?: string;
-    ketch_lang?: string;
-    ketch_region?: string;
-    ketch_jurisdiction?: string;
-    ketch_env?: string;
-    ketch_log?: LogLevel;
-    ketch_show?: string;
-    ketch_age?: string;
-    ketch_age_lower?: string;
-    ketch_age_upper?: string;
-    ketch_att?: string;
-    ketch_att_prev?: string;
-    webResourceUrlOverrides?: Record<string, string>;
-  } = {
+/** Query parameters the WebView bootstrap recognises by name. */
+type ReservedUrlParams = {
+  organizationCode: string;
+  propertyCode: string;
+  ketch_mobilesdk_url?: string;
+  ketch_lang?: string;
+  ketch_region?: string;
+  ketch_jurisdiction?: string;
+  ketch_env?: string;
+  ketch_log?: LogLevel;
+  ketch_show?: string;
+  ketch_age?: string;
+  ketch_age_lower?: string;
+  ketch_age_upper?: string;
+  ketch_att?: string;
+  ketch_att_prev?: string;
+  webResourceUrlOverrides?: Record<string, string>;
+};
+
+/**
+ * Reserved parameters plus one entry per identity, whose space code becomes the
+ * parameter name verbatim. Both share a namespace, so a space code is readable
+ * here but not known in advance.
+ */
+export type WebViewUrlParams = ReservedUrlParams & {
+  [identitySpaceCode: string]: unknown;
+};
+
+export const createUrlParamsObject = (
+  parameters: CommonExperienceOptions
+): WebViewUrlParams => {
+  const reserved: ReservedUrlParams = {
     organizationCode: parameters.organizationCode,
     propertyCode: parameters.propertyCode,
   };
 
   for (const key in parameters) {
     if (key === 'dataCenter' && parameters.dataCenter) {
-      result.ketch_mobilesdk_url =
+      reserved.ketch_mobilesdk_url =
         MobileSdkUrlByDataCenterMap[parameters.dataCenter];
     }
 
     if (key === 'languageCode' && parameters.languageCode) {
-      result.ketch_lang = parameters.languageCode;
+      reserved.ketch_lang = parameters.languageCode;
     }
 
     if (key === 'regionCode' && parameters.regionCode) {
-      result.ketch_region = parameters.regionCode;
+      reserved.ketch_region = parameters.regionCode;
     }
 
     if (key === 'jurisdictionCode' && parameters.jurisdictionCode) {
-      result.ketch_jurisdiction = parameters.jurisdictionCode;
+      reserved.ketch_jurisdiction = parameters.jurisdictionCode;
     }
 
     if (key === 'environmentName' && parameters.environmentName) {
-      result.ketch_env = parameters.environmentName;
+      reserved.ketch_env = parameters.environmentName;
     }
 
     if (key === 'logLevel' && parameters.logLevel) {
-      result.ketch_log = parameters.logLevel;
+      reserved.ketch_log = parameters.logLevel;
     }
 
     if (key === 'ketch_show' && parameters.ketch_show) {
-      result.ketch_show = parameters.ketch_show;
-    }
-
-    if (parameters.identities) {
-      result = { ...result, ...parameters.identities };
+      reserved.ketch_show = parameters.ketch_show;
     }
 
     if (key === 'age' && parameters.age !== undefined) {
       const val = parameters.age;
       if (Number.isFinite(val) && val >= 0) {
-        result.ketch_age = String(Math.floor(val));
+        reserved.ketch_age = String(Math.floor(val));
       }
     }
 
     if (key === 'ageLower' && parameters.ageLower !== undefined) {
       const val = parameters.ageLower;
       if (Number.isFinite(val) && val >= 0) {
-        result.ketch_age_lower = String(Math.floor(val));
+        reserved.ketch_age_lower = String(Math.floor(val));
       }
     }
 
     if (key === 'ageUpper' && parameters.ageUpper !== undefined) {
       const val = parameters.ageUpper;
       if (Number.isFinite(val) && val >= 0) {
-        result.ketch_age_upper = String(Math.floor(val));
+        reserved.ketch_age_upper = String(Math.floor(val));
       }
     }
 
     if (key === 'ketchAtt' && parameters.ketchAtt) {
-      result.ketch_att = parameters.ketchAtt;
+      reserved.ketch_att = parameters.ketchAtt;
     }
 
     if (key === 'ketchAttPrev' && parameters.ketchAttPrev) {
-      result.ketch_att_prev = parameters.ketchAttPrev;
+      reserved.ketch_att_prev = parameters.ketchAttPrev;
     }
 
     if (
@@ -141,17 +151,19 @@ export const createUrlParamsObject = (parameters: CommonExperienceOptions) => {
       parameters.webResourceUrlOverrides &&
       Object.keys(parameters.webResourceUrlOverrides).length > 0
     ) {
-      result.webResourceUrlOverrides = parameters.webResourceUrlOverrides;
+      reserved.webResourceUrlOverrides = parameters.webResourceUrlOverrides;
     }
   }
 
   // Applied after the loop so it wins regardless of key iteration order.
   const mobileSdkUrl = normalizeKetchMobileSdkUrl(parameters.ketchMobileSdkUrl);
   if (mobileSdkUrl) {
-    result.ketch_mobilesdk_url = mobileSdkUrl;
+    reserved.ketch_mobilesdk_url = mobileSdkUrl;
   }
 
-  return result;
+  // Identities are applied first so a space code that collides with a reserved
+  // parameter loses to it, rather than the winner depending on key order.
+  return { ...parameters.identities, ...reserved };
 };
 
 /**
@@ -171,23 +183,24 @@ export const normalizeKetchMobileSdkUrl = (
     );
     return undefined;
   }
-  try {
-    const parsed = new URL(url);
-    const host = parsed.hostname;
-    const isLocalHttp =
-      parsed.protocol === 'http:' &&
-      (host === 'localhost' || host === '127.0.0.1');
-    if (parsed.protocol !== 'https:' && !isLocalHttp) {
-      console.warn(
-        '[Ketch] ketchMobileSdkUrl rejected: use https:// (or http://localhost for local mirrors)'
-      );
-      return undefined;
-    }
-    return url;
-  } catch {
+  const match = /^(https?):\/\/([^/:?#]+)(?::(\d+))?(?:[/?#]|$)/i.exec(url);
+  if (!match) {
     console.warn('[Ketch] ketchMobileSdkUrl rejected: not a valid URL');
     return undefined;
   }
+
+  const protocol = match[1]!.toLowerCase();
+  const host = match[2]!.toLowerCase();
+  const isLocalHttp =
+    protocol === 'http' && (host === 'localhost' || host === '127.0.0.1');
+  if (protocol !== 'https' && !isLocalHttp) {
+    console.warn(
+      '[Ketch] ketchMobileSdkUrl rejected: use https:// (or http://localhost for local mirrors)'
+    );
+    return undefined;
+  }
+
+  return url;
 };
 
 /** Stable key for WebView remounts when init HTML would change. */
