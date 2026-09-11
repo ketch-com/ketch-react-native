@@ -12,6 +12,7 @@
     "react-native.config.js",
     "ketch-react-native.podspec",
     "ios",
+    "android",
     "tsconfig.json",
     "src",
     "lib"
