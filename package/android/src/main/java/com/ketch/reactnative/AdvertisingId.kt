@@ -18,6 +18,8 @@ internal const val KEY_AAID = "ketch_aaid"
 private const val GMS_AD_ID_CLIENT_CLASS =
     "com.google.android.gms.ads.identifier.AdvertisingIdClient"
 
+private const val ZEROED_AAID = "00000000-0000-0000-0000-000000000000"
+
 /**
  * Reads the platform advertising ID. Returns null when unavailable or when the user has limited
  * ad tracking — a zeroed ID must never be treated as a value.
@@ -26,12 +28,19 @@ internal interface AaidReader {
     fun read(context: Context): String?
 }
 
+/**
+ * isLimitAdTrackingEnabled is the documented signal, but some devices hand back the zeroed
+ * placeholder without setting it, so the literal value is checked too.
+ */
+internal fun mapAaid(id: String?, isLimitAdTrackingEnabled: Boolean): String? =
+    if (isLimitAdTrackingEnabled || id == ZEROED_AAID) null else id
+
 internal object GmsAaidReader : AaidReader {
     private val TAG = GmsAaidReader::class.java.simpleName
 
     override fun read(context: Context): String? = try {
         val info = AdvertisingIdClient.getAdvertisingIdInfo(context)
-        if (info.isLimitAdTrackingEnabled) null else info.id
+        mapAaid(info.id, info.isLimitAdTrackingEnabled)
     } catch (ex: Throwable) {
         // Throwable, not Exception: also guards NoClassDefFoundError, in case only part of the
         // compileOnly artifact is present at runtime despite the Class.forName gate passing.

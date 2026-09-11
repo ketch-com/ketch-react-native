@@ -15,6 +15,37 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 
+class MapAaidTest {
+    @Test
+    fun realId_notLimited_returnsTheId() {
+        assertEquals("real-id", mapAaid("real-id", isLimitAdTrackingEnabled = false))
+    }
+
+    @Test
+    fun realId_limited_returnsNull() {
+        assertNull(mapAaid("real-id", isLimitAdTrackingEnabled = true))
+    }
+
+    @Test
+    fun zeroedId_notLimited_returnsNull() {
+        assertNull(
+            mapAaid("00000000-0000-0000-0000-000000000000", isLimitAdTrackingEnabled = false)
+        )
+    }
+
+    @Test
+    fun zeroedId_limited_returnsNull() {
+        assertNull(
+            mapAaid("00000000-0000-0000-0000-000000000000", isLimitAdTrackingEnabled = true)
+        )
+    }
+
+    @Test
+    fun nullId_returnsNull() {
+        assertNull(mapAaid(null, isLimitAdTrackingEnabled = false))
+    }
+}
+
 // getApplicationContext() is overridden directly so no inherited Android framework method is
 // ever invoked on this fake.
 private val fakeContext: Context = object : ContextWrapper(null) {

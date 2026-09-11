@@ -58,6 +58,24 @@ describe('resolveAdIdentifier', () => {
     expect(getAaid).not.toHaveBeenCalled();
   });
 
+  it('returns null when the native method resolves with null, for ketch_idfv', async () => {
+    Platform.OS = 'ios';
+    NativeModules.KetchAdIdentifiers = {
+      getIdfv: jest.fn().mockResolvedValue(null),
+    };
+
+    await expect(resolveAdIdentifier('ketch_idfv')).resolves.toBeNull();
+  });
+
+  it('returns null when the native method resolves with null, for ketch_aaid', async () => {
+    Platform.OS = 'android';
+    NativeModules.KetchAdIdentifiers = {
+      getAaid: jest.fn().mockResolvedValue(null),
+    };
+
+    await expect(resolveAdIdentifier('ketch_aaid')).resolves.toBeNull();
+  });
+
   it('returns null when the native method rejects, for ketch_idfv', async () => {
     Platform.OS = 'ios';
     NativeModules.KetchAdIdentifiers = {
