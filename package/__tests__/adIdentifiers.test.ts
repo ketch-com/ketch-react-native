@@ -1,5 +1,8 @@
 import { NativeModules, Platform } from 'react-native';
-import { isAdIdentifierKey, resolveAdIdentifier } from '../src/util/adIdentifiers';
+import {
+  isAdIdentifierKey,
+  resolveAdIdentifier,
+} from '../src/util/adIdentifiers';
 
 describe('isAdIdentifierKey', () => {
   it.each(['ketch_idfv', 'ketch_aaid'])('is true for %s', (key) => {
