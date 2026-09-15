@@ -38,6 +38,8 @@ import {
   buildTriggerExpression,
   createOptionsString,
   getWebViewConfigKey,
+  isAdIdentifierKey,
+  resolveAdIdentifier,
   savePrivacyToStorage,
   getDeviceLanguageTag,
   getGPPHDRGppString,
@@ -845,10 +847,14 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         const { requestId, key } = message;
         identityKeysRef.current.add(key);
 
+        // Ad IDs come from the platform rather than nativeStorage
+        const readValue = isAdIdentifierKey(key)
+          ? resolveAdIdentifier(key).then((value) => value ?? undefined)
+          : nativeStorage.read(key);
+
         // Reply promptly: the tag gives up after 2000ms and treats no reply the
         // same as an explicit undefined, so a slow read gains nothing.
-        nativeStorage
-          .read(key)
+        readValue
           .then((value) => {
             resolvedIdentitiesRef.current = withIdentityValue(
               resolvedIdentitiesRef.current,
