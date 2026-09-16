@@ -2,7 +2,7 @@
 
 In order to migrate to the most recent version of the core, you need to apply all migration steps from your version to the recent one.
 
-# Migration to "1.2.1"
+# Migration to "2.0.0"
 - Breaking changes for the `getConsent` method.
 `getConsent` is now the server consent read and takes a `ConsentConfig`, matching the iOS and Android SDKs.
 The previous no-argument `getConsent()`, which read locally cached consent, is now `getCachedConsent()`.
