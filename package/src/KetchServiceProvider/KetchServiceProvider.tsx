@@ -301,7 +301,10 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   );
 
   const getConsent = useCallback(
-    (config: ConsentConfig) => {if (config === undefined) {
+    (config: ConsentConfig) => {
+      // This name was the no-arg cached read before 1.2.1. TypeScript rejects the
+      // old call shape; untyped JS callers would otherwise get a Promise back.
+      if (config === undefined) {
         throw new Error(
           'getConsent(config) now reads consent from the server. For the local cache, use getCachedConsent().'
         );
