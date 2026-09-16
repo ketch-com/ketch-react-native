@@ -62,8 +62,13 @@ export class KetchHeadless {
     return this.client.getConsent(config);
   }
 
+  /** @deprecated Use {@link setConsent}. */
   setConsentOnServer(update: ConsentUpdate): Promise<Consent> {
-    return this.client.setConsentOnServer(update);
+    return this.setConsent(update);
+  }
+
+  setConsent(update: ConsentUpdate): Promise<Consent> {
+    return this.client.setConsent(update);
   }
 
   invokeRight(request: InvokeRightRequest): Promise<void> {
@@ -80,7 +85,12 @@ export class KetchHeadless {
     return this.client.setSubscriptions(request);
   }
 
+  /** @deprecated Use {@link getPreferenceQRUrl}. */
   preferenceQRUrl(request: PreferenceQRRequest): string {
-    return this.client.preferenceQRUrl(request);
+    return this.getPreferenceQRUrl(request);
+  }
+
+  getPreferenceQRUrl(request: PreferenceQRRequest): string {
+    return this.client.getPreferenceQRUrl(request);
   }
 }

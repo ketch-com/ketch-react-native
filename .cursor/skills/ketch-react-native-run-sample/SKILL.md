@@ -67,7 +67,7 @@ Sections and controls as they exist in `example/Main.tsx`:
 
 Provider uses `autoLoad={false}` — **Reload** is explicit.
 
-The headless methods (`getRegion`, `getJurisdiction`, `fetchConsent`, `getSubscriptions`, `invokeRight`, the privacy-string getters, `trigger`) have no UI here. Exercising them by hand means adding a temporary panel to `Main.tsx`; render results on screen with their runtime `typeof`, since a string `"false"` and a boolean `false` are indistinguishable in a log line.
+The headless methods (`getRegion`, `getJurisdiction`, `getConsent`, `getSubscriptions`, `invokeRight`, the privacy-string getters, `trigger`) have no UI here. Exercising them by hand means adding a temporary panel to `Main.tsx`; render results on screen with their runtime `typeof`, since a string `"false"` and a boolean `false` are indistinguishable in a log line.
 
 ## Before you run: the app may not be using your working tree
 

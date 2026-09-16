@@ -137,15 +137,15 @@ booted WebView or queued. Queued calls fire on `onConfigLoaded`; if the tag
 never finishes loading, the queue is not drained and there is no later error
 callback. A later `trigger()` supersedes an earlier pending one.
 
-**Reading values** — `getConsent()` reads the cached consent state.
+**Reading values** — `getCachedConsent()` reads locally held consent, without a network call.
 `getRegion()` and `getJurisdiction()` resolve those codes, preferring anything
 you passed as a prop over a network lookup. `getTCFTCString()`,
 `getUSPrivacyString()`, `getGPPHDRGppString()`, and `getSavedString(key)` read
 the IAB privacy strings the tag wrote to native storage. All return promises.
 
-**Headless** — `fetchConsent`, `setConsentOnServer`, `invokeRight`,
+**Headless** — `getConsent`, `setConsent`, `invokeRight`,
 `getBootstrapConfiguration`, `getFullConfiguration`, `getSubscriptions`,
-`setSubscriptions`, and `preferenceQRUrl` hit the CDN directly, for consent
+`setSubscriptions`, and `getPreferenceQRUrl` hit the CDN directly, for consent
 operations that need no WebView.
 
 **Provider props** worth knowing beyond the required codes: `dataCenter`

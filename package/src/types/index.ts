@@ -300,9 +300,9 @@ export interface KetchService {
   ) => boolean;
 
   /**
-   * Get current consent data
+   * Read consent already held locally, without a network call.
    */
-  getConsent: () => Consent | undefined;
+  getCachedConsent: () => Consent | undefined;
 
   /**
    * Update service parameters
@@ -352,10 +352,16 @@ export interface KetchService {
     request: FullConfigurationRequest
   ) => Promise<Record<string, unknown>>;
 
-  /** Server consent including `protocols`. Does not read WebView cache — use [getConsent]. */
+  /** Server consent including `protocols`. Does not read the local cache — use [getCachedConsent]. */
+  getConsent: (config: ConsentConfig) => Promise<Consent>;
+
+  /** @deprecated Use {@link getConsent}. */
   fetchConsent: (config: ConsentConfig) => Promise<Consent>;
 
   /** Updates consent on the CDN; returns server-computed `protocols`. */
+  setConsent?: (update: ConsentUpdate) => Promise<Consent>;
+
+  /** @deprecated Use {@link setConsent}. */
   setConsentOnServer?: (update: ConsentUpdate) => Promise<Consent>;
 
   /** Invokes a data subject right (`POST .../rights/{org}/invoke`). */
@@ -370,6 +376,9 @@ export interface KetchService {
   setSubscriptions?: (request: SubscriptionsRequest) => Promise<void>;
 
   /** Builds preferences QR image URL (no HTTP). */
+  getPreferenceQRUrl?: (request: PreferenceQRRequest) => string;
+
+  /** @deprecated Use {@link getPreferenceQRUrl}. */
   preferenceQRUrl?: (request: PreferenceQRRequest) => string;
 
   /**
