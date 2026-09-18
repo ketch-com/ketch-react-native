@@ -145,7 +145,7 @@ the IAB privacy strings the tag wrote to native storage. All return promises.
 
 **Headless** — `getConsent`, `setConsent`, `invokeRight`,
 `getBootstrapConfiguration`, `getFullConfiguration`, `getSubscriptions`,
-`setSubscriptions`, and `getPreferenceQRUrl` hit the CDN directly, for consent
+`setSubscriptions`, and `getPreferenceQRUrl` hit the CDN directly, for
 operations that need no WebView.
 
 **Provider props** worth knowing beyond the required codes: `dataCenter`
