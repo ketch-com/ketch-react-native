@@ -287,10 +287,29 @@ describe('Headless consent payloads', () => {
     );
   });
 
-  it('preferenceQRUrl matches contract fixture', () => {
+  it('deprecated aliases delegate to their replacements', async () => {
+    const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
+    const request = {
+      organizationCode: 'switchbitcorp',
+      propertyCode: 'switchbit',
+    };
+    expect(client.preferenceQRUrl(request)).toBe(
+      client.getPreferenceQRUrl(request)
+    );
+
+    const setConsent = jest
+      .spyOn(client, 'setConsent')
+      .mockResolvedValue({} as never);
+    const update = consentUpdate;
+    await client.setConsentOnServer(update);
+    expect(setConsent).toHaveBeenCalledWith(update);
+    setConsent.mockRestore();
+  });
+
+  it('getPreferenceQRUrl matches contract fixture', () => {
     const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
     expect(
-      client.preferenceQRUrl({
+      client.getPreferenceQRUrl({
         organizationCode: 'switchbitcorp',
         propertyCode: 'switchbit',
         environmentCode: 'production',
@@ -353,13 +372,13 @@ describe('HeadlessApiClient consent', () => {
     await expect(client.getConsent(consentConfig)).rejects.toThrow('HTTP 500');
   });
 
-  it('setConsentOnServer propagates network failure', async () => {
+  it('setConsent propagates network failure', async () => {
     const client = new HeadlessApiClient({
       dataCenter: KetchDataCenter.US,
       fetchFn: mockFetchNetworkError(new TypeError('Network request failed')),
     });
 
-    await expect(client.setConsentOnServer(consentUpdate)).rejects.toThrow(
+    await expect(client.setConsent(consentUpdate)).rejects.toThrow(
       HeadlessException
     );
   });
@@ -397,7 +416,7 @@ describe('HeadlessApiClient consent', () => {
     });
   });
 
-  it('setConsentOnServer accepts protocols-only response', async () => {
+  it('setConsent accepts protocols-only response', async () => {
     const client = new HeadlessApiClient({
       dataCenter: KetchDataCenter.US,
       fetchFn: mockFetchResponse({
@@ -406,7 +425,7 @@ describe('HeadlessApiClient consent', () => {
       }),
     });
 
-    await expect(client.setConsentOnServer(consentUpdate)).resolves.toEqual({
+    await expect(client.setConsent(consentUpdate)).resolves.toEqual({
       purposes: {},
       vendors: undefined,
       protocols: { gpp: 'DBABLA~' },
@@ -491,7 +510,7 @@ describe('hasUsableConsentFields (via getConsent)', () => {
     });
   });
 
-  it('setConsentOnServer falls back when response has empty purposes and protocols', async () => {
+  it('setConsent falls back when response has empty purposes and protocols', async () => {
     const client = new HeadlessApiClient({
       dataCenter: KetchDataCenter.US,
       fetchFn: mockFetchResponse({
@@ -500,7 +519,7 @@ describe('hasUsableConsentFields (via getConsent)', () => {
       }),
     });
 
-    await expect(client.setConsentOnServer(consentUpdate)).resolves.toEqual({
+    await expect(client.setConsent(consentUpdate)).resolves.toEqual({
       purposes: { analytics: true },
       vendors: undefined,
       protocols: {},
@@ -580,10 +599,10 @@ describe('HeadlessApiClient URL building under the React Native URL polyfill', (
     );
   });
 
-  it('preferenceQRUrl works without URLSearchParams.set', () => {
+  it('getPreferenceQRUrl works without URLSearchParams.set', () => {
     const client = new HeadlessApiClient({ dataCenter: KetchDataCenter.US });
     expect(
-      client.preferenceQRUrl({
+      client.getPreferenceQRUrl({
         organizationCode: 'org',
         propertyCode: 'prop',
         environmentCode: 'production',
@@ -654,7 +673,7 @@ describe('Consent purpose conversion', () => {
         },
       })
     );
-    const consent = await client.setConsentOnServer(consentUpdate);
+    const consent = await client.setConsent(consentUpdate);
     expect(consent.purposes).toEqual({ analytics_900: false });
   });
 

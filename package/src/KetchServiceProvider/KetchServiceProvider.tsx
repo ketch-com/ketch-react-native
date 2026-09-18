@@ -300,15 +300,21 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     []
   );
 
-  const fetchConsent = useCallback(
-    (config: ConsentConfig) =>
-      headlessApi.getConsent(withMergedIdentities(config)),
+  const getConsent = useCallback(
+    (config: ConsentConfig) => {
+      if (config === undefined) {
+        throw new Error(
+          'getConsent(config) now reads consent from the server. For the local cache, use getCachedConsent().'
+        );
+      }
+      return headlessApi.getConsent(withMergedIdentities(config));
+    },
     [headlessApi, withMergedIdentities]
   );
 
-  const setConsentOnServer = useCallback(
+  const setConsent = useCallback(
     (update: ConsentUpdate) =>
-      headlessApi.setConsentOnServer(withMergedIdentities(update)),
+      headlessApi.setConsent(withMergedIdentities(update)),
     [headlessApi, withMergedIdentities]
   );
 
@@ -330,8 +336,8 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
     [headlessApi, withMergedIdentities]
   );
 
-  const preferenceQRUrl = useCallback(
-    (request: PreferenceQRRequest) => headlessApi.preferenceQRUrl(request),
+  const getPreferenceQRUrl = useCallback(
+    (request: PreferenceQRRequest) => headlessApi.getPreferenceQRUrl(request),
     [headlessApi]
   );
 
@@ -526,9 +532,9 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   );
 
   /**
-   * Get consent state
+   * Read consent already held locally, without a network call.
    */
-  const getConsent = useCallback(() => consent.current, []);
+  const getCachedConsent = useCallback(() => consent.current, []);
 
   /**
    * Update KetchServiceProvider parameters
@@ -892,7 +898,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       showPreferenceExperience,
       dismissExperience,
       trigger,
-      getConsent,
+      getCachedConsent,
       updateParameters,
       load,
       setCssOverride,
@@ -904,12 +910,16 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       getGPPHDRGppString: getGPPHDRGppStringForContext,
       getBootstrapConfiguration,
       getFullConfiguration,
-      fetchConsent,
-      setConsentOnServer,
+      getConsent,
+      setConsent,
+      getPreferenceQRUrl,
+      // Deprecated aliases, removed in a future release.
+      fetchConsent: getConsent,
+      setConsentOnServer: setConsent,
+      preferenceQRUrl: getPreferenceQRUrl,
       invokeRight,
       getSubscriptions,
       setSubscriptions,
-      preferenceQRUrl,
       getIdentities,
       clearIdentities,
     }),
@@ -918,7 +928,7 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       showPreferenceExperience,
       dismissExperience,
       trigger,
-      getConsent,
+      getCachedConsent,
       updateParameters,
       load,
       setCssOverride,
@@ -930,12 +940,12 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
       getGPPHDRGppStringForContext,
       getBootstrapConfiguration,
       getFullConfiguration,
-      fetchConsent,
-      setConsentOnServer,
+      getConsent,
+      setConsent,
+      getPreferenceQRUrl,
       invokeRight,
       getSubscriptions,
       setSubscriptions,
-      preferenceQRUrl,
       getIdentities,
       clearIdentities,
     ]

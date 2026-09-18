@@ -164,8 +164,13 @@ export class HeadlessApiClient {
     await this.postVoid(path, body as unknown as Record<string, unknown>);
   }
 
-  /** Builds preferences QR image URL (no HTTP). */
+  /** @deprecated Use {@link getPreferenceQRUrl}. */
   preferenceQRUrl(request: PreferenceQRRequest): string {
+    return this.getPreferenceQRUrl(request);
+  }
+
+  /** Builds preferences QR image URL (no HTTP). */
+  getPreferenceQRUrl(request: PreferenceQRRequest): string {
     const query: Record<string, string> = {};
     if (request.environmentCode) {
       query.env = request.environmentCode;
@@ -191,8 +196,13 @@ export class HeadlessApiClient {
     );
   }
 
+  /** @deprecated Use {@link setConsent}. */
+  setConsentOnServer(update: ConsentUpdate): Promise<Consent> {
+    return this.setConsent(update);
+  }
+
   /** Updates consent; returns server response with computed `protocols`. */
-  async setConsentOnServer(update: ConsentUpdate): Promise<Consent> {
+  async setConsent(update: ConsentUpdate): Promise<Consent> {
     const path = `/consent/${update.organizationCode}/update`;
     const response = await this.post(
       path,

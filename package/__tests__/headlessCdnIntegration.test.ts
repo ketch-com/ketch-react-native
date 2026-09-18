@@ -84,7 +84,7 @@ const runIntegration = process.env.KETCH_INTEGRATION_TESTS === '1';
       },
     };
 
-    const updated = await client.setConsentOnServer(withoutProtocols(update));
+    const updated = await client.setConsent(withoutProtocols(update));
     // toBeDefined() would also pass for the string 'true'; assert the boolean.
     expect(updated.purposes?.[purposeCode || '']).toBe(true);
     expect(typeof updated.purposes?.[purposeCode || '']).toBe('boolean');
@@ -113,7 +113,7 @@ const runIntegration = process.env.KETCH_INTEGRATION_TESTS === '1';
     const purposeCode = Object.keys(consentConfig.purposes)[0] || '';
     const legalBasis = consentConfig.purposes[purposeCode];
 
-    const denied = await client.setConsentOnServer(
+    const denied = await client.setConsent(
       withoutProtocols({
         organizationCode: HeadlessIntegrationSupport.orgCode,
         propertyCode: HeadlessIntegrationSupport.propertyCode,

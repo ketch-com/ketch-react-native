@@ -8,11 +8,12 @@ export const KetchServiceContext = createContext<KetchService>({
   showPreferenceExperience: () => {},
   dismissExperience: () => {},
   trigger: () => false,
-  getConsent: () => ({}) as Consent,
+  getCachedConsent: () => ({}) as Consent,
   // @ts-ignore
   updateParameters: (parameters: Partial<KetchMobile>) => {},
   setCssOverride: (_css: string) => {},
   getRegion: () => Promise.resolve(undefined),
   getJurisdiction: () => Promise.resolve(undefined),
+  getConsent: () => Promise.resolve({}) as Promise<Consent>,
   fetchConsent: () => Promise.resolve({}) as Promise<Consent>,
 });
