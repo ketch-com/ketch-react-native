@@ -9,6 +9,7 @@ export const getIndexHtml = (parameters: KetchMobile) => {
   <head>
     <style>
       body {
+        margin: 0;
         height: 100dvh;
         width: 100dvw;
         min-height: -webkit-fill-available;
@@ -221,6 +222,23 @@ export const injectCssIntoHtml = (html: string, css?: string) => {
   if (css && css.trim()) {
     const cssTag = `<style>${css}</style>`;
     return html.replace('</head>', `${cssTag}\n</head>`);
+  }
+  return html;
+};
+
+/**
+ * Sets the direction attribute on the WebView document root
+ * (<html dir="...">). This is what activates direction-sensitive styling in
+ * the experiences, e.g. Tailwind's rtl:/ltr: variants (which compile to
+ * [dir="rtl"]/[dir="ltr"] ancestor selectors) and [dir='rtl'] rules in a
+ * cssOverride.
+ */
+export const injectDirIntoHtml = (
+  html: string,
+  dir?: 'ltr' | 'rtl' | 'auto'
+) => {
+  if (dir) {
+    return html.replace('<html>', `<html dir="${dir}">`);
   }
   return html;
 };
