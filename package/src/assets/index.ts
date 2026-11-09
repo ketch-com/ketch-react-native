@@ -103,21 +103,6 @@ export const getIndexHtml = (parameters: KetchMobile) => {
         };
       })(window.console);
 
-      // A temporary workaround to get banner/modal dimensions on tablets
-      // TODO: remove this once there will be a way to get dialogs position from JS SDK
-      function getDialogSize() {
-        var domElem = document.querySelector(
-          '#lanyard_root div[role="dialog"]'
-        );
-        if (!domElem) {
-          return;
-        }
-        var domRect = domElem.getBoundingClientRect();
-        if (domRect) {
-          return domRect;
-        }
-      }
-
       function installWebResourceUrlOverrides(overrides) {
         if (!overrides || !Object.keys(overrides).length) return;
         function resolveUrl(url) {
@@ -198,14 +183,6 @@ export const getIndexHtml = (parameters: KetchMobile) => {
           document.getElementsByTagName('head')[0].appendChild(e);
         }
       }
-      // We put the script inside body, otherwise document.body will be null
-      // Trigger taps outside the dialog
-      document.body.addEventListener('touchstart', function (e) {
-        if (e.target === document.body) {
-          emitEvent('tapOutside', [getDialogSize()]);
-        }
-      });
-
       initKetchTag(${parametersStringified});
     </script>
   </body>
