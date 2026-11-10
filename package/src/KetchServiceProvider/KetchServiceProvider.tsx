@@ -712,10 +712,6 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
         setIsVisible(false);
         break;
 
-      case EventName.tapOutside:
-        setIsVisible(false);
-        break;
-
       case EventName.environment:
         parameters.onEnvironmentUpdated?.(data.data);
         break;
