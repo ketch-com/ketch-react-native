@@ -180,6 +180,8 @@
       "postcss": "^8.5.10"
     },
     "basic-ftp": "^6.2.3",
-    "@octokit/plugin-paginate-rest": "9.2.2"
+    "@octokit/plugin-paginate-rest": "9.2.2",
+    "glob@^10": "14.0.5",
+    "minimatch@^9": "11.0.8"
   }
 }
