@@ -179,7 +179,7 @@
     "@expo/metro-config": {
       "postcss": "^8.5.10"
     },
-    "basic-ftp": "^6.2.3",
+    "basic-ftp": "^6.2.4",
     "@octokit/plugin-paginate-rest": "9.2.2",
     "glob@^10": "14.0.5",
     "minimatch@^9": "11.0.8"
