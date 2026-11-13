@@ -2642,10 +2642,10 @@ baseline-browser-mapping@^2.11.25:
   resolved "https://registry.npmjs.org/baseline-browser-mapping/-/baseline-browser-mapping-2.11.26.tgz"
   integrity sha512-GLQdD3y6UF8iVuMJl5fHgE4jdn/ua7n+toKfLgNlg3BqQtOZjpy68T8Tup8/wGWZCDlm7KMg7tPb4MPn7oN0TQ==
 
-basic-ftp@^6.2.3:
-  version "6.2.3"
-  resolved "https://registry.npmjs.org/basic-ftp/-/basic-ftp-6.2.3.tgz"
-  integrity sha512-T7GYtQ2eKJUN5YORG7A8u2WfB9JMN0a4/wl3MI64qq2qTRfa3FXzoNq0DDojZDkDyStcL+TkfKsz4JHEZx5kGQ==
+basic-ftp@^6.2.4:
+  version "6.2.6"
+  resolved "https://registry.npmjs.org/basic-ftp/-/basic-ftp-6.2.6.tgz"
+  integrity sha512-0EjZCaodOz6yiokv2JA1VyKGNdGxULZ+GGlPgG9tm4d+T/bHtX1hUch8CumDneBfpIbiSdn7TaCGwpM+gwsOlw==
 
 before-after-hook@^2.2.0:
   version "2.2.3"
