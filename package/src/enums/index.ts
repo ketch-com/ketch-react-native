@@ -33,7 +33,7 @@ export enum PrivacyProtocol {
 
 export enum TriggerName {
   Custom = 'custom',
-  PrivacyPrefUnknown = 'privacyPrefUnknown',
+  PrivacyPreferenceUnknown = 'privacyPreferenceUnknown',
   PreferencesOpened = 'preferencesOpened',
   DnsOpened = 'dnsOpened',
 }

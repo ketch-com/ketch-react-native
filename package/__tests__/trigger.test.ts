@@ -186,11 +186,11 @@ describe('resolveTriggerExpression', () => {
 
   it('treats null options as empty', () => {
     const resolved = resolveTriggerExpression(
-      TriggerName.PrivacyPrefUnknown,
+      TriggerName.PrivacyPreferenceUnknown,
       null
     );
     expect(resolved.ok && resolved.expression).toBe(
-      'ketch("trigger", "privacyPrefUnknown", {}); true;'
+      'ketch("trigger", "privacyPreferenceUnknown", {}); true;'
     );
   });
 

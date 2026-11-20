@@ -134,7 +134,7 @@ trigger(TriggerName.Custom, 'managePrivacy');
 ```
 
 `trigger(name, options?)` runs `ketch('trigger', name, options)` in the tag.
-`TriggerName` lists the known names (`privacyPrefUnknown`, `preferencesOpened`,
+`TriggerName` lists the known names (`privacyPreferenceUnknown`, `preferencesOpened`,
 `dnsOpened`), and any other string is passed through, so a trigger added to the
 tag later needs no SDK update. `custom` keeps its function-name form and fires
 the matching `onFunction` rule.
