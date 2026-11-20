@@ -289,15 +289,34 @@ export interface KetchService {
   dismissExperience: () => void;
 
   /**
-   * Fire an `onFunction` rule trigger. If a backend rule matches, any experience it
-   * shows is presented automatically. Queues until the tag has loaded its config.
-   * @returns false if functionName is invalid or an experience is already showing
+   * Fire a rule trigger. If a backend rule matches, any experience it shows is
+   * presented automatically. Queues until the tag has loaded its config.
+   *
+   * `trigger(TriggerName.Custom, functionName, options?)` fires an `onFunction` rule.
+   * `trigger(name, options?)` calls `ketch('trigger', name, options)` for any other
+   * name, including names added to the tag after this SDK version.
+   * @returns false if the name, functionName or options are invalid, or an
+   * experience is already showing
    */
-  trigger: (
-    triggerName: TriggerName,
-    functionName: string,
-    options?: Record<string, unknown>
-  ) => boolean;
+  trigger: {
+    (
+      triggerName: TriggerName.Custom,
+      functionName: string,
+      options?: Record<string, unknown>
+    ): boolean;
+    // Any name except custom, which must use the function-name form above
+    <Name extends string>(
+      triggerName: Name extends `${TriggerName.Custom}` ? never : Name,
+      options?: Record<string, any>
+    ): boolean;
+    // Keeps a TriggerName-typed value with a function name compiling; the runtime
+    // rejects a function name for any name other than custom
+    (
+      triggerName: TriggerName,
+      functionName: string,
+      options?: Record<string, unknown>
+    ): boolean;
+  };
 
   /**
    * Read consent already held locally, without a network call.

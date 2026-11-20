@@ -33,6 +33,9 @@ export enum PrivacyProtocol {
 
 export enum TriggerName {
   Custom = 'custom',
+  PrivacyPreferenceUnknown = 'privacyPreferenceUnknown',
+  PreferencesOpened = 'preferencesOpened',
+  DnsOpened = 'dnsOpened',
 }
 
 export enum EventName {

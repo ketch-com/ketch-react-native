@@ -2,7 +2,7 @@ import {
   LogLevel,
   MobileSdkUrlByDataCenterMap,
   OnHideExperienceArgument,
-  type TriggerName,
+  TriggerName,
   WillShowExperienceType,
 } from '../enums';
 import type { AllExperienceOptions, CommonExperienceOptions } from '../types';
@@ -234,6 +234,111 @@ export const buildTriggerExpression = (
     optionsJson = '{}';
   }
   return `ketch("trigger", "${triggerName}", "${functionName}", ${optionsJson}); true;`;
+};
+
+/** Accepts a name that starts with a letter, followed by letters, digits, '_', or '-'. */
+const TRIGGER_NAME_REGEX = /^[A-Za-z][A-Za-z0-9_-]*$/;
+
+export const isValidTriggerName = (name: string): boolean =>
+  TRIGGER_NAME_REGEX.test(name);
+
+/**
+ * JSON-encodes a value as a JS literal. U+2028 and U+2029 are escaped because
+ * older JS engines treat them as line terminators inside string literals.
+ */
+const toJsLiteral = (value: unknown): string =>
+  JSON.stringify(value)
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+
+/**
+ * Builds the JS injected for a named trigger call, `ketch("trigger", name, options)`.
+ * Non-serializable options are dropped to `{}` rather than failing the call.
+ */
+export const buildNamedTriggerExpression = (
+  name: string,
+  options?: Record<string, unknown> | null
+): string => {
+  let optionsJson = '{}';
+  try {
+    optionsJson = toJsLiteral(options ?? {});
+  } catch {
+    optionsJson = '{}';
+  }
+  return `ketch("trigger", ${toJsLiteral(name)}, ${optionsJson}); true;`;
+};
+
+export type TriggerExpressionResult =
+  | { ok: true; expression: string; label: string }
+  | { ok: false; error: string };
+
+const isOptionsObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * Validates trigger() arguments and builds the expression to inject. `custom` takes
+ * a function name and keeps its original validation and output; every other name
+ * takes options only.
+ * `label` names the call in log messages.
+ */
+export const resolveTriggerExpression = (
+  name: unknown,
+  functionNameOrOptions?: unknown,
+  customOptions?: Record<string, unknown>
+): TriggerExpressionResult => {
+  if (name === TriggerName.Custom) {
+    // Plain-JS callers may pass a non-string function name; it is coerced to a
+    // string by the validator and the template literal, as the custom form always has.
+    const functionName = functionNameOrOptions as string;
+    if (!isValidTriggerFunctionName(functionName)) {
+      return {
+        ok: false,
+        error:
+          "[Ketch] trigger rejected: functionName must be non-blank and contain only letters, digits, '_', '-', or '.'",
+      };
+    }
+    return {
+      ok: true,
+      expression: buildTriggerExpression(
+        TriggerName.Custom,
+        functionName,
+        customOptions
+      ),
+      label: `${functionName}`,
+    };
+  }
+
+  if (typeof name !== 'string' || !isValidTriggerName(name)) {
+    return {
+      ok: false,
+      error:
+        "[Ketch] trigger rejected: name must start with a letter and contain only letters, digits, '_', or '-'",
+    };
+  }
+
+  if (typeof functionNameOrOptions === 'string') {
+    return {
+      ok: false,
+      error: `[Ketch] trigger rejected: a function name is only accepted for '${TriggerName.Custom}'; pass options for '${name}'`,
+    };
+  }
+
+  if (
+    functionNameOrOptions !== undefined &&
+    functionNameOrOptions !== null &&
+    !isOptionsObject(functionNameOrOptions)
+  ) {
+    return {
+      ok: false,
+      error: `[Ketch] trigger rejected: options for '${name}' must be an object`,
+    };
+  }
+
+  return {
+    ok: true,
+    expression: buildNamedTriggerExpression(name, functionNameOrOptions),
+    label: name,
+  };
 };
 
 /** Maps a hideExperience reason from the WebView, falling back to `none` when unrecognized. */

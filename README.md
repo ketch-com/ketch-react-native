@@ -128,11 +128,19 @@ const { showConsentExperience, trigger, getRegion } = useKetchService();
 **Rule triggers**
 
 ```tsx
+trigger(TriggerName.DnsOpened);
+trigger('preferencesOpened', { tab: PreferenceTab.RightsTab });
 trigger(TriggerName.Custom, 'managePrivacy');
 ```
 
-Returns `false` if the function name is invalid or an experience is already
-showing. Returns `true` when the call is accepted — either injected into a
+`trigger(name, options?)` runs `ketch('trigger', name, options)` in the tag.
+`TriggerName` lists the known names (`privacyPreferenceUnknown`, `preferencesOpened`,
+`dnsOpened`), and any other string is passed through, so a trigger added to the
+tag later needs no SDK update. `custom` keeps its function-name form and fires
+the matching `onFunction` rule.
+
+Returns `false` if the name, function name or options are invalid, or an
+experience is already showing. Returns `true` when the call is accepted — either injected into a
 booted WebView or queued. Queued calls fire on `onConfigLoaded`; if the tag
 never finishes loading, the queue is not drained and there is no later error
 callback. A later `trigger()` supersedes an earlier pending one.

@@ -35,7 +35,6 @@ import { KetchServiceContext } from '../context';
 import { Action, reducer } from './reducer';
 import {
   buildNativeResolveReply,
-  buildTriggerExpression,
   createOptionsString,
   getWebViewConfigKey,
   isAdIdentifierKey,
@@ -46,10 +45,10 @@ import {
   getSavedString,
   getTCFTCString,
   getUSPrivacyString,
-  isValidTriggerFunctionName,
   mergeIdentities,
   normalizeKetchMobileSdkUrl,
   parseNativeResolveMessage,
+  resolveTriggerExpression,
   toHideExperienceArgument,
   toWillShowExperienceType,
   withIdentityValue,
@@ -483,33 +482,32 @@ export const KetchServiceProvider: React.FC<KetchServiceProviderParams> = ({
   }, []);
 
   /**
-   * Fire an onFunction rule trigger
+   * Fire a rule trigger by name; `custom` also takes a function name
    */
   const trigger = useCallback(
     (
-      triggerName: TriggerName,
-      functionName: string,
+      triggerName: TriggerName | string,
+      functionNameOrOptions?: string | Record<string, unknown>,
       options: Record<string, unknown> = {}
     ): boolean => {
-      if (!isValidTriggerFunctionName(functionName)) {
-        console.warn(
-          "[Ketch] trigger rejected: functionName must be non-blank and contain only letters, digits, '_', '-', or '.'"
-        );
+      const resolved = resolveTriggerExpression(
+        triggerName,
+        functionNameOrOptions,
+        options
+      );
+      if (!resolved.ok) {
+        console.warn(resolved.error);
         return false;
       }
 
       if (isVisible) {
         console.warn(
-          `[Ketch] Not triggering '${functionName}' as an experience is already being shown`
+          `[Ketch] Not triggering '${resolved.label}' as an experience is already being shown`
         );
         return false;
       }
 
-      const expression = buildTriggerExpression(
-        triggerName,
-        functionName,
-        options
-      );
+      const { expression } = resolved;
 
       // true means accepted (injected now or queued) — not that an experience
       // appeared. A queued call only runs after onConfigLoaded; if that never
